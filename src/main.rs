@@ -17,8 +17,21 @@ struct CoordinateComponents {
     values: [Coordinates; 4],
 }
 
+struct ActionTimers {
+    values: [u32; 4]
+}
+
+impl ActionTimers {
+    fn decrement(&mut self) {
+        for &(mut timer) in self.values.iter() {
+            timer = timer - 1
+        }
+    }
+}
+
 struct Components {
     coords: CoordinateComponents,
+    action_timers: ActionTimers
 }
 
 fn draw_squares(coords: &CoordinateComponents, canvas: &mut Canvas<Window>) { 
@@ -52,7 +65,8 @@ pub fn main() {
     let components = Components {
         coords: CoordinateComponents {
             values: [Coordinates{x: 0, y: 0}, Coordinates{x: 200, y: 300}, Coordinates{x: 300, y: 500}, Coordinates{x: 400, y: 400}],
-        }
+        },
+        action_timers: ActionTimers { values: [10, 10, 10, 10] }
     };
 
     'running: loop {
