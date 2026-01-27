@@ -8,14 +8,26 @@ use sdl3::render::Canvas;
 use std::time::Duration;
 use sdl3::video::Window;
 
-fn draw_squares(coords: [(i32, i32); 4], canvas: &mut Canvas<Window>) { 
+struct Coordinates {
+    x: i32,
+    y: i32,
+}
+
+struct CoordinateComponents {
+    values: [Coordinates; 4],
+}
+
+struct Components {
+    coords: CoordinateComponents,
+}
+
+fn draw_squares(coords: &CoordinateComponents, canvas: &mut Canvas<Window>) { 
     let s_width = 100;
-    // let square = Rect::new(300, 200, s_width, s_width);
     let s_color = Color::RGB(125, 125, 125);
 
     canvas.set_draw_color(s_color);
-    for &(x, y) in coords.iter() {
-        let square = Rect::new(x, y, s_width, s_width);
+    for c in coords.values.iter() {
+        let square = Rect::new(c.x, c.y, s_width, s_width);
         _ = canvas.fill_rect(square);
     }
 }
@@ -37,7 +49,11 @@ pub fn main() {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let coords = [(0, 0), (200, 300), (300, 500), (400, 400)];
+    let components = Components {
+        coords: CoordinateComponents {
+            values: [Coordinates{x: 0, y: 0}, Coordinates{x: 200, y: 300}, Coordinates{x: 300, y: 500}, Coordinates{x: 400, y: 400}],
+        }
+    };
 
     'running: loop {
         i = (i + 1) % 255;
@@ -54,7 +70,7 @@ pub fn main() {
         }
         // The rest of the game loop goes here...
       
-        draw_squares(coords, &mut canvas);
+        draw_squares(&components.coords, &mut canvas);
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
