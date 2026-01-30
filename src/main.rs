@@ -17,14 +17,25 @@ struct CoordinateComponents {
     values: [Coordinates; 4],
 }
 
+struct Timer { time: u32, reset: u32 }
+
+impl Timer {
+    fn update(&mut self) {
+        self.time = self.time - 1;
+        if self.time <= 0 {
+            self.time = self.reset;
+        }
+    }
+}
+
 struct ActionTimers {
-    values: [u32; 4]
+    values: [Timer; 4]
 }
 
 impl ActionTimers {
-    fn decrement(&mut self) {
-        for &(mut timer) in self.values.iter() {
-            timer = timer - 1
+    fn update(&mut self) {
+        for timer in self.values.iter_mut() {
+            timer.update();
         }
     }
 }
@@ -62,11 +73,13 @@ pub fn main() {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let components = Components {
+    let mut components = Components {
         coords: CoordinateComponents {
             values: [Coordinates{x: 0, y: 0}, Coordinates{x: 200, y: 300}, Coordinates{x: 300, y: 500}, Coordinates{x: 400, y: 400}],
         },
-        action_timers: ActionTimers { values: [10, 10, 10, 10] }
+        action_timers: ActionTimers { 
+            values: [Timer { time: 10, reset: 5 }, Timer { time: 10, reset: 7 }, Timer { time: 13, reset: 13 }, Timer { time: 10, reset: 17}]
+        }
     };
 
     'running: loop {
@@ -85,6 +98,7 @@ pub fn main() {
         // The rest of the game loop goes here...
       
         draw_squares(&components.coords, &mut canvas);
+        components.action_timers.update();
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
