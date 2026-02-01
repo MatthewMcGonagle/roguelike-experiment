@@ -1,10 +1,8 @@
 extern crate sdl3;
 
 mod components;
-mod systems;
 
 use components::*;
-use systems::*;
 
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
@@ -45,7 +43,7 @@ pub fn main() {
         }
         // The rest of the game loop goes here...
       
-        draw_squares(&components.coords, &mut canvas);
+        systems::draw_squares(&components.coords, &mut canvas);
         components.action_timers.update();
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));

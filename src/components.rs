@@ -1,13 +1,15 @@
-pub struct Coordinates {
-    pub x: i32,
-    pub y: i32,
+pub mod systems;
+
+struct Coordinates {
+    x: i32,
+    y: i32,
 }
 
 pub struct CoordinateComponents {
-    pub values: [Coordinates; 4],
+    values: [Coordinates; 4],
 }
 
-pub struct Timer { pub time: u32, pub reset: u32 }
+struct Timer { time: u32, reset: u32 }
 
 impl Timer {
     fn update(&mut self) {
@@ -19,7 +21,7 @@ impl Timer {
 }
 
 pub struct ActionTimers {
-    pub values: [Timer; 4]
+    values: [Timer; 4]
 }
 
 impl ActionTimers {
