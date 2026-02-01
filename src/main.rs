@@ -1,60 +1,15 @@
 extern crate sdl3;
 
-use sdl3::pixels::Color;
+mod components;
+mod systems;
+
+use components::*;
+use systems::*;
+
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
-use sdl3::rect::Rect;
-use sdl3::render::Canvas;
+use sdl3::pixels::Color;
 use std::time::Duration;
-use sdl3::video::Window;
-
-struct Coordinates {
-    x: i32,
-    y: i32,
-}
-
-struct CoordinateComponents {
-    values: [Coordinates; 4],
-}
-
-struct Timer { time: u32, reset: u32 }
-
-impl Timer {
-    fn update(&mut self) {
-        self.time = self.time - 1;
-        if self.time <= 0 {
-            self.time = self.reset;
-        }
-    }
-}
-
-struct ActionTimers {
-    values: [Timer; 4]
-}
-
-impl ActionTimers {
-    fn update(&mut self) {
-        for timer in self.values.iter_mut() {
-            timer.update();
-        }
-    }
-}
-
-struct Components {
-    coords: CoordinateComponents,
-    action_timers: ActionTimers
-}
-
-fn draw_squares(coords: &CoordinateComponents, canvas: &mut Canvas<Window>) { 
-    let s_width = 100;
-    let s_color = Color::RGB(125, 125, 125);
-
-    canvas.set_draw_color(s_color);
-    for c in coords.values.iter() {
-        let square = Rect::new(c.x, c.y, s_width, s_width);
-        _ = canvas.fill_rect(square);
-    }
-}
 
 pub fn main() {
     let sdl_context = sdl3::init().unwrap();
