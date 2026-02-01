@@ -28,14 +28,7 @@ pub fn main() {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut components = Components {
-        coords: CoordinateComponents {
-            values: [Coordinates{x: 0, y: 0}, Coordinates{x: 200, y: 300}, Coordinates{x: 300, y: 500}, Coordinates{x: 400, y: 400}],
-        },
-        action_timers: ActionTimers { 
-            values: [Timer { time: 10, reset: 5 }, Timer { time: 10, reset: 7 }, Timer { time: 13, reset: 13 }, Timer { time: 10, reset: 17}]
-        }
-    };
+    let mut components = Components::initialize();
 
     'running: loop {
         i = (i + 1) % 255;
