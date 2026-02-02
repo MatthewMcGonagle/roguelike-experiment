@@ -1,8 +1,9 @@
-use crate::components::*;
 use sdl3::pixels::Color;
 use sdl3::rect::Rect;
 use sdl3::render::Canvas;
 use sdl3::video::Window;
+
+use crate::components::*;
 
 pub fn draw_squares(coords: &CoordinateComponents, canvas: &mut Canvas<Window>) { 
     let s_width = 100;
