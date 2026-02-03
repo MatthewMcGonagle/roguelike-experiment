@@ -1,5 +1,6 @@
 extern crate sdl3;
 
+mod entities;
 mod components;
 mod systems;
 
