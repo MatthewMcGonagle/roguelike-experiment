@@ -4,6 +4,7 @@ mod entities;
 mod components;
 mod systems;
 
+use entities::*;
 use components::*;
 use systems::*;
 
@@ -30,6 +31,12 @@ pub fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
     let mut components = Components::initialize();
+    let mut entities = Entities::initialize();
+
+    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 200 }, 20);
+    entities.add_timed_square(&mut components, Coordinates { x: 300, y: 200 }, 30);
+    entities.add_timed_square(&mut components, Coordinates { x: 400, y: 400 }, 50);
+    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 400 }, 70);
 
     'running: loop {
         i = (i + 1) % 255;

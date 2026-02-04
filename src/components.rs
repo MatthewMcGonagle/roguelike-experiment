@@ -1,3 +1,5 @@
+const CAPACITY: usize = 10;
+
 pub struct Coordinates {
     pub x: i32,
     pub y: i32,
@@ -39,10 +41,10 @@ impl Components {
     pub fn initialize() -> Components {
         Components {
             coords: CoordinateComponents {
-                values: Vec::from([Coordinates{x: 0, y: 0}, Coordinates{x: 200, y: 300}, Coordinates{x: 300, y: 500}, Coordinates{x: 400, y: 400}]),
+                values: Vec::with_capacity(CAPACITY)
             },
             action_timers: ActionTimers { 
-                values: Vec::from([Timer { time: 10, reset: 5 }, Timer { time: 10, reset: 7 }, Timer { time: 13, reset: 13 }, Timer { time: 10, reset: 17}])
+                values: Vec::with_capacity(CAPACITY)
             }
         }
     }
