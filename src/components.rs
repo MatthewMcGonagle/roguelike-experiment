@@ -9,7 +9,7 @@ pub struct CoordinateComponents {
     pub values: Vec<Coordinates>,
 }
 
-pub struct Timer { pub time: u32, pub reset: u32 }
+pub struct Timer { pub entity: u32, pub time: u32, pub reset: u32 }
 
 enum TimerResult {
     Tick,
