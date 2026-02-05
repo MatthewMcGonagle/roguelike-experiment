@@ -11,12 +11,19 @@ pub struct CoordinateComponents {
 
 pub struct Timer { pub time: u32, pub reset: u32 }
 
+enum TimerResult {
+    Tick,
+    Reset
+}
+
 impl Timer {
-    fn update(&mut self) {
+    fn update(&mut self) -> TimerResult {
         self.time = self.time - 1;
         if self.time <= 0 {
             self.time = self.reset;
+            return TimerResult::Reset;
         }
+        return TimerResult::Tick;
     }
 }
 
