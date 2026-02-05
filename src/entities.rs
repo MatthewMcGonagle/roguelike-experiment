@@ -20,7 +20,7 @@ impl Entities {
         let id = self.free_ids.pop()?;
         self.active_ids.push(id);
 
-        components.coords.values.push(coords);
+        components.coords.add(coords);
         components.action_timers.values.push(Timer { entity: id, time: time_size, reset: time_size }); 
         components.ais.values.push(ai);
         Some(())
