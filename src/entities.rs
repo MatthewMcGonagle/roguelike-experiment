@@ -16,11 +16,12 @@ impl Entities {
         }
     }
 
-    pub fn add_timed_square(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) {
+    pub fn add_timed_square(&mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai) {
         let maybe_id = self.free_ids.pop();
         maybe_id.map(|id| self.active_ids.push(id));
 
         components.coords.values.push(coords);
         components.action_timers.values.push(Timer { time: time_size, reset: time_size }); 
+        components.ais.values.push(ai);
     }
 }

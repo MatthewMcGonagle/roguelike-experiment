@@ -33,10 +33,10 @@ pub fn main() {
     let mut components = Components::initialize();
     let mut entities = Entities::initialize();
 
-    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 200 }, 20);
-    entities.add_timed_square(&mut components, Coordinates { x: 300, y: 200 }, 30);
-    entities.add_timed_square(&mut components, Coordinates { x: 400, y: 400 }, 50);
-    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 400 }, 70);
+    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 200 }, 20, Ai::ShiftX);
+    entities.add_timed_square(&mut components, Coordinates { x: 300, y: 200 }, 30, Ai::ShiftX);
+    entities.add_timed_square(&mut components, Coordinates { x: 400, y: 400 }, 50, Ai::ShiftX);
+    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 400 }, 70, Ai::ShiftX);
 
     'running: loop {
         i = (i + 1) % 255;

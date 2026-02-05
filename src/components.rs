@@ -32,9 +32,18 @@ impl ActionTimers {
     }
 }
 
+pub enum Ai {
+    ShiftX
+}
+
+pub struct Ais {
+    pub values: Vec<Ai>
+}
+
 pub struct Components {
     pub coords: CoordinateComponents,
-    pub action_timers: ActionTimers
+    pub action_timers: ActionTimers,
+    pub ais: Ais
 }
 
 impl Components {
@@ -44,6 +53,9 @@ impl Components {
                 values: Vec::with_capacity(CAPACITY)
             },
             action_timers: ActionTimers { 
+                values: Vec::with_capacity(CAPACITY)
+            },
+            ais: Ais {
                 values: Vec::with_capacity(CAPACITY)
             }
         }
