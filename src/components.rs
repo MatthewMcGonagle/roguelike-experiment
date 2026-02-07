@@ -1,4 +1,6 @@
 use sdl3::pixels::Color;
+use std::slice::Iter;
+use std::iter::Enumerate;
 
 const CAPACITY: usize = 10;
 
@@ -26,6 +28,8 @@ impl<T: Clone> VecIndexedByEid<T> {
     }
 
     pub fn get(&self, e_id: usize) -> &Option<T> { & self.values[e_id] }
+
+    pub fn iter_w_eid(&self) -> Enumerate<Iter<'_, Option<T>>> { self.values.iter().enumerate() }
 }
 
 fn addForVecIndexedByEid<T: Clone>(values: &mut Vec<EidWithValue<T>>, e_id: usize, t: T, fill: T) {
