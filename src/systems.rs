@@ -8,7 +8,6 @@ use crate::components::*;
 pub fn draw_squares(coords: &CoordinateComponents, renders: &Renders, canvas: &mut Canvas<Window>) { 
     let s_width = 100;
 
-    canvas.set_draw_color(s_color);
     for c in coords.values.iter() {
         match c.e_id {
             None => (),
