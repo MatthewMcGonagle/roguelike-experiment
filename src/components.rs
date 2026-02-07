@@ -24,6 +24,8 @@ impl<T: Clone> VecIndexedByEid<T> {
         }
         self.values[e_id] = Some(t);
     }
+
+    pub fn get(&self, e_id: usize) -> &Option<T> { & self.values[e_id] }
 }
 
 fn addForVecIndexedByEid<T: Clone>(values: &mut Vec<EidWithValue<T>>, e_id: usize, t: T, fill: T) {
