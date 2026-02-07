@@ -11,7 +11,7 @@ pub fn draw_squares(coords: &CoordinateComponents, canvas: &mut Canvas<Window>) 
 
     canvas.set_draw_color(s_color);
     for c in coords.values.iter() {
-        let square = Rect::new(c.x, c.y, s_width, s_width);
+        let square = Rect::new(c.value.x, c.value.y, s_width, s_width);
         _ = canvas.fill_rect(square);
     }
 }

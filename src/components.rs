@@ -1,17 +1,31 @@
 const CAPACITY: usize = 10;
 
+pub struct EidWithValue<T> {
+    pub e_id: u32,
+    pub value: T
+}
+
 pub struct Coordinates {
     pub x: i32,
-    pub y: i32,
+    pub y: i32
 }
 
 pub struct CoordinateComponents {
-    pub values: Vec<Coordinates>,
+    pub values: Vec<EidWithValue<Coordinates>>,
+    pub e_id_indices: Vec<usize>
 }
 
 impl CoordinateComponents {
-    pub fn add(&mut self, coords: Coordinates) {
-        self.values.push(coords)
+    pub fn initialize(capacity: usize) -> CoordinateComponents {
+        CoordinateComponents {
+            values: Vec::with_capacity(capacity),
+            e_id_indices: Vec::with_capacity(capacity)
+        }
+    }
+
+    pub fn add(&mut self, e_id: u32, coords: Coordinates) {
+        self.values.push(EidWithValue { e_id: e_id, value: coords });
+        self.e_id_indices.push(self.values.len() - 1)
     }
 }
 
@@ -39,12 +53,13 @@ pub struct ActionTimers {
 
 impl ActionTimers {
     pub fn update(&mut self) {
-        for timer in self.values.iter_mut() {
-            match timer.update() {
+        let ids_of_resets = self.values.iter_mut().map(
+            |timer| match timer.update() {
                 TimerResult::Tick => None,
                 TimerResult::Reset => Some(timer.entity)
-            };
-        }
+            }
+        );
+        ids_of_resets;
     }
 }
 
@@ -65,9 +80,7 @@ pub struct Components {
 impl Components {
     pub fn initialize() -> Components {
         Components {
-            coords: CoordinateComponents {
-                values: Vec::with_capacity(CAPACITY)
-            },
+            coords: CoordinateComponents::initialize(CAPACITY),
             action_timers: ActionTimers { 
                 values: Vec::with_capacity(CAPACITY)
             },
