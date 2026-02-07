@@ -8,6 +8,24 @@ pub struct EidWithValue<T> {
     pub value: T
 }
 
+pub struct VecIndexedByEid<T> {
+    pub values: Vec<Option<T>>
+}
+
+impl<T: Clone> VecIndexedByEid<T> {
+    pub fn initialize(capacity: usize) -> VecIndexedByEid<T> {
+        VecIndexedByEid { values: Vec::with_capacity(capacity) }
+    }
+
+    pub fn add(&mut self, e_id: usize, t: T, fill: T) {
+        let len_needed_for_new = e_id + 1;
+        if len_needed_for_new > self.values.len() {
+            self.values.resize(len_needed_for_new, None);
+        }
+        self.values[e_id] = Some(t);
+    }
+}
+
 fn addForVecIndexedByEid<T: Clone>(values: &mut Vec<EidWithValue<T>>, e_id: usize, t: T, fill: T) {
     let len_needed_for_new = e_id + 1;
     if len_needed_for_new > values.len() {
