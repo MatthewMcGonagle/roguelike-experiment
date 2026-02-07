@@ -1,3 +1,5 @@
+use sdl3::pixels::Color;
+
 const CAPACITY: usize = 10;
 
 #[derive(Clone)]
@@ -34,6 +36,10 @@ impl CoordinateComponents {
 
     pub fn add(&mut self, e_id: usize, coords: Coordinates) {
         addForVecIndexedByEid(&mut self.values, e_id, coords, Coordinates{ x: 0, y: 0});
+    }
+
+    pub fn get(&self, e_id: usize) -> &Coordinates {
+        & self.values[e_id].value
     }
 }
 
@@ -99,10 +105,34 @@ impl Ais {
     }
 }
 
+#[derive(Clone)]
+pub struct Render {
+    pub color: Color
+}
+
+pub struct Renders {
+    pub values: Vec<EidWithValue<Render>>
+}
+
+impl Renders {
+    pub fn initialize(capacity: usize) -> Renders {
+        Renders { values: Vec::with_capacity(capacity) }
+    }
+
+    pub fn add(&mut self, e_id: usize, render: Render) {
+        addForVecIndexedByEid(&mut self.values, e_id, render, Render{ color: Color::RGB(0, 0, 0) });
+    }
+
+    pub fn get(&self, e_id: usize) -> &Render {
+        & self.values[e_id].value
+    }
+}
+
 pub struct Components {
     pub coords: CoordinateComponents,
     pub action_timers: ActionTimers,
-    pub ais: Ais
+    pub ais: Ais,
+    pub renders: Renders
 }
 
 impl Components {
@@ -110,7 +140,8 @@ impl Components {
         Components {
             coords: CoordinateComponents::initialize(CAPACITY),
             action_timers: ActionTimers::initialize(CAPACITY),
-            ais: Ais::initialize(CAPACITY)
+            ais: Ais::initialize(CAPACITY),
+            renders: Renders::initialize(CAPACITY)
         }
     }
 }
