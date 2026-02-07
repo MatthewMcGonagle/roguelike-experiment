@@ -1,11 +1,11 @@
 use crate::components::*;
 
 pub struct Entities {
-    free_ids: Vec<u32>,
-    pub active_ids: Vec<u32>
+    free_ids: Vec<usize>,
+    pub active_ids: Vec<usize>
 }
 
-const N_IDS: u32 = 10;
+const N_IDS: usize = 10;
 const ACTIVE_CAPACITY: usize = 10;
 
 impl Entities {

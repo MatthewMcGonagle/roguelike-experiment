@@ -2,8 +2,17 @@ const CAPACITY: usize = 10;
 
 #[derive(Clone)]
 pub struct EidWithValue<T> {
-    pub e_id: Option<u32>,
+    pub e_id: Option<usize>,
     pub value: T
+}
+
+fn addForVecIndexedByEid<T: Clone>(values: &mut Vec<EidWithValue<T>>, e_id: usize, t: T, fill: T) {
+    let len_needed_for_new = e_id + 1;
+    if len_needed_for_new > values.len() {
+        let no_e_id_fill = EidWithValue { e_id: None, value: fill };
+        values.resize(len_needed_for_new, no_e_id_fill);
+    }
+    values[e_id] = EidWithValue { e_id: Some(e_id), value: t }
 }
 
 #[derive(Clone)]
@@ -23,13 +32,8 @@ impl CoordinateComponents {
         }
     }
 
-    pub fn add(&mut self, e_id: u32, coords: Coordinates) {
-        if e_id >= self.values.len().try_into().unwrap() {
-            let fill = EidWithValue { e_id: None, value: Coordinates{ x: 0, y: 0 } };
-            self.values.resize(e_id.try_into().unwrap(), fill)
-        }
-        let e_id_conv: usize = e_id.try_into().unwrap();
-        self.values[e_id_conv] = EidWithValue { e_id: Some(e_id), value: coords };
+    pub fn add(&mut self, e_id: usize, coords: Coordinates) {
+        addForVecIndexedByEid(&mut self.values, e_id, coords, Coordinates{ x: 0, y: 0});
     }
 }
 
@@ -62,7 +66,7 @@ impl ActionTimers {
         }
     }
 
-    pub fn add(&mut self, e_id: u32, timer: Timer) {
+    pub fn add(&mut self, e_id: usize, timer: Timer) {
         self.values.push(EidWithValue{ e_id: Some(e_id), value: timer });
     }
 
@@ -90,7 +94,7 @@ impl Ais {
         Ais { values: Vec::with_capacity(capacity) }
     }
 
-    pub fn add(&mut self, e_id: u32, ai: Ai) {
+    pub fn add(&mut self, e_id: usize, ai: Ai) {
         self.values.push(EidWithValue { e_id: Some(e_id), value: ai });
     }
 }
