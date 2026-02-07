@@ -44,22 +44,18 @@ pub struct Coordinates {
 }
 
 pub struct CoordinateComponents {
-    pub values: Vec<EidWithValue<Coordinates>>,
+    pub values: VecIndexedByEid<Coordinates>,
 }
 
 impl CoordinateComponents {
     pub fn initialize(capacity: usize) -> CoordinateComponents {
         CoordinateComponents {
-            values: Vec::with_capacity(capacity)
+            values: VecIndexedByEid::initialize(capacity)
         }
     }
 
     pub fn add(&mut self, e_id: usize, coords: Coordinates) {
-        addForVecIndexedByEid(&mut self.values, e_id, coords, Coordinates{ x: 0, y: 0});
-    }
-
-    pub fn get(&self, e_id: usize) -> &Coordinates {
-        & self.values[e_id].value
+        self.values.add(e_id, coords, Coordinates{ x: 0, y: 0})
     }
 }
 
@@ -131,21 +127,19 @@ pub struct Render {
 }
 
 pub struct Renders {
-    pub values: Vec<EidWithValue<Render>>
+    pub values: VecIndexedByEid<Render>
 }
 
 impl Renders {
     pub fn initialize(capacity: usize) -> Renders {
-        Renders { values: Vec::with_capacity(capacity) }
+        Renders { values: VecIndexedByEid::initialize(capacity) }
     }
 
     pub fn add(&mut self, e_id: usize, render: Render) {
-        addForVecIndexedByEid(&mut self.values, e_id, render, Render{ color: Color::RGB(0, 0, 0) });
+        self.values.add(e_id, render, Render{ color: Color::RGB(0, 0, 0) })
     }
 
-    pub fn get(&self, e_id: usize) -> &Render {
-        & self.values[e_id].value
-    }
+    pub fn get(&self, e_id: usize) -> &Option<Render> { & self.values.get(e_id) }
 }
 
 pub struct Components {

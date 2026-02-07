@@ -8,14 +8,19 @@ use crate::components::*;
 pub fn draw_squares(coords: &CoordinateComponents, renders: &Renders, canvas: &mut Canvas<Window>) { 
     let s_width = 100;
 
-    for c in coords.values.iter() {
-        match c.e_id {
+    for (e_id, c) in coords.values.values.iter().enumerate() {
+        match c {
             None => (),
-            Some(e_id) => {
-                let render = renders.get(e_id);
-                let square = Rect::new(c.value.x, c.value.y, s_width, s_width);
-                canvas.set_draw_color(render.color);
-                _ = canvas.fill_rect(square);
+            Some(c) => {
+                match renders.get(e_id) {
+                    None => (),
+                    Some(render) => {
+                        let square = Rect::new(c.x, c.y, s_width, s_width);
+                        canvas.set_draw_color(render.color);
+                        _ = canvas.fill_rect(square);
+                    }
+                }
+
             }
 
         }
