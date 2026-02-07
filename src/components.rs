@@ -29,7 +29,7 @@ impl CoordinateComponents {
     }
 }
 
-pub struct Timer { pub entity: u32, pub time: u32, pub reset: u32 }
+pub struct Timer { pub time: u32, pub reset: u32 }
 
 enum TimerResult {
     Tick,
@@ -48,15 +48,25 @@ impl Timer {
 }
 
 pub struct ActionTimers {
-    pub values: Vec<Timer>
+    pub values: Vec<EidWithValue<Timer>>
 }
 
 impl ActionTimers {
+    pub fn initialize(capacity: usize) -> ActionTimers {
+        ActionTimers {
+            values: Vec::with_capacity(CAPACITY)
+        }
+    }
+
+    pub fn add(&mut self, e_id: u32, timer: Timer) {
+        self.values.push(EidWithValue{ e_id: e_id, value: timer });
+    }
+
     pub fn update(&mut self) {
         let ids_of_resets = self.values.iter_mut().map(
-            |timer| match timer.update() {
+            |timer| match timer.value.update() {
                 TimerResult::Tick => None,
-                TimerResult::Reset => Some(timer.entity)
+                TimerResult::Reset => Some(timer.e_id)
             }
         );
         ids_of_resets;
@@ -68,7 +78,17 @@ pub enum Ai {
 }
 
 pub struct Ais {
-    pub values: Vec<Ai>
+    pub values: Vec<EidWithValue<Ai>>
+}
+
+impl Ais {
+    pub fn initialize(capacity: usize) -> Ais {
+        Ais { values: Vec::with_capacity(capacity) }
+    }
+
+    pub fn add(&mut self, e_id: u32, ai: Ai) {
+        self.values.push(EidWithValue { e_id: e_id, value: ai });
+    }
 }
 
 pub struct Components {
@@ -81,12 +101,8 @@ impl Components {
     pub fn initialize() -> Components {
         Components {
             coords: CoordinateComponents::initialize(CAPACITY),
-            action_timers: ActionTimers { 
-                values: Vec::with_capacity(CAPACITY)
-            },
-            ais: Ais {
-                values: Vec::with_capacity(CAPACITY)
-            }
+            action_timers: ActionTimers::initialize(CAPACITY),
+            ais: Ais::initialize(CAPACITY)
         }
     }
 }

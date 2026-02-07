@@ -21,8 +21,8 @@ impl Entities {
         self.active_ids.push(e_id);
 
         components.coords.add(e_id, coords);
-        components.action_timers.values.push(Timer { entity: e_id, time: time_size, reset: time_size }); 
-        components.ais.values.push(ai);
+        components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }); 
+        components.ais.add(e_id, ai);
         Some(())
     }
 }
