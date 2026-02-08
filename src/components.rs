@@ -19,7 +19,7 @@ impl<T: Clone> VecIndexedByEid<T> {
         VecIndexedByEid { values: Vec::with_capacity(capacity) }
     }
 
-    pub fn add(&mut self, e_id: usize, t: T, fill: T) {
+    pub fn add(&mut self, e_id: usize, t: T) {
         let len_needed_for_new = e_id + 1;
         if len_needed_for_new > self.values.len() {
             self.values.resize(len_needed_for_new, None);
@@ -30,15 +30,6 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn get(&self, e_id: usize) -> &Option<T> { & self.values[e_id] }
 
     pub fn iter_w_eid(&self) -> Enumerate<Iter<'_, Option<T>>> { self.values.iter().enumerate() }
-}
-
-fn addForVecIndexedByEid<T: Clone>(values: &mut Vec<EidWithValue<T>>, e_id: usize, t: T, fill: T) {
-    let len_needed_for_new = e_id + 1;
-    if len_needed_for_new > values.len() {
-        let no_e_id_fill = EidWithValue { e_id: None, value: fill };
-        values.resize(len_needed_for_new, no_e_id_fill);
-    }
-    values[e_id] = EidWithValue { e_id: Some(e_id), value: t }
 }
 
 #[derive(Clone)]
@@ -59,7 +50,7 @@ impl CoordinateComponents {
     }
 
     pub fn add(&mut self, e_id: usize, coords: Coordinates) {
-        self.values.add(e_id, coords, Coordinates{ x: 0, y: 0})
+        self.values.add(e_id, coords)
     }
 }
 
@@ -140,7 +131,7 @@ impl Renders {
     }
 
     pub fn add(&mut self, e_id: usize, render: Render) {
-        self.values.add(e_id, render, Render{ color: Color::RGB(0, 0, 0) })
+        self.values.add(e_id, render)
     }
 
     pub fn get(&self, e_id: usize) -> &Option<Render> { & self.values.get(e_id) }
