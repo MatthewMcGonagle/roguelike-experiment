@@ -1,9 +1,16 @@
 extern crate sdl3;
 
-use sdl3::pixels::Color;
+mod entities;
+mod components;
+mod systems;
+
+use entities::*;
+use components::*;
+use systems::*;
+
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
-use sdl3::rect::Rect;
+use sdl3::pixels::Color;
 use std::time::Duration;
 
 pub fn main() {
@@ -23,10 +30,13 @@ pub fn main() {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let r_width = 200;
-    let r_height = 200;
-    let rect = Rect::new(300, 200, r_width, r_height);
-    let r_color = Color::RGB(125, 125, 125);
+    let mut components = Components::initialize();
+    let mut entities = Entities::initialize();
+
+    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 200 }, 20, Ai::ShiftX, Render { color: Color::RGB(0, 0, 0) });
+    entities.add_timed_square(&mut components, Coordinates { x: 300, y: 200 }, 30, Ai::ShiftX, Render { color: Color::RGB(255, 0, 0) });
+    entities.add_timed_square(&mut components, Coordinates { x: 400, y: 400 }, 50, Ai::ShiftX, Render { color: Color::RGB(0, 255, 0) });
+    entities.add_timed_square(&mut components, Coordinates { x: 100, y: 400 }, 70, Ai::ShiftX, Render { color: Color::RGB(0, 0, 255) });
 
     'running: loop {
         i = (i + 1) % 255;
@@ -42,9 +52,9 @@ pub fn main() {
             }
         }
         // The rest of the game loop goes here...
-       
-        canvas.set_draw_color(r_color);
-        _ = canvas.fill_rect(rect);
+      
+        draw_squares(&components.coords, &components.renders, &mut canvas);
+        components.action_timers.update();
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
