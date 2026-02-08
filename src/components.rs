@@ -1,5 +1,6 @@
 use sdl3::pixels::Color;
 use std::slice::Iter;
+use std::slice::IterMut;
 use std::iter::Enumerate;
 
 const CAPACITY: usize = 10;
@@ -30,6 +31,8 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn get(&self, e_id: usize) -> &Option<T> { & self.values[e_id] }
 
     pub fn iter_w_eid(&self) -> Enumerate<Iter<'_, Option<T>>> { self.values.iter().enumerate() }
+
+    pub fn iter_mut_w_eid(&mut self) -> Enumerate<IterMut<'_, Option<T>>> { self.values.iter_mut().enumerate() }
 }
 
 #[derive(Clone)]
@@ -54,6 +57,7 @@ impl CoordinateComponents {
     }
 }
 
+#[derive(Clone)]
 pub struct Timer { pub time: u32, pub reset: u32 }
 
 enum TimerResult {
@@ -73,28 +77,34 @@ impl Timer {
 }
 
 pub struct ActionTimers {
-    pub values: Vec<EidWithValue<Timer>>
+    pub values: VecIndexedByEid<Timer>
 }
 
 impl ActionTimers {
     pub fn initialize(capacity: usize) -> ActionTimers {
         ActionTimers {
-            values: Vec::with_capacity(CAPACITY)
+            values: VecIndexedByEid::initialize(capacity)
         }
     }
 
     pub fn add(&mut self, e_id: usize, timer: Timer) {
-        self.values.push(EidWithValue{ e_id: Some(e_id), value: timer });
+        self.values.add(e_id, timer);
     }
 
-    pub fn update(&mut self) {
-        let ids_of_resets = self.values.iter_mut().map(
-            |timer| match timer.value.update() {
-                TimerResult::Tick => None,
-                TimerResult::Reset => Some(timer.e_id)
-            }
+    fn update_timer(e_id: usize, timer: &mut Timer) -> Option<usize> {
+        match timer.update() {
+            TimerResult::Tick => None,
+            TimerResult::Reset => Some(e_id)
+        }
+    }
+
+    pub fn update(&mut self) -> Vec<usize> {
+        let ids_of_resets = self.values.iter_mut_w_eid().flat_map(
+            |(e_id, maybeTimer)| maybeTimer.as_mut().and_then(
+                |timer| ActionTimers::update_timer(e_id, timer)
+            )
         );
-        ids_of_resets;
+        ids_of_resets.collect()
     }
 }
 
