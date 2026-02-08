@@ -108,21 +108,22 @@ impl ActionTimers {
     }
 }
 
+#[derive(Clone)]
 pub enum Ai {
     ShiftX
 }
 
 pub struct Ais {
-    pub values: Vec<EidWithValue<Ai>>
+    pub values: VecIndexedByEid<Ai>
 }
 
 impl Ais {
     pub fn initialize(capacity: usize) -> Ais {
-        Ais { values: Vec::with_capacity(capacity) }
+        Ais { values: VecIndexedByEid::initialize(capacity) }
     }
 
     pub fn add(&mut self, e_id: usize, ai: Ai) {
-        self.values.push(EidWithValue { e_id: Some(e_id), value: ai });
+        self.values.add(e_id, ai);
     }
 }
 
