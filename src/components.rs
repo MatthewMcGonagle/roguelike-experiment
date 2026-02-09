@@ -110,7 +110,8 @@ impl ActionTimers {
 
 #[derive(Clone)]
 pub enum Ai {
-    ShiftX
+    ShiftX,
+    AddAvailableSquare 
 }
 
 pub struct Ais {
