@@ -28,7 +28,7 @@ impl<T: Clone> VecIndexedByEid<T> {
         self.values[e_id] = Some(t);
     }
 
-    pub fn get(&self, e_id: usize) -> &Option<T> { & self.values[e_id] }
+    pub fn get(&self, e_id: usize) -> Option<&T> { self.values.get(e_id).map(|x| x.as_ref()).flatten() }
 
     pub fn iter_w_eid(&self) -> Enumerate<Iter<'_, Option<T>>> { self.values.iter().enumerate() }
 
@@ -146,7 +146,7 @@ impl Renders {
         self.values.add(e_id, render)
     }
 
-    pub fn get(&self, e_id: usize) -> &Option<Render> { & self.values.get(e_id) }
+    pub fn get(&self, e_id: usize) -> Option<&Render> { self.values.get(e_id) }
 }
 
 pub struct Components {

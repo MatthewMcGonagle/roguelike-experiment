@@ -27,10 +27,11 @@ impl Entities {
         Some(())
     }
 
-    pub fn add_square_creation_timer(&mut self, components: &mut Components, time_size: u32) -> Option<()> {
+    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Option<()> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
+        components.coords.add(e_id, coords);
         components.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
         components.ais.add(e_id, Ai::AddAvailableSquare); 
         Some(())
