@@ -60,13 +60,13 @@ impl CoordinateComponents {
 #[derive(Clone)]
 pub struct Timer { pub time: u32, pub reset: u32 }
 
-enum TimerResult {
+pub enum TimerResult {
     Tick,
     Reset
 }
 
 impl Timer {
-    fn update(&mut self) -> TimerResult {
+    pub fn update(&mut self) -> TimerResult {
         self.time = self.time - 1;
         if self.time <= 0 {
             self.time = self.reset;
@@ -128,6 +128,18 @@ impl Ais {
     }
 }
 
+pub struct ActionsReady {
+    pub values: VecIndexedByEid<bool>
+}
+
+impl ActionsReady {
+    pub fn initialize(capacity: usize) -> ActionsReady {
+        ActionsReady { values: VecIndexedByEid::initialize(capacity) }
+    }
+
+    pub fn add(&mut self, e_id: usize) { self.values.add(e_id, false) }
+}
+
 #[derive(Clone)]
 pub struct Render {
     pub color: Color
@@ -153,6 +165,7 @@ pub struct Components {
     pub coords: CoordinateComponents,
     pub action_timers: ActionTimers,
     pub ais: Ais,
+    pub actions_ready: ActionsReady,
     pub renders: Renders
 }
 
@@ -162,6 +175,7 @@ impl Components {
             coords: CoordinateComponents::initialize(CAPACITY),
             action_timers: ActionTimers::initialize(CAPACITY),
             ais: Ais::initialize(CAPACITY),
+            actions_ready: ActionsReady::initialize(CAPACITY),
             renders: Renders::initialize(CAPACITY)
         }
     }

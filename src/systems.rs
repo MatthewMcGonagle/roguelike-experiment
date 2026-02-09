@@ -26,3 +26,19 @@ pub fn draw_squares(coords: &CoordinateComponents, renders: &Renders, canvas: &m
         }
     }
 }
+
+fn update_timer(e_id: usize, timer: &mut Timer) -> Option<usize> {
+    match timer.update() {
+        TimerResult::Tick => None,
+        TimerResult::Reset => Some(e_id)
+    }
+}
+
+pub fn update_timers(action_timers: &mut ActionTimers, ais: &mut Ais) {
+    let ids_of_resets = action_timers.values.iter_mut_w_eid().flat_map(
+        |(e_id, maybeTimer)| maybeTimer.as_mut().and_then(
+            |timer| update_timer(e_id, timer)
+        )
+    );
+    // let actions = ids_of_resets.collect();
+}

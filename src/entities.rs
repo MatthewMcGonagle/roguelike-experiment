@@ -23,6 +23,7 @@ impl Entities {
         components.coords.add(e_id, coords);
         components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }); 
         components.ais.add(e_id, ai);
+        components.actions_ready.add(e_id);
         components.renders.add(e_id, render);
         Some(())
     }
@@ -34,6 +35,7 @@ impl Entities {
         components.coords.add(e_id, coords);
         components.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
         components.ais.add(e_id, Ai::AddAvailableSquare); 
+        components.actions_ready.add(e_id);
         Some(())
     }
 }
