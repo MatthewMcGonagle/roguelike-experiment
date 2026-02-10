@@ -37,7 +37,7 @@ fn update_timer(timer: &mut Timer) -> bool {
 pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut ActionsReady) {
     action_timers.values.iter_mut_w_eid().map(
         |(e_id, maybeTimer)| maybeTimer.as_mut().map(
-            |timer| if update_timer(timer) { actions_ready.values.values[e_id] = Some(true);} 
+            |timer| if update_timer(timer) { actions_ready.values.get_mut(e_id).map(|x| *x = true);} 
         )
     );
 }
