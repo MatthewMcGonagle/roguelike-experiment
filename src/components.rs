@@ -92,22 +92,6 @@ impl ActionTimers {
     pub fn add(&mut self, e_id: usize, timer: Timer) {
         self.values.add(e_id, timer);
     }
-
-    fn update_timer(e_id: usize, timer: &mut Timer) -> Option<usize> {
-        match timer.update() {
-            TimerResult::Tick => None,
-            TimerResult::Reset => Some(e_id)
-        }
-    }
-
-    pub fn update(&mut self) -> Vec<usize> {
-        let ids_of_resets = self.values.iter_mut_w_eid().flat_map(
-            |(e_id, maybeTimer)| maybeTimer.as_mut().and_then(
-                |timer| ActionTimers::update_timer(e_id, timer)
-            )
-        );
-        ids_of_resets.collect()
-    }
 }
 
 #[derive(Clone)]
