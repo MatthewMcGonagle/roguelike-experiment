@@ -41,3 +41,12 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
         )
     );
 }
+
+pub fn do_actions(actions_ready: &mut ActionsReady, ais: &Ais) {
+    actions_ready.values.iter_mut_w_eid().map(
+        |(e_id, maybe_ready)| {
+            if maybe_ready.unwrap_or(false) { };
+            *maybe_ready = None;
+        }
+    );
+}
