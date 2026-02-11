@@ -4,6 +4,7 @@ use sdl3::render::Canvas;
 use sdl3::video::Window;
 
 use crate::components::*;
+use crate::entities::Entities;
 
 pub fn draw_squares(coords: &CoordinateComponents, renders: &Renders, canvas: &mut Canvas<Window>) { 
     let s_width = 100;
@@ -42,12 +43,26 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
     );
 }
 
-pub fn do_actions(actions_ready: &mut ActionsReady, ais: &Ais) {
-    actions_ready.values.iter_mut_w_eid().map(
-        |(e_id, maybe_ready)| {
-            if maybe_ready.unwrap_or(false) {
-                *maybe_ready = Some(false);
-            }
-        }
-    );
+fn do_action(e_id: usize, ai: Ai, components: &mut Components, entities: &mut Entities) {
+    match ai {
+        Ai::ShiftX => (),
+        Ai::AddAvailableSquare => ()
+    }
+    components.actions_ready.values.get_mut(e_id).map(|x| *x = false);
+}
+
+pub fn do_actions(components: &mut Components, entities: &mut Entities) {
+    // Running into difficulties with the borrow checker. For now, just collect values to avoid
+    // issues. There should be a better way to do this.
+    let e_ids: Vec<usize> = components.actions_ready.values.iter_mut_w_eid().flat_map(
+        |(e_id, maybe_ready)| if maybe_ready.unwrap_or(false) {
+            *maybe_ready = Some(false);
+            Some(e_id)
+        } else { None }
+    ).collect();
+
+    for e_id in e_ids {
+        let maybeAi: Option<Ai> = components.ais.values.get(e_id).cloned();
+        maybeAi.map(|ai| do_action(e_id, ai, components, entities));
+    }
 }

@@ -56,6 +56,7 @@ pub fn main() {
       
         draw_squares(&components.coords, &components.renders, &mut canvas);
         update_timers(&mut components.action_timers, &mut components.actions_ready);
+        do_actions(&mut components, &mut entities);
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
