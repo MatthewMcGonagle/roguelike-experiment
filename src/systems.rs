@@ -36,7 +36,7 @@ fn update_timer(timer: &mut Timer) -> bool {
 }
 
 pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut ActionsReady) {
-    action_timers.values.iter_mut_w_eid().map(
+    let _ = action_timers.values.iter_mut_w_eid().map(
         |(e_id, maybeTimer)| maybeTimer.as_mut().map(
             |timer| if update_timer(timer) { actions_ready.values.get_mut(e_id).map(|x| *x = true);} 
         )
@@ -59,10 +59,13 @@ pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     // Running into difficulties with the borrow checker. For now, just collect values to avoid
     // issues. There should be a better way to do this.
     let e_ids: Vec<usize> = components.actions_ready.values.iter_mut_w_eid().flat_map(
-        |(e_id, maybe_ready)| if maybe_ready.unwrap_or(false) {
-            *maybe_ready = Some(false);
-            Some(e_id)
-        } else { None }
+        |(e_id, maybe_ready)| {
+            let is_ready = maybe_ready.as_ref()?;
+            if *is_ready {
+                *maybe_ready = Some(false);
+                Some(e_id)
+            } else { None }
+        }
     ).collect();
 
     for e_id in e_ids {
