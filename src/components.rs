@@ -147,22 +147,36 @@ impl Renders {
     pub fn get(&self, e_id: usize) -> Option<&Render> { self.values.get(e_id) }
 }
 
-pub struct Components {
+// Actions can mutate all of these components. We need to put them in a
+// separate struct so that we can put them on a separate mutable reference.
+pub struct OtherComponents {
     pub coords: CoordinateComponents,
     pub action_timers: ActionTimers,
     pub ais: Ais,
-    pub actions_ready: ActionsReady,
     pub renders: Renders
+}
+
+impl OtherComponents {
+    pub fn initialize(capacity: usize) -> OtherComponents {
+        OtherComponents {
+            coords: CoordinateComponents::initialize(capacity),
+            action_timers: ActionTimers::initialize(capacity),
+            ais: Ais::initialize(capacity),
+            renders: Renders::initialize(capacity)
+        }
+    }
+}
+
+pub struct Components {
+    pub actions_ready: ActionsReady,
+    pub others: OtherComponents
 }
 
 impl Components {
     pub fn initialize() -> Components {
         Components {
-            coords: CoordinateComponents::initialize(CAPACITY),
-            action_timers: ActionTimers::initialize(CAPACITY),
-            ais: Ais::initialize(CAPACITY),
             actions_ready: ActionsReady::initialize(CAPACITY),
-            renders: Renders::initialize(CAPACITY)
+            others: OtherComponents::initialize(CAPACITY)
         }
     }
 }

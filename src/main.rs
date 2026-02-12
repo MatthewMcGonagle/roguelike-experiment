@@ -54,8 +54,8 @@ pub fn main() {
         }
         // The rest of the game loop goes here...
       
-        draw_squares(&components.coords, &components.renders, &mut canvas);
-        update_timers(&mut components.action_timers, &mut components.actions_ready);
+        draw_squares(&components.others.coords, &components.others.renders, &mut canvas);
+        update_timers(&mut components.others.action_timers, &mut components.actions_ready);
         do_actions(&mut components, &mut entities);
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));

@@ -20,11 +20,11 @@ impl Entities {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        components.coords.add(e_id, coords);
-        components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }); 
-        components.ais.add(e_id, ai);
         components.actions_ready.add(e_id);
-        components.renders.add(e_id, render);
+        components.others.coords.add(e_id, coords);
+        components.others.action_timers.add(e_id, Timer { time: time_size, reset: time_size }); 
+        components.others.ais.add(e_id, ai);
+        components.others.renders.add(e_id, render);
         Some(())
     }
 
@@ -32,10 +32,10 @@ impl Entities {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        components.coords.add(e_id, coords);
-        components.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
-        components.ais.add(e_id, Ai::AddAvailableSquare); 
         components.actions_ready.add(e_id);
+        components.others.coords.add(e_id, coords);
+        components.others.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
+        components.others.ais.add(e_id, Ai::AddAvailableSquare); 
         Some(())
     }
 }

@@ -48,7 +48,7 @@ fn do_action(e_id: usize, ai: Ai, components: &mut Components, entities: &mut En
         Ai::ShiftX => (),
         Ai::AddAvailableSquare => entities.add_timed_square_creator(
             components,
-            components.coords.values.get(e_id).unwrap().clone(),
+            components.others.coords.values.get(e_id).unwrap().clone(),
             100
         ).unwrap()
     }
@@ -66,7 +66,7 @@ pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     ).collect();
 
     for e_id in e_ids {
-        let maybeAi: Option<Ai> = components.ais.values.get(e_id).cloned();
+        let maybeAi: Option<Ai> = components.others.ais.values.get(e_id).cloned();
         maybeAi.map(|ai| do_action(e_id, ai, components, entities));
     }
 }
