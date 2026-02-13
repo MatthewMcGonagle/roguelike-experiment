@@ -36,11 +36,13 @@ fn update_timer(timer: &mut Timer) -> bool {
 }
 
 pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut ActionsReady) {
-    let _ = action_timers.values.iter_mut_w_eid().map(
-        |(e_id, maybe_timer)| maybe_timer.as_mut().map(
-            |timer| if update_timer(timer) { actions_ready.values.get_mut(e_id).map(|x| *x = true);} 
-        )
-    );
+    for (e_id, maybe_timer) in action_timers.values.iter_mut_w_eid() {
+        if let Some(t) = maybe_timer.as_mut() { 
+            if update_timer(t) {
+                actions_ready.values.get_mut(e_id).map(|x| *x = true);
+            }
+        }
+    }
 }
 
 fn do_action(e_id: usize, ai: Ai, components: &mut Components, entities: &mut Entities) {
@@ -62,7 +64,7 @@ pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     // issues. There should be a better way to do this.
     let e_ids: Vec<usize> = components.actions_ready.values.iter_mut_w_eid().flat_map(
         |(e_id, maybe_ready)| {
-            let is_ready = maybe_ready.as_ref()?;
+            let is_ready = maybe_ready.as_mut()?;
             if *is_ready {
                 *maybe_ready = Some(false);
                 Some(e_id)
