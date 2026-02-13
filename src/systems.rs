@@ -54,7 +54,7 @@ fn do_action(e_id: usize, ai: Ai, components: &mut Components, entities: &mut En
             100,
             Ai::ShiftX,
             Render { color: Color::RGB(0, 0, 0) }
-        ).unwrap()
+        ).unwrap_or(())
     }
     components.actions_ready.values.get_mut(e_id).map(|x| *x = false);
 }
