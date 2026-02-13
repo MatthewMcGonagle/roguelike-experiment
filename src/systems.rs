@@ -37,7 +37,7 @@ fn update_timer(timer: &mut Timer) -> bool {
 
 pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut ActionsReady) {
     let _ = action_timers.values.iter_mut_w_eid().map(
-        |(e_id, maybeTimer)| maybeTimer.as_mut().map(
+        |(e_id, maybe_timer)| maybe_timer.as_mut().map(
             |timer| if update_timer(timer) { actions_ready.values.get_mut(e_id).map(|x| *x = true);} 
         )
     );
@@ -46,10 +46,12 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
 fn do_action(e_id: usize, ai: Ai, components: &mut Components, entities: &mut Entities) {
     match ai {
         Ai::ShiftX => (),
-        Ai::AddAvailableSquare => entities.add_timed_square_creator(
+        Ai::AddAvailableSquare => entities.add_timed_square(
             components,
             components.others.coords.values.get(e_id).unwrap().clone(),
-            100
+            100,
+            Ai::ShiftX,
+            Render { color: Color::RGB(0, 0, 0) }
         ).unwrap()
     }
     components.actions_ready.values.get_mut(e_id).map(|x| *x = false);
@@ -69,7 +71,7 @@ pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     ).collect();
 
     for e_id in e_ids {
-        let maybeAi: Option<Ai> = components.others.ais.values.get(e_id).cloned();
-        maybeAi.map(|ai| do_action(e_id, ai, components, entities));
+        let maybe_ai: Option<Ai> = components.others.ais.values.get(e_id).cloned();
+        maybe_ai.map(|ai| do_action(e_id, ai, components, entities));
     }
 }
