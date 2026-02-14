@@ -54,13 +54,20 @@ fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities:
         Ai::ShiftY => {
             e_components.coords.values.get_mut(e_id).map(|c| c.y = (c.y + 10) % 500);
         },
-        Ai::AddAvailableSquare => entities.add_timed_square(
-            e_components,
-            e_components.coords.values.get(e_id).unwrap().clone(),
-            10,
-            Ai::ShiftX,
-            Render { color: Color::RGB(0, 0, 0) }
-        ).unwrap_or(())
+        Ai::AddAvailableSquare => {
+            let square_ai = match e_components.states.values.get(e_id).unwrap() {
+                0 => Ai::ShiftX,
+                _ => Ai::ShiftY
+            };
+            e_components.states.values.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
+            entities.add_timed_square(
+                e_components,
+                e_components.coords.values.get(e_id).unwrap().clone(),
+                10,
+                square_ai,
+                Render { color: Color::RGB(0, 0, 0) }
+            ).unwrap_or(())
+        }
     }
 }
 

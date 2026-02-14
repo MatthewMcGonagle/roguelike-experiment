@@ -115,6 +115,20 @@ impl Ais {
     }
 }
 
+pub struct States {
+    pub values: VecIndexedByEid<u32>
+}
+
+impl States {
+    pub fn initialize(capacity: usize) -> States {
+        States { values: VecIndexedByEid::initialize(capacity) }
+    }
+
+    pub fn add(&mut self, e_id: usize, state: u32) {
+        self.values.add(e_id, state);
+    }
+}
+
 pub struct ActionsReady {
     pub values: Vec<usize>
 }
@@ -152,6 +166,7 @@ pub struct EntityComponents {
     pub coords: CoordinateComponents,
     pub action_timers: ActionTimers,
     pub ais: Ais,
+    pub states: States,
     pub renders: Renders
 }
 
@@ -161,6 +176,7 @@ impl EntityComponents {
             coords: CoordinateComponents::initialize(capacity),
             action_timers: ActionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
+            states: States::initialize(capacity),
             renders: Renders::initialize(capacity)
         }
     }

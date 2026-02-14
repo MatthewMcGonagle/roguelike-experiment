@@ -34,6 +34,7 @@ impl Entities {
         e_components.coords.add(e_id, coords);
         e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
         e_components.ais.add(e_id, Ai::AddAvailableSquare); 
+        e_components.states.add(e_id, 0);
         Some(())
     }
 }
