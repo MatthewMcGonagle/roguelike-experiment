@@ -115,15 +115,15 @@ impl Ais {
 }
 
 pub struct ActionsReady {
-    pub values: VecIndexedByEid<bool>
+    pub values: Vec<usize>
 }
 
 impl ActionsReady {
     pub fn initialize(capacity: usize) -> ActionsReady {
-        ActionsReady { values: VecIndexedByEid::initialize(capacity) }
+        ActionsReady { values: Vec::with_capacity(capacity) }
     }
 
-    pub fn add(&mut self, e_id: usize) { self.values.add(e_id, false) }
+    pub fn add(&mut self, e_id: usize) { self.values.push(e_id) }
 }
 
 #[derive(Clone)]

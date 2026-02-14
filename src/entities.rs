@@ -16,26 +16,24 @@ impl Entities {
         }
     }
 
-    pub fn add_timed_square(&mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<()> {
+    pub fn add_timed_square(&mut self, others: &mut OtherComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<()> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        components.actions_ready.add(e_id);
-        components.others.coords.add(e_id, coords);
-        components.others.action_timers.add(e_id, Timer { time: time_size, reset: time_size }); 
-        components.others.ais.add(e_id, ai);
-        components.others.renders.add(e_id, render);
+        others.coords.add(e_id, coords);
+        others.action_timers.add(e_id, Timer { time: time_size, reset: time_size }); 
+        others.ais.add(e_id, ai);
+        others.renders.add(e_id, render);
         Some(())
     }
 
-    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Option<()> {
+    pub fn add_timed_square_creator(&mut self, others: &mut OtherComponents, coords: Coordinates, time_size: u32) -> Option<()> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        components.actions_ready.add(e_id);
-        components.others.coords.add(e_id, coords);
-        components.others.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
-        components.others.ais.add(e_id, Ai::AddAvailableSquare); 
+        others.coords.add(e_id, coords);
+        others.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
+        others.ais.add(e_id, Ai::AddAvailableSquare); 
         Some(())
     }
 }

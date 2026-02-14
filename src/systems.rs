@@ -39,41 +39,29 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
     for (e_id, maybe_timer) in action_timers.values.iter_mut_w_eid() {
         if let Some(t) = maybe_timer.as_mut() { 
             if update_timer(t) {
-                actions_ready.values.get_mut(e_id).map(|x| *x = true);
+                actions_ready.add(e_id);
             }
         }
     }
 }
 
-fn do_action(e_id: usize, ai: Ai, components: &mut Components, entities: &mut Entities) {
+fn do_action(e_id: usize, ai: Ai, others: &mut OtherComponents, entities: &mut Entities) {
     match ai {
         Ai::ShiftX => (),
         Ai::AddAvailableSquare => entities.add_timed_square(
-            components,
-            components.others.coords.values.get(e_id).unwrap().clone(),
+            others,
+            others.coords.values.get(e_id).unwrap().clone(),
             100,
             Ai::ShiftX,
             Render { color: Color::RGB(0, 0, 0) }
         ).unwrap_or(())
     }
-    components.actions_ready.values.get_mut(e_id).map(|x| *x = false);
 }
 
 pub fn do_actions(components: &mut Components, entities: &mut Entities) {
-    // Running into difficulties with the borrow checker. For now, just collect values to avoid
-    // issues. There should be a better way to do this.
-    let e_ids: Vec<usize> = components.actions_ready.values.iter_mut_w_eid().flat_map(
-        |(e_id, maybe_ready)| {
-            let is_ready = maybe_ready.as_mut()?;
-            if *is_ready {
-                *maybe_ready = Some(false);
-                Some(e_id)
-            } else { None }
-        }
-    ).collect();
-
-    for e_id in e_ids {
-        let maybe_ai: Option<Ai> = components.others.ais.values.get(e_id).cloned();
-        maybe_ai.map(|ai| do_action(e_id, ai, components, entities));
+    for e_id in components.actions_ready.values.iter() {
+        let maybe_ai: Option<Ai> = components.others.ais.values.get(*e_id).cloned();
+        maybe_ai.map(|ai| do_action(*e_id, ai, &mut components.others, entities));
     }
+    components.actions_ready.values.clear();
 }
