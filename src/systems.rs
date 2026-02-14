@@ -45,12 +45,12 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
     }
 }
 
-fn do_action(e_id: usize, ai: Ai, others: &mut OtherComponents, entities: &mut Entities) {
+fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
     match ai {
         Ai::ShiftX => (),
         Ai::AddAvailableSquare => entities.add_timed_square(
-            others,
-            others.coords.values.get(e_id).unwrap().clone(),
+            e_components,
+            e_components.coords.values.get(e_id).unwrap().clone(),
             100,
             Ai::ShiftX,
             Render { color: Color::RGB(0, 0, 0) }
@@ -60,8 +60,8 @@ fn do_action(e_id: usize, ai: Ai, others: &mut OtherComponents, entities: &mut E
 
 pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     for e_id in components.actions_ready.values.iter() {
-        let maybe_ai: Option<Ai> = components.others.ais.values.get(*e_id).cloned();
-        maybe_ai.map(|ai| do_action(*e_id, ai, &mut components.others, entities));
+        let maybe_ai: Option<Ai> = components.e_components.ais.values.get(*e_id).cloned();
+        maybe_ai.map(|ai| do_action(*e_id, ai, &mut components.e_components, entities));
     }
     components.actions_ready.values.clear();
 }
