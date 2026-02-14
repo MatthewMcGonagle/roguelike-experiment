@@ -47,11 +47,14 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
 
 fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
     match ai {
-        Ai::ShiftX => (),
+        Ai::ShiftX => {
+            e_components.coords.values.get_mut(e_id).map(|c| c.x = (c.x + 10) % 500);
+            ()
+        },
         Ai::AddAvailableSquare => entities.add_timed_square(
             e_components,
             e_components.coords.values.get(e_id).unwrap().clone(),
-            100,
+            10,
             Ai::ShiftX,
             Render { color: Color::RGB(0, 0, 0) }
         ).unwrap_or(())
