@@ -97,6 +97,7 @@ impl ActionTimers {
 #[derive(Clone)]
 pub enum Ai {
     ShiftX,
+    ShiftY,
     AddAvailableSquare 
 }
 

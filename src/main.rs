@@ -35,9 +35,9 @@ pub fn main() {
 
     entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 200); 
     entities.add_timed_square(&mut components.e_components, Coordinates { x: 100, y: 100 }, 20, Ai::ShiftX, Render { color: Color::RGB(0, 0, 0) });
-    entities.add_timed_square(&mut components.e_components, Coordinates { x: 300, y: 200 }, 30, Ai::ShiftX, Render { color: Color::RGB(255, 0, 0) });
+    entities.add_timed_square(&mut components.e_components, Coordinates { x: 300, y: 200 }, 30, Ai::ShiftY, Render { color: Color::RGB(255, 0, 0) });
     entities.add_timed_square(&mut components.e_components, Coordinates { x: 400, y: 300 }, 50, Ai::ShiftX, Render { color: Color::RGB(0, 255, 0) });
-    entities.add_timed_square(&mut components.e_components, Coordinates { x: 100, y: 400 }, 70, Ai::ShiftX, Render { color: Color::RGB(0, 0, 255) });
+    entities.add_timed_square(&mut components.e_components, Coordinates { x: 100, y: 400 }, 70, Ai::ShiftY, Render { color: Color::RGB(0, 0, 255) });
 
     'running: loop {
         i = (i + 1) % 255;

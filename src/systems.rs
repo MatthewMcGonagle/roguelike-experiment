@@ -51,6 +51,9 @@ fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities:
             e_components.coords.values.get_mut(e_id).map(|c| c.x = (c.x + 10) % 500);
             ()
         },
+        Ai::ShiftY => {
+            e_components.coords.values.get_mut(e_id).map(|c| c.y = (c.y + 10) % 500);
+        },
         Ai::AddAvailableSquare => entities.add_timed_square(
             e_components,
             e_components.coords.values.get(e_id).unwrap().clone(),
