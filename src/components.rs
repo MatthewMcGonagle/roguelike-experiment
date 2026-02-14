@@ -182,14 +182,27 @@ impl EntityComponents {
     }
 }
 
+pub struct Display {
+    pub width: u32,
+    pub height: u32,
+    pub coord_scale: u32
+}
+
+impl Display {
+    pub fn coord_width(&self) -> u32 { self.width / self.coord_scale }
+    pub fn coord_height(&self) -> u32 { self.height / self.coord_scale }
+}
+
 pub struct Components {
+    pub display: Display,
     pub actions_ready: ActionsReady,
     pub e_components: EntityComponents
 }
 
 impl Components {
-    pub fn initialize() -> Components {
+    pub fn initialize(display: Display) -> Components {
         Components {
+            display: display,
             actions_ready: ActionsReady::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY)
         }
