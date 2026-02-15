@@ -38,6 +38,34 @@ impl<T: Clone> VecIndexedByEid<T> {
 }
 
 #[derive(Clone)]
+pub enum ComponentType {
+    Coordinates,
+    ActionTimer,
+    Ai,
+    State,
+    Renders
+}
+
+pub struct ComponentTypes {
+    pub values: VecIndexedByEid<Vec<ComponentType>>
+}
+
+impl ComponentTypes {
+    const CT_CAPACITY: usize = 10;
+    pub fn add(&mut self, e_id: usize, c_type: ComponentType) {
+        let maybeTypes = self.values.get_mut(e_id);
+        let types: Option<&mut Vec<ComponentType>> = match maybeTypes {
+            None => {
+                self.values.add(e_id, Vec::with_capacity(ComponentTypes::CT_CAPACITY));
+                self.values.get_mut(e_id)
+            },
+            _ => maybeTypes
+        };
+        types.map(|ts| ts.push(c_type));
+    }
+}
+
+#[derive(Clone)]
 pub struct Coordinates {
     pub x: i32,
     pub y: i32
