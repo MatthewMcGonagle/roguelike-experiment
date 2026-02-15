@@ -43,7 +43,7 @@ pub enum ComponentType {
     ActionTimer,
     Ai,
     State,
-    Renders
+    Render
 }
 
 pub struct ComponentTypes {
@@ -57,13 +57,13 @@ impl ComponentTypes {
 
     const CT_CAPACITY: usize = 10;
     pub fn add(&mut self, e_id: usize, c_type: ComponentType) {
-        let maybeTypes = self.values.get_mut(e_id);
-        let types: Option<&mut Vec<ComponentType>> = match maybeTypes {
+        let maybe_types = self.values.get_mut(e_id);
+        let types: Option<&mut Vec<ComponentType>> = match maybe_types {
             None => {
                 self.values.add(e_id, Vec::with_capacity(ComponentTypes::CT_CAPACITY));
                 self.values.get_mut(e_id)
             },
-            _ => maybeTypes
+            _ => maybe_types
         };
         types.map(|ts| ts.push(c_type));
     }
@@ -122,7 +122,8 @@ impl ActionTimers {
         }
     }
 
-    pub fn add(&mut self, e_id: usize, timer: Timer) {
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, timer: Timer) {
+        component_types.add(e_id, ComponentType::ActionTimer);
         self.values.add(e_id, timer);
     }
 }
@@ -143,7 +144,8 @@ impl Ais {
         Ais { values: VecIndexedByEid::initialize(capacity) }
     }
 
-    pub fn add(&mut self, e_id: usize, ai: Ai) {
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, ai: Ai) {
+        component_types.add(e_id, ComponentType::Ai);
         self.values.add(e_id, ai);
     }
 }
@@ -157,7 +159,8 @@ impl States {
         States { values: VecIndexedByEid::initialize(capacity) }
     }
 
-    pub fn add(&mut self, e_id: usize, state: u32) {
+    pub fn add(&mut self, c_types: &mut ComponentTypes, e_id: usize, state: u32) {
+        c_types.add(e_id, ComponentType::State);
         self.values.add(e_id, state);
     }
 }
@@ -188,7 +191,8 @@ impl Renders {
         Renders { values: VecIndexedByEid::initialize(capacity) }
     }
 
-    pub fn add(&mut self, e_id: usize, render: Render) {
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, render: Render) {
+        component_types.add(e_id, ComponentType::Render);
         self.values.add(e_id, render)
     }
 

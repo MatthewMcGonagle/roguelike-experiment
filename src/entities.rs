@@ -21,9 +21,9 @@ impl Entities {
         self.active_ids.push(e_id);
 
         e_components.coords.add(&mut e_components.component_types, e_id, coords);
-        e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }); 
-        e_components.ais.add(e_id, ai);
-        e_components.renders.add(e_id, render);
+        e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size }); 
+        e_components.ais.add(&mut e_components.component_types, e_id, ai);
+        e_components.renders.add(&mut e_components.component_types, e_id, render);
         Some(())
     }
 
@@ -32,9 +32,9 @@ impl Entities {
         self.active_ids.push(e_id);
 
         e_components.coords.add(&mut e_components.component_types, e_id, coords);
-        e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size });
-        e_components.ais.add(e_id, Ai::AddAvailableSquare); 
-        e_components.states.add(e_id, 0);
+        e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size });
+        e_components.ais.add(&mut e_components.component_types, e_id, Ai::AddAvailableSquare); 
+        e_components.states.add(&mut e_components.component_types, e_id, 0);
         Some(())
     }
 }
