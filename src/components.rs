@@ -51,6 +51,10 @@ pub struct ComponentTypes {
 }
 
 impl ComponentTypes {
+    pub fn initialize(e_id_capacity: usize) -> ComponentTypes {
+        ComponentTypes { values: VecIndexedByEid::initialize(e_id_capacity) }
+    }
+
     const CT_CAPACITY: usize = 10;
     pub fn add(&mut self, e_id: usize, c_type: ComponentType) {
         let maybeTypes = self.values.get_mut(e_id);
@@ -82,7 +86,8 @@ impl CoordinateComponents {
         }
     }
 
-    pub fn add(&mut self, e_id: usize, coords: Coordinates) {
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, coords: Coordinates) {
+        component_types.add(e_id, ComponentType::Coordinates);
         self.values.add(e_id, coords)
     }
 }
@@ -191,6 +196,7 @@ impl Renders {
 }
 
 pub struct EntityComponents {
+    pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
     pub action_timers: ActionTimers,
     pub ais: Ais,
@@ -201,6 +207,7 @@ pub struct EntityComponents {
 impl EntityComponents {
     pub fn initialize(capacity: usize) -> EntityComponents {
         EntityComponents {
+            component_types: ComponentTypes::initialize(capacity),
             coords: CoordinateComponents::initialize(capacity),
             action_timers: ActionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
