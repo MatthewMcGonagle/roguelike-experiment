@@ -37,4 +37,15 @@ impl Entities {
         e_components.states.add(&mut e_components.component_types, e_id, 0);
         Some(())
     }
+
+    pub fn add_kill_timer(&mut self, e_components: &mut EntityComponents, time_size: u32, target_e_id: usize) -> Option<()> {
+        let e_id = self.free_ids.pop()?;
+        self.active_ids.push(e_id);
+
+        e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size });
+        e_components.ais.add(&mut e_components.component_types, e_id, Ai::Kill);
+        e_components.targets.add(&mut e_components.component_types, e_id, target_e_id);
+        e_components.targeted_by.add(&mut e_components.component_types, target_e_id, e_id);
+        Some(())
+    }
 }

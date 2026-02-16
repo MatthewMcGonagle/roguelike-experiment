@@ -65,7 +65,8 @@ fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityCo
                 square_ai,
                 Render { color: Color::RGB(255, 255, 255) }
             ).unwrap_or(())
-        }
+        },
+        Ai::Kill => () 
     }
 }
 

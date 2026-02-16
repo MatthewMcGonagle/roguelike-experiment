@@ -45,7 +45,9 @@ pub enum ComponentType {
     ActionTimer,
     Ai,
     State,
-    Render
+    Render,
+    Target,
+    TargetedBy
 }
 
 pub struct ComponentTypes {
@@ -134,7 +136,8 @@ impl ActionTimers {
 pub enum Ai {
     ShiftX,
     ShiftY,
-    AddAvailableSquare 
+    AddAvailableSquare,
+    Kill
 }
 
 pub struct Ais {
@@ -201,13 +204,56 @@ impl Renders {
     pub fn get(&self, e_id: usize) -> Option<&Render> { self.values.get(e_id) }
 }
 
+pub struct Targets {
+    pub values: VecIndexedByEid<Vec<usize>>
+}
+
+impl Targets {
+    pub fn initialize(capacity: usize) -> Targets {
+        Targets { values: VecIndexedByEid::initialize(capacity) }
+    }
+
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, target_e_id: usize) {
+        component_types.add(e_id, ComponentType::Target);
+        match self.values.get_mut(e_id) {
+            None => self.values.add(e_id, Vec::new()),
+            _ => ()
+        };
+        self.values.get_mut(e_id).map(|targets| targets.push(target_e_id));
+    }
+}
+
+// If we kill this e_id then we need to appropriately updates other entities that target this one.
+pub struct TargetedBy {
+    pub values: VecIndexedByEid<Vec<usize>>
+}
+
+impl TargetedBy {
+    pub fn initialize(capacity: usize) -> TargetedBy {
+        TargetedBy { values: VecIndexedByEid::initialize(capacity) } 
+    }
+
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, targeted_by_e_id: usize) {
+        // TODO: this could double up on TargetedBy if an entity is targeted by more than one other
+        // entity. Is this a problem?
+        component_types.add(e_id, ComponentType::TargetedBy);
+        match self.values.get_mut(e_id) {
+            None => self.values.add(e_id, Vec::new()),
+            _ => ()
+        };
+        self.values.get_mut(e_id).map(|targets| targets.push(targeted_by_e_id));
+    }
+}
+
 pub struct EntityComponents {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
     pub action_timers: ActionTimers,
     pub ais: Ais,
     pub states: States,
-    pub renders: Renders
+    pub renders: Renders,
+    pub targets: Targets,
+    pub targeted_by: TargetedBy
 }
 
 impl EntityComponents {
@@ -218,7 +264,9 @@ impl EntityComponents {
             action_timers: ActionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),
-            renders: Renders::initialize(capacity)
+            renders: Renders::initialize(capacity),
+            targets: Targets::initialize(capacity),
+            targeted_by: TargetedBy::initialize(capacity)
         }
     }
 }
