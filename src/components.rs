@@ -36,7 +36,7 @@ impl<T: Clone> VecIndexedByEid<T> {
 
     pub fn iter_mut_w_eid(&mut self) -> Enumerate<IterMut<'_, Option<T>>> { self.values.iter_mut().enumerate() }
 
-    pub fn kill(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
+    pub fn remove(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
 }
 
 #[derive(Clone)]

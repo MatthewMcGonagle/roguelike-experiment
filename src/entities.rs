@@ -48,4 +48,25 @@ impl Entities {
         e_components.targeted_by.add(&mut e_components.component_types, target_e_id, e_id);
         Some(())
     }
+
+    pub fn remove(&mut self, e_id: usize, e_components: &mut EntityComponents) {
+        // To avoid borrow checker difficulties, let us just collect a list. This will also help us
+        // avoid any dropped linkage errors created by deletion process. 
+        let targeted_by: Vec<usize> = e_components.targeted_by.values.get(e_id).into_iter().flat_map(|targeted_by| targeted_by.clone()).collect();
+        for t_by in targeted_by {
+            self.remove(t_by, e_components);
+        }
+
+        for c_type in e_components.component_types.values.get(e_id).unwrap() {
+            match c_type {
+                ComponentType::Coordinates => e_components.coords.values.remove(e_id), 
+                ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
+                ComponentType::Ai => e_components.ais.values.remove(e_id),
+                ComponentType::State => e_components.states.values.remove(e_id),
+                ComponentType::Render => e_components.renders.values.remove(e_id),
+                ComponentType::Target => e_components.targets.values.remove(e_id),
+                ComponentType::TargetedBy => e_components.targeted_by.values.remove(e_id)
+            }
+        }
+    }
 }

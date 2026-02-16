@@ -66,6 +66,9 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
     ).unwrap_or(())
 }
 
+fn kill_entity(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
+}
+
 fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
     match ai {
         Ai::ShiftX => shift_x(e_components.coords.values.get_mut(e_id), display.coord_width()),
