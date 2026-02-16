@@ -16,6 +16,10 @@ impl Entities {
         }
     }
 
+    pub fn n_free_ids(&self) -> usize {
+        self.free_ids.len()
+    }
+
     pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);

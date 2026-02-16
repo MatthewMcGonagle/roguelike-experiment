@@ -57,14 +57,16 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
         _ => Ai::ShiftY
     };
     e_components.states.values.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
-    let maybe_spawned_e_id = entities.add_timed_square(
-        e_components,
-        e_components.coords.values.get(e_id).unwrap().clone(),
-        10,
-        square_ai,
-        Render { color: Color::RGB(255, 255, 255) }
-    );
-    maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
+    if entities.n_free_ids() >= 2 {
+        let maybe_spawned_e_id = entities.add_timed_square(
+            e_components,
+            e_components.coords.values.get(e_id).unwrap().clone(),
+            10,
+            square_ai,
+            Render { color: Color::RGB(255, 255, 255) }
+        );
+        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
+    }
 }
 
 fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
