@@ -50,6 +50,16 @@ impl Entities {
     }
 
     pub fn remove(&mut self, e_id: usize, e_components: &mut EntityComponents) {
+        // Should only be one element.
+        let inds: Vec<usize> =
+            self.active_ids.iter().enumerate()
+                .map(|(i, id)| (i, *id))
+                .filter(|(_, id)| *id == e_id)
+                .map(|(i, _)| i)
+                .collect();
+        inds.get(0).map(|i| self.active_ids.swap_remove(*i));
+        self.free_ids.push(e_id);
+
         // To avoid borrow checker difficulties, let us just collect a list. This will also help us
         // avoid any dropped linkage errors created by deletion process. 
         let targeted_by: Vec<usize> = e_components.targeted_by.values.get(e_id).into_iter().flat_map(|targeted_by| targeted_by.clone()).collect();
