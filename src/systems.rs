@@ -64,10 +64,15 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
         square_ai,
         Render { color: Color::RGB(255, 255, 255) }
     );
-    maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 20, s_e_id));
+    maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 70, s_e_id));
 }
 
-fn kill_entity(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
+fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
+    let targets: Vec<usize> = e_components.targets.values.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
+    for target in targets {
+        entities.remove(target, e_components);
+    }
+    entities.remove(e_id, e_components);
 }
 
 fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
@@ -75,7 +80,7 @@ fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityCo
         Ai::ShiftX => shift_x(e_components.coords.values.get_mut(e_id), display.coord_width()),
         Ai::ShiftY => shift_y(e_components.coords.values.get_mut(e_id), display.coord_height()),
         Ai::AddAvailableSquare => add_available_square(e_id, e_components, entities),
-        Ai::Kill => () 
+        Ai::Kill => kill_others_and_self(e_id, e_components, entities) 
     }
 }
 

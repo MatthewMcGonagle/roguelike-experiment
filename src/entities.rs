@@ -5,8 +5,8 @@ pub struct Entities {
     pub active_ids: Vec<usize>
 }
 
-const N_IDS: usize = 10;
-const ACTIVE_CAPACITY: usize = 10;
+const N_IDS: usize = 30;
+const ACTIVE_CAPACITY: usize = 30;
 
 impl Entities {
     pub fn initialize() -> Entities {
@@ -57,16 +57,20 @@ impl Entities {
             self.remove(t_by, e_components);
         }
 
-        for c_type in e_components.component_types.values.get(e_id).unwrap() {
-            match c_type {
-                ComponentType::Coordinates => e_components.coords.values.remove(e_id), 
-                ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
-                ComponentType::Ai => e_components.ais.values.remove(e_id),
-                ComponentType::State => e_components.states.values.remove(e_id),
-                ComponentType::Render => e_components.renders.values.remove(e_id),
-                ComponentType::Target => e_components.targets.values.remove(e_id),
-                ComponentType::TargetedBy => e_components.targeted_by.values.remove(e_id)
+        e_components.component_types.values.get(e_id).map(
+            |c_types| for c_type in c_types { 
+                match c_type {
+                    ComponentType::Coordinates => e_components.coords.values.remove(e_id), 
+                    ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
+                    ComponentType::Ai => e_components.ais.values.remove(e_id),
+                    ComponentType::State => e_components.states.values.remove(e_id),
+                    ComponentType::Render => e_components.renders.values.remove(e_id),
+                    ComponentType::Target => e_components.targets.values.remove(e_id),
+                    ComponentType::TargetedBy => e_components.targeted_by.values.remove(e_id)
+                }
             }
-        }
+        );
+
+        e_components.component_types.values.remove(e_id);
     }
 }
