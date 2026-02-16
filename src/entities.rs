@@ -57,8 +57,12 @@ impl Entities {
                 .filter(|(_, id)| *id == e_id)
                 .map(|(i, _)| i)
                 .collect();
-        inds.get(0).map(|i| self.active_ids.swap_remove(*i));
-        self.free_ids.push(e_id);
+        //inds.get(0).map(|i| self.active_ids.swap_remove(*i));
+        //self.free_ids.push(e_id);
+        if let Some(i) = inds.get(0) {
+            self.active_ids.swap_remove(*i);
+            self.free_ids.push(e_id);
+        }
 
         // To avoid borrow checker difficulties, let us just collect a list. This will also help us
         // avoid any dropped linkage errors created by deletion process. 
