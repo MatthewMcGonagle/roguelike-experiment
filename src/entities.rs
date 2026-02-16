@@ -57,8 +57,7 @@ impl Entities {
                 .filter(|(_, id)| *id == e_id)
                 .map(|(i, _)| i)
                 .collect();
-        //inds.get(0).map(|i| self.active_ids.swap_remove(*i));
-        //self.free_ids.push(e_id);
+        // Make sure we only make the e_id free if we actually deactivated it.
         if let Some(i) = inds.get(0) {
             self.active_ids.swap_remove(*i);
             self.free_ids.push(e_id);
