@@ -47,7 +47,8 @@ pub enum ComponentType {
     State,
     Render,
     Target,
-    TargetedBy
+    TargetedBy,
+    Blocking
 }
 
 pub struct ComponentTypes {
@@ -93,6 +94,23 @@ impl CoordinateComponents {
     pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, coords: Coordinates) {
         component_types.add(e_id, ComponentType::Coordinates);
         self.values.add(e_id, coords)
+    }
+}
+
+pub struct Blocking {
+    pub values: VecIndexedByEid<bool>
+}
+
+impl Blocking {
+    pub fn initialize(capacity: usize) -> Blocking {
+        Blocking {
+            values: VecIndexedByEid::initialize(capacity)
+        }
+    }
+
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize) {
+        component_types.add(e_id, ComponentType::Blocking);
+        self.values.add(e_id, true);
     }
 }
 
@@ -248,6 +266,7 @@ impl TargetedBy {
 pub struct EntityComponents {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
+    pub blocking: Blocking,
     pub action_timers: ActionTimers,
     pub ais: Ais,
     pub states: States,
@@ -261,6 +280,7 @@ impl EntityComponents {
         EntityComponents {
             component_types: ComponentTypes::initialize(capacity),
             coords: CoordinateComponents::initialize(capacity),
+            blocking: Blocking::initialize(capacity),
             action_timers: ActionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),

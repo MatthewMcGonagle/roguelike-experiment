@@ -25,6 +25,7 @@ impl Entities {
         self.active_ids.push(e_id);
 
         e_components.coords.add(&mut e_components.component_types, e_id, coords);
+        e_components.blocking.add(&mut e_components.component_types, e_id);
         e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size }); 
         e_components.ais.add(&mut e_components.component_types, e_id, ai);
         e_components.renders.add(&mut e_components.component_types, e_id, render);
@@ -78,6 +79,7 @@ impl Entities {
             |c_types| for c_type in c_types { 
                 match c_type {
                     ComponentType::Coordinates => e_components.coords.values.remove(e_id), 
+                    ComponentType::Blocking => e_components.blocking.values.remove(e_id),
                     ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
                     ComponentType::Ai => e_components.ais.values.remove(e_id),
                     ComponentType::State => e_components.states.values.remove(e_id),
