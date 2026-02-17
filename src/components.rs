@@ -98,6 +98,8 @@ impl CoordinateComponents {
 }
 
 pub struct CoordinatesQuery {
+    coord_width: usize,
+    coord_height: usize,
     values: Vec<Option<usize>>
 }
 
@@ -105,7 +107,10 @@ impl CoordinatesQuery {
     pub fn initialize(coord_width: usize, coord_height: usize) -> CoordinatesQuery {
         let mut the_values: Vec<Option<usize>> = Vec::with_capacity(coord_width * coord_height);
         the_values.resize(coord_width * coord_height, None);
+
         CoordinatesQuery {
+            coord_width: coord_width,
+            coord_height: coord_height,
             values: the_values 
         }
     }
@@ -280,6 +285,7 @@ impl TargetedBy {
 pub struct EntityComponents {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
+    pub coords_query: CoordinatesQuery,
     pub blocking: Blocking,
     pub action_timers: ActionTimers,
     pub ais: Ais,
@@ -290,10 +296,11 @@ pub struct EntityComponents {
 }
 
 impl EntityComponents {
-    pub fn initialize(capacity: usize) -> EntityComponents {
+    pub fn initialize(capacity: usize, coord_width: usize, coord_height: usize) -> EntityComponents {
         EntityComponents {
             component_types: ComponentTypes::initialize(capacity),
             coords: CoordinateComponents::initialize(capacity),
+            coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
             blocking: Blocking::initialize(capacity),
             action_timers: ActionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
@@ -323,11 +330,11 @@ pub struct Components {
 }
 
 impl Components {
-    pub fn initialize(display: Display) -> Components {
+    pub fn initialize(display: Display, coord_width: usize, coord_height: usize) -> Components {
         Components {
             display: display,
             actions_ready: ActionsReady::initialize(CAPACITY),
-            e_components: EntityComponents::initialize(CAPACITY)
+            e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }
 }
