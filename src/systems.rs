@@ -43,29 +43,46 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
     }
 }
 
+fn shift_x(coords: Option<&mut Coordinates>, coord_width: u32) {
+    coords.map(|c| c.x = (c.x + 1) % (coord_width as i32));
+}
+
+fn shift_y(coords: Option<&mut Coordinates>, coord_height: u32) {
+    coords.map(|c| c.y = (c.y + 1) % (coord_height as i32));
+}
+
+fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
+    let square_ai = match e_components.states.values.get(e_id).unwrap() {
+        0 => Ai::ShiftX,
+        _ => Ai::ShiftY
+    };
+    e_components.states.values.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
+    if entities.n_free_ids() >= 2 {
+        let maybe_spawned_e_id = entities.add_timed_square(
+            e_components,
+            e_components.coords.values.get(e_id).unwrap().clone(),
+            10,
+            square_ai,
+            Render { color: Color::RGB(255, 255, 255) }
+        );
+        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
+    }
+}
+
+fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
+    let targets: Vec<usize> = e_components.targets.values.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
+    for target in targets {
+        entities.remove(target, e_components);
+    }
+    entities.remove(e_id, e_components);
+}
+
 fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
     match ai {
-        Ai::ShiftX => {
-            e_components.coords.values.get_mut(e_id).map(|c| c.x = (c.x + 1) % (display.coord_width() as i32));
-            ()
-        },
-        Ai::ShiftY => {
-            e_components.coords.values.get_mut(e_id).map(|c| c.y = (c.y + 1) % (display.coord_height() as i32));
-        },
-        Ai::AddAvailableSquare => {
-            let square_ai = match e_components.states.values.get(e_id).unwrap() {
-                0 => Ai::ShiftX,
-                _ => Ai::ShiftY
-            };
-            e_components.states.values.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
-            entities.add_timed_square(
-                e_components,
-                e_components.coords.values.get(e_id).unwrap().clone(),
-                10,
-                square_ai,
-                Render { color: Color::RGB(255, 255, 255) }
-            ).unwrap_or(())
-        }
+        Ai::ShiftX => shift_x(e_components.coords.values.get_mut(e_id), display.coord_width()),
+        Ai::ShiftY => shift_y(e_components.coords.values.get_mut(e_id), display.coord_height()),
+        Ai::AddAvailableSquare => add_available_square(e_id, e_components, entities),
+        Ai::Kill => kill_others_and_self(e_id, e_components, entities) 
     }
 }
 
