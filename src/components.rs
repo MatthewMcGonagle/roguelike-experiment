@@ -97,6 +97,20 @@ impl CoordinateComponents {
     }
 }
 
+pub struct CoordinatesQuery {
+    values: Vec<Option<usize>>
+}
+
+impl CoordinatesQuery {
+    pub fn initialize(coord_width: usize, coord_height: usize) -> CoordinatesQuery {
+        let mut the_values: Vec<Option<usize>> = Vec::with_capacity(coord_width * coord_height);
+        the_values.resize(coord_width * coord_height, None);
+        CoordinatesQuery {
+            values: the_values 
+        }
+    }
+}
+
 pub struct Blocking {
     pub values: VecIndexedByEid<bool>
 }
