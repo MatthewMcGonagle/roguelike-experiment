@@ -114,6 +114,14 @@ impl CoordinatesQuery {
             values: the_values 
         }
     }
+
+    pub fn get(&self, i: usize, j: usize) -> Option<&usize> {
+        self.values.get(i * self.coord_width + j).map(|x| x.as_ref()).flatten()
+    }
+
+    pub fn get_mut(&mut self, i: usize, j: usize) -> Option<&mut usize> {
+        self.values.get_mut(i * self.coord_width + j).map(|x| x.as_mut()).flatten()
+    }
 }
 
 pub struct Blocking {
