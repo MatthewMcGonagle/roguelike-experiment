@@ -115,12 +115,12 @@ impl CoordinatesQuery {
         }
     }
 
-    pub fn get(&self, i: usize, j: usize) -> Option<&usize> {
-        self.values.get(i * self.coord_width + j).map(|x| x.as_ref()).flatten()
+    pub fn get(&self, x: usize, y: usize) -> Option<&usize> {
+        self.values.get(y * self.coord_width + x).map(|z| z.as_ref()).flatten()
     }
 
-    pub fn get_mut(&mut self, i: usize, j: usize) -> Option<&mut usize> {
-        self.values.get_mut(i * self.coord_width + j).map(|x| x.as_mut()).flatten()
+    pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut usize> {
+        self.values.get_mut(y * self.coord_width + x).map(|z| z.as_mut()).flatten()
     }
 }
 
