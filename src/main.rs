@@ -19,8 +19,8 @@ pub fn main() {
 
     let coord_width: usize = 16;
     let coord_height: usize = 12;
-    let coord_scale: u32 = 50;
-    let display = Display { width: (coord_width as u32) * coord_scale, height: (coord_height as u32) * coord_scale, coord_scale: coord_scale };
+    let coord_scale: usize = 50;
+    let display = Display { width: (coord_width * coord_scale) as u32, height: (coord_height * coord_scale) as u32, coord_scale: coord_scale };
     let window = video_subsystem.window("rust-sdl3 demo", display.width, display.height)
         .position_centered()
         .build()

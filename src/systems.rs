@@ -6,7 +6,7 @@ use sdl3::video::Window;
 use crate::components::*;
 use crate::entities::Entities;
 
-pub fn draw_squares(coords: &CoordinateComponents, coord_scale: u32, renders: &Renders, canvas: &mut Canvas<Window>) { 
+pub fn draw_squares(coords: &CoordinateComponents, coord_scale: usize, renders: &Renders, canvas: &mut Canvas<Window>) { 
     for (e_id, c) in coords.values.iter_w_eid() {
         match c {
             None => (),
@@ -14,7 +14,7 @@ pub fn draw_squares(coords: &CoordinateComponents, coord_scale: u32, renders: &R
                 match renders.get(e_id) {
                     None => (),
                     Some(render) => {
-                        let square = Rect::new(c.x * (coord_scale as i32), c.y * (coord_scale as i32), coord_scale, coord_scale);
+                        let square = Rect::new((c.x * coord_scale) as i32, (c.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
                         canvas.set_draw_color(render.color);
                         _ = canvas.fill_rect(square);
                     }
@@ -43,12 +43,16 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
     }
 }
 
-fn shift_x(coords: Option<&mut Coordinates>, coord_width: u32) {
-    coords.map(|c| c.x = (c.x + 1) % (coord_width as i32));
+fn move_coords(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates) {
+    let target_e_id = c_query.get(target_coords.x, target_coords.y);
 }
 
-fn shift_y(coords: Option<&mut Coordinates>, coord_height: u32) {
-    coords.map(|c| c.y = (c.y + 1) % (coord_height as i32));
+fn shift_x(coords: Option<&mut Coordinates>, coord_width: usize) {
+    coords.map(|c| c.x = (c.x + 1) % coord_width);
+}
+
+fn shift_y(coords: Option<&mut Coordinates>, coord_height: usize) {
+    coords.map(|c| c.y = (c.y + 1) % coord_height);
 }
 
 fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
@@ -77,10 +81,10 @@ fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entiti
     entities.remove(e_id, e_components);
 }
 
-fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
+fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
     match ai {
-        Ai::ShiftX => shift_x(e_components.coords.values.get_mut(e_id), display.coord_width()),
-        Ai::ShiftY => shift_y(e_components.coords.values.get_mut(e_id), display.coord_height()),
+        Ai::ShiftX => shift_x(e_components.coords.values.get_mut(e_id), e_components.coords_query.coord_width),
+        Ai::ShiftY => shift_y(e_components.coords.values.get_mut(e_id), e_components.coords_query.coord_height),
         Ai::AddAvailableSquare => add_available_square(e_id, e_components, entities),
         Ai::Kill => kill_others_and_self(e_id, e_components, entities) 
     }
@@ -89,7 +93,7 @@ fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityCo
 pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     for e_id in components.actions_ready.values.iter() {
         let maybe_ai: Option<Ai> = components.e_components.ais.values.get(*e_id).cloned();
-        maybe_ai.map(|ai| do_action(*e_id, &components.display, ai, &mut components.e_components, entities));
+        maybe_ai.map(|ai| do_action(*e_id, ai, &mut components.e_components, entities));
     }
     components.actions_ready.values.clear();
 }

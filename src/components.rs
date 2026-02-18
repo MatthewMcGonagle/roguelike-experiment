@@ -76,8 +76,8 @@ impl ComponentTypes {
 
 #[derive(Clone)]
 pub struct Coordinates {
-    pub x: i32,
-    pub y: i32
+    pub x: usize,
+    pub y: usize 
 }
 
 pub struct CoordinateComponents {
@@ -98,8 +98,8 @@ impl CoordinateComponents {
 }
 
 pub struct CoordinatesQuery {
-    coord_width: usize,
-    coord_height: usize,
+    pub coord_width: usize,
+    pub coord_height: usize,
     values: Vec<Option<usize>>
 }
 
@@ -323,12 +323,7 @@ impl EntityComponents {
 pub struct Display {
     pub width: u32,
     pub height: u32,
-    pub coord_scale: u32
-}
-
-impl Display {
-    pub fn coord_width(&self) -> u32 { self.width / self.coord_scale }
-    pub fn coord_height(&self) -> u32 { self.height / self.coord_scale }
+    pub coord_scale: usize
 }
 
 pub struct Components {
