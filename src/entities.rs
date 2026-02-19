@@ -10,8 +10,11 @@ const ACTIVE_CAPACITY: usize = 30;
 
 impl Entities {
     pub fn initialize() -> Entities {
+        let mut the_free_ids: Vec<usize> = (0..N_IDS).collect();
+        the_free_ids.reverse();
+
         Entities {
-            free_ids: (0..N_IDS).collect(),
+            free_ids: the_free_ids,
             active_ids: Vec::with_capacity(ACTIVE_CAPACITY)
         }
     }
