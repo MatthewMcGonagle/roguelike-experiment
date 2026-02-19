@@ -98,7 +98,7 @@ impl CoordinateComponents {
 }
 
 #[derive(Clone)]
-pub enum CoordinateData {
+pub enum SpaceData {
     Empty,
     HasEid(usize)
 }
@@ -106,13 +106,13 @@ pub enum CoordinateData {
 pub struct CoordinatesQuery {
     pub coord_width: usize,
     pub coord_height: usize,
-    values: Vec<Option<CoordinateData>>
+    values: Vec<SpaceData>
 }
 
 impl CoordinatesQuery {
     pub fn initialize(coord_width: usize, coord_height: usize) -> CoordinatesQuery {
-        let mut the_values: Vec<Option<CoordinateData>> = Vec::with_capacity(coord_width * coord_height);
-        the_values.resize(coord_width * coord_height, None);
+        let mut the_values: Vec<SpaceData> = Vec::with_capacity(coord_width * coord_height);
+        the_values.resize(coord_width * coord_height, SpaceData::Empty);
 
         CoordinatesQuery {
             coord_width: coord_width,
@@ -121,12 +121,12 @@ impl CoordinatesQuery {
         }
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Option<&CoordinateData> {
-        self.values.get(y * self.coord_width + x).map(|z| z.as_ref()).flatten()
+    pub fn get(&self, x: usize, y: usize) -> Option<&SpaceData> {
+        self.values.get(y * self.coord_width + x)
     }
 
-    pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut CoordinateData> {
-        self.values.get_mut(y * self.coord_width + x).map(|z| z.as_mut()).flatten()
+    pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut SpaceData> {
+        self.values.get_mut(y * self.coord_width + x)
     }
 }
 
