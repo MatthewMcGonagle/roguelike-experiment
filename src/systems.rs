@@ -43,7 +43,7 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
     }
 }
 
-fn move_coords(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates) -> Option<()> {
+fn move_coords_for_blocking(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates) -> Option<()> {
     let target_space = c_query.get_mut(target_coords.x, target_coords.y)?;
     match target_space {
         SpaceData::Empty => {
@@ -58,16 +58,27 @@ fn move_coords(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut C
     }
 }
 
-fn shift_x(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_width: usize) -> Option<()> {
-    let coords = e_coords.values.get(e_id)?;
-    let target_coords = Coordinates { x: (coords.x + 1) % coord_width, y: coords.y }; 
-    move_coords(e_id, e_coords, c_query, target_coords)
+fn move_coords(
+    e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates
+    ) -> Option<()> {
+    if blocking.values.get(e_id).map(|b| b.clone()).unwrap_or(true) { move_coords_for_blocking(e_id, e_coords, c_query, target_coords) }
+    else {
+        let coords = e_coords.values.get_mut(e_id)?;
+        *coords = target_coords;
+        Some(())
+    }
 }
 
-fn shift_y(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_height: usize) -> Option<()> {
+fn shift_x(e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_width: usize) -> Option<()> {
+    let coords = e_coords.values.get(e_id)?;
+    let target_coords = Coordinates { x: (coords.x + 1) % coord_width, y: coords.y }; 
+    move_coords(e_id, blocking, e_coords, c_query, target_coords)
+}
+
+fn shift_y(e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_height: usize) -> Option<()> {
     let coords = e_coords.values.get(e_id)?;
     let target_coords = Coordinates { x: coords.x, y: (coords.y + 1) % coord_height }; 
-    move_coords(e_id, e_coords, c_query, target_coords)
+    move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
 fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
@@ -102,11 +113,11 @@ fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities:
     match ai {
         Ai::ShiftX => {
             let w = e_components.coords_query.coord_width.clone();
-            shift_x(e_id, &mut e_components.coords, &mut e_components.coords_query, w)
+            shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w)
         },
         Ai::ShiftY => {
             let h = e_components.coords_query.coord_height.clone();
-            shift_y(e_id, &mut e_components.coords, &mut e_components.coords_query, h)
+            shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h)
         },
         Ai::AddAvailableSquare => add_available_square(e_id, e_components, entities),
         Ai::Kill => kill_others_and_self(e_id, e_components, entities) 
