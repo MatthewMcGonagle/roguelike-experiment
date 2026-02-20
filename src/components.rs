@@ -92,7 +92,7 @@ impl CoordinateComponents {
         }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, coords: Coordinates) -> ComponentType {
+    pub fn add(&mut self, e_id: usize, coords: Coordinates) -> ComponentType {
         self.values.add(e_id, coords);
         ComponentType::Coordinates
     }
@@ -142,7 +142,7 @@ impl Blocking {
         }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize) -> ComponentType {
+    pub fn add(&mut self, e_id: usize) -> ComponentType {
         self.values.add(e_id, true);
         ComponentType::Blocking
     }
@@ -178,7 +178,7 @@ impl ActionTimers {
         }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, timer: Timer) -> ComponentType {
+    pub fn add(&mut self, e_id: usize, timer: Timer) -> ComponentType {
         self.values.add(e_id, timer);
         ComponentType::ActionTimer
     }
@@ -201,9 +201,9 @@ impl Ais {
         Ais { values: VecIndexedByEid::initialize(capacity) }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, ai: Ai) {
-        component_types.add(e_id, ComponentType::Ai);
+    pub fn add(&mut self, e_id: usize, ai: Ai) -> ComponentType {
         self.values.add(e_id, ai);
+        ComponentType::Ai
     }
 }
 
