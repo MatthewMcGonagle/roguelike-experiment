@@ -17,7 +17,10 @@ pub fn main() {
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let display = Display { width: 800, height: 600, coord_scale: 50 };
+    let coord_width: usize = 16;
+    let coord_height: usize = 12;
+    let coord_scale: usize = 50;
+    let display = Display { width: (coord_width * coord_scale) as u32, height: (coord_height * coord_scale) as u32, coord_scale: coord_scale };
     let window = video_subsystem.window("rust-sdl3 demo", display.width, display.height)
         .position_centered()
         .build()
@@ -31,7 +34,7 @@ pub fn main() {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut components = Components::initialize(display);
+    let mut components = Components::initialize(display, coord_width, coord_height);
     let mut entities = Entities::initialize();
 
     entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50); 

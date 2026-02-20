@@ -47,7 +47,8 @@ pub enum ComponentType {
     State,
     Render,
     Target,
-    TargetedBy
+    TargetedBy,
+    Blocking
 }
 
 pub struct ComponentTypes {
@@ -75,8 +76,8 @@ impl ComponentTypes {
 
 #[derive(Clone)]
 pub struct Coordinates {
-    pub x: i32,
-    pub y: i32
+    pub x: usize,
+    pub y: usize 
 }
 
 pub struct CoordinateComponents {
@@ -93,6 +94,56 @@ impl CoordinateComponents {
     pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, coords: Coordinates) {
         component_types.add(e_id, ComponentType::Coordinates);
         self.values.add(e_id, coords)
+    }
+}
+
+#[derive(Clone)]
+pub enum SpaceData {
+    Empty,
+    HasEid(usize)
+}
+
+pub struct CoordinatesQuery {
+    pub coord_width: usize,
+    pub coord_height: usize,
+    values: Vec<SpaceData>
+}
+
+impl CoordinatesQuery {
+    pub fn initialize(coord_width: usize, coord_height: usize) -> CoordinatesQuery {
+        let mut the_values: Vec<SpaceData> = Vec::with_capacity(coord_width * coord_height);
+        the_values.resize(coord_width * coord_height, SpaceData::Empty);
+
+        CoordinatesQuery {
+            coord_width: coord_width,
+            coord_height: coord_height,
+            values: the_values 
+        }
+    }
+
+    pub fn get(&self, x: usize, y: usize) -> Option<&SpaceData> {
+        self.values.get(y * self.coord_width + x)
+    }
+
+    pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut SpaceData> {
+        self.values.get_mut(y * self.coord_width + x)
+    }
+}
+
+pub struct Blocking {
+    pub values: VecIndexedByEid<bool>
+}
+
+impl Blocking {
+    pub fn initialize(capacity: usize) -> Blocking {
+        Blocking {
+            values: VecIndexedByEid::initialize(capacity)
+        }
+    }
+
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize) {
+        component_types.add(e_id, ComponentType::Blocking);
+        self.values.add(e_id, true);
     }
 }
 
@@ -248,6 +299,8 @@ impl TargetedBy {
 pub struct EntityComponents {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
+    pub coords_query: CoordinatesQuery,
+    pub blocking: Blocking,
     pub action_timers: ActionTimers,
     pub ais: Ais,
     pub states: States,
@@ -257,10 +310,12 @@ pub struct EntityComponents {
 }
 
 impl EntityComponents {
-    pub fn initialize(capacity: usize) -> EntityComponents {
+    pub fn initialize(capacity: usize, coord_width: usize, coord_height: usize) -> EntityComponents {
         EntityComponents {
             component_types: ComponentTypes::initialize(capacity),
             coords: CoordinateComponents::initialize(capacity),
+            coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
+            blocking: Blocking::initialize(capacity),
             action_timers: ActionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),
@@ -274,12 +329,7 @@ impl EntityComponents {
 pub struct Display {
     pub width: u32,
     pub height: u32,
-    pub coord_scale: u32
-}
-
-impl Display {
-    pub fn coord_width(&self) -> u32 { self.width / self.coord_scale }
-    pub fn coord_height(&self) -> u32 { self.height / self.coord_scale }
+    pub coord_scale: usize
 }
 
 pub struct Components {
@@ -289,11 +339,11 @@ pub struct Components {
 }
 
 impl Components {
-    pub fn initialize(display: Display) -> Components {
+    pub fn initialize(display: Display, coord_width: usize, coord_height: usize) -> Components {
         Components {
             display: display,
             actions_ready: ActionsReady::initialize(CAPACITY),
-            e_components: EntityComponents::initialize(CAPACITY)
+            e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }
 }

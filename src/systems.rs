@@ -6,7 +6,7 @@ use sdl3::video::Window;
 use crate::components::*;
 use crate::entities::Entities;
 
-pub fn draw_squares(coords: &CoordinateComponents, coord_scale: u32, renders: &Renders, canvas: &mut Canvas<Window>) { 
+pub fn draw_squares(coords: &CoordinateComponents, coord_scale: usize, renders: &Renders, canvas: &mut Canvas<Window>) { 
     for (e_id, c) in coords.values.iter_w_eid() {
         match c {
             None => (),
@@ -14,7 +14,7 @@ pub fn draw_squares(coords: &CoordinateComponents, coord_scale: u32, renders: &R
                 match renders.get(e_id) {
                     None => (),
                     Some(render) => {
-                        let square = Rect::new(c.x * (coord_scale as i32), c.y * (coord_scale as i32), coord_scale, coord_scale);
+                        let square = Rect::new((c.x * coord_scale) as i32, (c.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
                         canvas.set_draw_color(render.color);
                         _ = canvas.fill_rect(square);
                     }
@@ -43,15 +43,45 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
     }
 }
 
-fn shift_x(coords: Option<&mut Coordinates>, coord_width: u32) {
-    coords.map(|c| c.x = (c.x + 1) % (coord_width as i32));
+fn move_coords_for_blocking(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates) -> Option<()> {
+    let target_space = c_query.get_mut(target_coords.x, target_coords.y)?;
+    match target_space {
+        SpaceData::Empty => {
+            let e_coords = e_coords.values.get_mut(e_id)?;
+            *target_space = SpaceData::HasEid(e_id);
+            let origin = c_query.get_mut(e_coords.x, e_coords.y)?;
+            *e_coords = target_coords;
+            *origin = SpaceData::Empty;
+            Some(())
+        }
+        SpaceData::HasEid(other_e_id) => { println!("{e_id} BLOCKED by {other_e_id}"); None }
+    }
 }
 
-fn shift_y(coords: Option<&mut Coordinates>, coord_height: u32) {
-    coords.map(|c| c.y = (c.y + 1) % (coord_height as i32));
+fn move_coords(
+    e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates
+    ) -> Option<()> {
+    if blocking.values.get(e_id).map(|b| b.clone()).unwrap_or(true) { move_coords_for_blocking(e_id, e_coords, c_query, target_coords) }
+    else {
+        let coords = e_coords.values.get_mut(e_id)?;
+        *coords = target_coords;
+        Some(())
+    }
 }
 
-fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
+fn shift_x(e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_width: usize) -> Option<()> {
+    let coords = e_coords.values.get(e_id)?;
+    let target_coords = Coordinates { x: (coords.x + 1) % coord_width, y: coords.y }; 
+    move_coords(e_id, blocking, e_coords, c_query, target_coords)
+}
+
+fn shift_y(e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_height: usize) -> Option<()> {
+    let coords = e_coords.values.get(e_id)?;
+    let target_coords = Coordinates { x: coords.x, y: (coords.y + 1) % coord_height }; 
+    move_coords(e_id, blocking, e_coords, c_query, target_coords)
+}
+
+fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     let square_ai = match e_components.states.values.get(e_id).unwrap() {
         0 => Ai::ShiftX,
         _ => Ai::ShiftY
@@ -67,20 +97,28 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
         );
         maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
     }
+    Some(())
 }
 
-fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
+fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     let targets: Vec<usize> = e_components.targets.values.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
     for target in targets {
         entities.remove(target, e_components);
     }
     entities.remove(e_id, e_components);
+    Some(())
 }
 
-fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) {
+fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     match ai {
-        Ai::ShiftX => shift_x(e_components.coords.values.get_mut(e_id), display.coord_width()),
-        Ai::ShiftY => shift_y(e_components.coords.values.get_mut(e_id), display.coord_height()),
+        Ai::ShiftX => {
+            let w = e_components.coords_query.coord_width.clone();
+            shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w)
+        },
+        Ai::ShiftY => {
+            let h = e_components.coords_query.coord_height.clone();
+            shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h)
+        },
         Ai::AddAvailableSquare => add_available_square(e_id, e_components, entities),
         Ai::Kill => kill_others_and_self(e_id, e_components, entities) 
     }
@@ -89,7 +127,7 @@ fn do_action(e_id: usize, display: &Display, ai: Ai, e_components: &mut EntityCo
 pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     for e_id in components.actions_ready.values.iter() {
         let maybe_ai: Option<Ai> = components.e_components.ais.values.get(*e_id).cloned();
-        maybe_ai.map(|ai| do_action(*e_id, &components.display, ai, &mut components.e_components, entities));
+        maybe_ai.map(|ai| do_action(*e_id, ai, &mut components.e_components, entities));
     }
     components.actions_ready.values.clear();
 }

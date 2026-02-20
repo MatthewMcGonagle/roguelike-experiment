@@ -10,8 +10,11 @@ const ACTIVE_CAPACITY: usize = 30;
 
 impl Entities {
     pub fn initialize() -> Entities {
+        let mut the_free_ids: Vec<usize> = (0..N_IDS).collect();
+        the_free_ids.reverse();
+
         Entities {
-            free_ids: (0..N_IDS).collect(),
+            free_ids: the_free_ids,
             active_ids: Vec::with_capacity(ACTIVE_CAPACITY)
         }
     }
@@ -21,10 +24,18 @@ impl Entities {
     }
 
     pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
+        let space = e_components.coords_query.get_mut(coords.x, coords.y)?;
+        match space {
+            SpaceData::Empty => Some(()),
+            SpaceData::HasEid(_) => None
+        }?;
+
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
         e_components.coords.add(&mut e_components.component_types, e_id, coords);
+        e_components.blocking.add(&mut e_components.component_types, e_id);
+        *space = SpaceData::HasEid(e_id);
         e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size }); 
         e_components.ais.add(&mut e_components.component_types, e_id, ai);
         e_components.renders.add(&mut e_components.component_types, e_id, render);
@@ -77,7 +88,13 @@ impl Entities {
         e_components.component_types.values.get(e_id).map(
             |c_types| for c_type in c_types { 
                 match c_type {
-                    ComponentType::Coordinates => e_components.coords.values.remove(e_id), 
+                    ComponentType::Coordinates => {
+                        e_components.coords.values.get(e_id).map(|c|
+                            e_components.coords_query.get_mut(c.x, c.y).map(|s| *s = SpaceData::Empty)
+                        );
+                        e_components.coords.values.remove(e_id);
+                    },
+                    ComponentType::Blocking => e_components.blocking.values.remove(e_id),
                     ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
                     ComponentType::Ai => e_components.ais.values.remove(e_id),
                     ComponentType::State => e_components.states.values.remove(e_id),
