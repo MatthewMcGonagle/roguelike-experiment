@@ -24,11 +24,18 @@ impl Entities {
     }
 
     pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
+        let space = e_components.coords_query.get_mut(coords.x, coords.y)?;
+        match space {
+            SpaceData::Empty => Some(()),
+            SpaceData::HasEid(_) => None
+        }?;
+
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
         e_components.coords.add(&mut e_components.component_types, e_id, coords);
         e_components.blocking.add(&mut e_components.component_types, e_id);
+        *space = SpaceData::HasEid(e_id);
         e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size }); 
         e_components.ais.add(&mut e_components.component_types, e_id, ai);
         e_components.renders.add(&mut e_components.component_types, e_id, render);
