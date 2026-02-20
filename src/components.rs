@@ -42,6 +42,7 @@ impl<T: Clone> VecIndexedByEid<T> {
 #[derive(Clone)]
 pub enum ComponentType {
     Coordinates,
+    CoordinatesQuery,
     ActionTimer,
     Ai,
     State,
@@ -91,9 +92,9 @@ impl CoordinateComponents {
         }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, coords: Coordinates) {
-        component_types.add(e_id, ComponentType::Coordinates);
-        self.values.add(e_id, coords)
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, coords: Coordinates) -> ComponentType {
+        self.values.add(e_id, coords);
+        ComponentType::Coordinates
     }
 }
 
@@ -141,9 +142,9 @@ impl Blocking {
         }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize) {
-        component_types.add(e_id, ComponentType::Blocking);
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize) -> ComponentType {
         self.values.add(e_id, true);
+        ComponentType::Blocking
     }
 }
 
@@ -177,9 +178,9 @@ impl ActionTimers {
         }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, timer: Timer) {
-        component_types.add(e_id, ComponentType::ActionTimer);
+    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, timer: Timer) -> ComponentType {
         self.values.add(e_id, timer);
+        ComponentType::ActionTimer
     }
 }
 

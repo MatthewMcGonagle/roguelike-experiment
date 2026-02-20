@@ -33,7 +33,10 @@ impl Entities {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        e_components.coords.add(&mut e_components.component_types, e_id, coords);
+        let components = Vec::from([
+            e_components.coords.add(&mut e_components.component_types, e_id, coords),
+            e_components.blocking.add(&mut e_components.component_types, e_id)
+        ]);
         e_components.blocking.add(&mut e_components.component_types, e_id);
         *space = SpaceData::HasEid(e_id);
         e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size }); 
@@ -94,6 +97,7 @@ impl Entities {
                         );
                         e_components.coords.values.remove(e_id);
                     },
+                    ComponentType::CoordinatesQuery => (),
                     ComponentType::Blocking => e_components.blocking.values.remove(e_id),
                     ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
                     ComponentType::Ai => e_components.ais.values.remove(e_id),
