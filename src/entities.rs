@@ -41,6 +41,7 @@ impl Entities {
             e_components.renders.add(e_id, render)
         ]);
         *space = SpaceData::HasEid(e_id);
+        e_components.component_types.add(e_id, components);
         Some(e_id)
     }
 
@@ -54,6 +55,7 @@ impl Entities {
             e_components.ais.add(e_id, Ai::AddAvailableSquare),
             e_components.states.add(e_id, 0)
         ]);
+        e_components.component_types.add(e_id, components);
         Some(())
     }
 
@@ -67,6 +69,7 @@ impl Entities {
             e_components.targets.add(e_id, target_e_id),
             e_components.targeted_by.add(target_e_id, e_id)
         ]);
+        e_components.component_types.add(e_id, components);
         Some(())
     }
 

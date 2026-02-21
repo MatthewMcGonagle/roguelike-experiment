@@ -61,18 +61,10 @@ impl ComponentTypes {
         ComponentTypes { values: VecIndexedByEid::initialize(e_id_capacity) }
     }
 
-    const CT_CAPACITY: usize = 10;
-    pub fn add(&mut self, e_id: usize, c_type: ComponentType) {
-        let maybe_types = self.values.get_mut(e_id);
-        let types: Option<&mut Vec<ComponentType>> = match maybe_types {
-            None => {
-                self.values.add(e_id, Vec::with_capacity(ComponentTypes::CT_CAPACITY));
-                self.values.get_mut(e_id)
-            },
-            _ => maybe_types
-        };
-        types.map(|ts| ts.push(c_type));
+    pub fn add(&mut self, e_id: usize, c_types: Vec<ComponentType>) {
+        self.values.add(e_id, c_types);
     }
+
 }
 
 #[derive(Clone)]
