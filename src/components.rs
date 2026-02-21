@@ -216,9 +216,9 @@ impl States {
         States { values: VecIndexedByEid::initialize(capacity) }
     }
 
-    pub fn add(&mut self, c_types: &mut ComponentTypes, e_id: usize, state: u32) {
-        c_types.add(e_id, ComponentType::State);
+    pub fn add(&mut self, e_id: usize, state: u32) -> ComponentType {
         self.values.add(e_id, state);
+        ComponentType::State
     }
 }
 
@@ -248,9 +248,9 @@ impl Renders {
         Renders { values: VecIndexedByEid::initialize(capacity) }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, render: Render) {
-        component_types.add(e_id, ComponentType::Render);
-        self.values.add(e_id, render)
+    pub fn add(&mut self, e_id: usize, render: Render) -> ComponentType {
+        self.values.add(e_id, render);
+        ComponentType::Render
     }
 
     pub fn get(&self, e_id: usize) -> Option<&Render> { self.values.get(e_id) }
@@ -265,13 +265,13 @@ impl Targets {
         Targets { values: VecIndexedByEid::initialize(capacity) }
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, target_e_id: usize) {
-        component_types.add(e_id, ComponentType::Target);
+    pub fn add(&mut self, e_id: usize, target_e_id: usize) -> ComponentType {
         match self.values.get_mut(e_id) {
             None => self.values.add(e_id, Vec::new()),
             _ => ()
         };
         self.values.get_mut(e_id).map(|targets| targets.push(target_e_id));
+        ComponentType::Target
     }
 }
 
@@ -285,15 +285,15 @@ impl TargetedBy {
         TargetedBy { values: VecIndexedByEid::initialize(capacity) } 
     }
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, targeted_by_e_id: usize) {
+    pub fn add(&mut self, e_id: usize, targeted_by_e_id: usize) -> ComponentType {
         // TODO: this could double up on TargetedBy if an entity is targeted by more than one other
         // entity. Is this a problem?
-        component_types.add(e_id, ComponentType::TargetedBy);
         match self.values.get_mut(e_id) {
             None => self.values.add(e_id, Vec::new()),
             _ => ()
         };
         self.values.get_mut(e_id).map(|targets| targets.push(targeted_by_e_id));
+        ComponentType::TargetedBy
     }
 }
 
