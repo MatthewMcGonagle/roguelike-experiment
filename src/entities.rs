@@ -37,6 +37,7 @@ impl Entities {
 
     pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
         let e_id = self.activate_new_id()?;
+        // Make sure we exit if we couldn't add the space data.
         let space_data = match e_components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
             None => {
                 let _ = self.free_most_recent_id()?;
