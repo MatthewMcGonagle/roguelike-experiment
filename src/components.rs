@@ -65,6 +65,11 @@ impl ComponentTypes {
         self.values.add(e_id, c_types);
     }
 
+    pub fn push(&mut self, e_id: usize, c_type: ComponentType) -> Option<()> {
+        let current = self.values.get_mut(e_id)?;
+        current.push(c_type);
+        Some(())
+    }
 }
 
 #[derive(Clone)]
