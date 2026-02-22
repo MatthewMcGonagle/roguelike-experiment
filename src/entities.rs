@@ -23,24 +23,36 @@ impl Entities {
         self.free_ids.len()
     }
 
-    pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
-        let space = e_components.coords_query.get_mut(coords.x, coords.y)?;
-        match space {
-            SpaceData::Empty => Some(()),
-            SpaceData::HasEid(_) => None
-        }?;
-
+    fn activate_new_id(&mut self) -> Option<usize> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
+        Some(e_id)
+    }
+
+    fn free_most_recent_id(&mut self) -> Option<()> {
+        let e_id = self.active_ids.pop()?;
+        self.free_ids.push(e_id);
+        Some(())
+    }
+
+    pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
+        let e_id = self.activate_new_id()?;
+        let space_data = match e_components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
+            None => {
+                let _ = self.free_most_recent_id()?;
+                None
+            },
+            Some(x) => Some(x)
+        }?;
 
         let components = Vec::from([
+            space_data,
             e_components.coords.add(e_id, coords),
             e_components.blocking.add(e_id),
             e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             e_components.ais.add(e_id, ai),
             e_components.renders.add(e_id, render)
         ]);
-        *space = SpaceData::HasEid(e_id);
         e_components.component_types.add(e_id, components);
         Some(e_id)
     }

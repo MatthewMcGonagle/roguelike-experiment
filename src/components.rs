@@ -126,6 +126,17 @@ impl CoordinatesQuery {
     pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut SpaceData> {
         self.values.get_mut(y * self.coord_width + x)
     }
+
+    pub fn add(&mut self, x: usize, y: usize, space_data: SpaceData) -> Option<ComponentType> {
+        let space = self.get_mut(x, y)?;
+        match space {
+            SpaceData::Empty => {
+                *space = space_data;
+                Some(ComponentType::CoordinatesQuery)
+            },
+            _ => None
+        }
+    }
 }
 
 pub struct Blocking {
