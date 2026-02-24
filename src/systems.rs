@@ -44,12 +44,12 @@ pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut Actio
 }
 
 fn move_coords_for_blocking(e_id: usize, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates) -> Option<()> {
-    let target_space = c_query.get_mut(target_coords.x, target_coords.y)?;
+    let target_space = c_query.get_mut(target_coords.x, target_coords.y).ok()?;
     match target_space {
         SpaceData::Empty => {
             let e_coords = e_coords.values.get_mut(e_id)?;
             *target_space = SpaceData::HasEid(e_id);
-            let origin = c_query.get_mut(e_coords.x, e_coords.y)?;
+            let origin = c_query.get_mut(e_coords.x, e_coords.y).ok()?;
             *e_coords = target_coords;
             *origin = SpaceData::Empty;
             Some(())
@@ -95,7 +95,7 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
             square_ai,
             Render { color: Color::RGB(255, 255, 255) }
         );
-        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id).ok());
+        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
     }
     Some(())
 }

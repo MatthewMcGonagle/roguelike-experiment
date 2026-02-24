@@ -23,27 +23,29 @@ impl Entities {
         self.free_ids.len()
     }
 
-    fn activate_new_id(&mut self) -> Option<usize> {
-        let e_id = self.free_ids.pop()?;
+    fn activate_new_id(&mut self) -> Result<usize, Errors> {
+        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
         self.active_ids.push(e_id);
-        Some(e_id)
+        Ok(e_id)
     }
 
-    fn free_most_recent_id(&mut self) -> Option<()> {
-        let e_id = self.active_ids.pop()?;
+    fn free_most_recent_id(&mut self) -> Result<(), Errors> {
+        let e_id = self.active_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
         self.free_ids.push(e_id);
-        Some(())
+        Ok(())
     }
 
-    pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
+    pub fn add_timed_square(
+        &mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render
+    ) -> Result<usize, Errors> {
         let e_id = self.activate_new_id()?;
         // Make sure we exit if we couldn't add the space data.
         let space_data = match e_components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
-            None => {
+            Err(e) => {
                 let _ = self.free_most_recent_id()?;
-                None
+                Err(e) 
             },
-            Some(x) => Some(x)
+            Ok(x) => Ok(x)
         }?;
 
         let components = Vec::from([
@@ -55,7 +57,7 @@ impl Entities {
             e_components.renders.add(e_id, render)
         ]);
         e_components.component_types.add(e_id, components);
-        Some(e_id)
+        Ok(e_id)
     }
 
     pub fn add_timed_square_creator(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32) -> Option<()> {
