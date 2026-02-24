@@ -72,8 +72,8 @@ impl Entities {
         Some(())
     }
 
-    pub fn add_kill_timer(&mut self, e_components: &mut EntityComponents, time_size: u32, target_e_id: usize) -> Option<()> {
-        let e_id = self.free_ids.pop()?;
+    pub fn add_kill_timer(&mut self, e_components: &mut EntityComponents, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
+        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
         self.active_ids.push(e_id);
 
         let components = Vec::from([

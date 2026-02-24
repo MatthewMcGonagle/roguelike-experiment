@@ -95,7 +95,7 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
             square_ai,
             Render { color: Color::RGB(255, 255, 255) }
         );
-        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
+        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id).ok());
     }
     Some(())
 }

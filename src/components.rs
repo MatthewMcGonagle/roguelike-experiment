@@ -5,6 +5,11 @@ use std::iter::Enumerate;
 
 const CAPACITY: usize = 10;
 
+pub enum Errors {
+    MissingExpectedEid,
+    UnexpectedlyEmpty
+}
+
 #[derive(Clone)]
 pub struct EidWithValue<T> {
     pub e_id: Option<usize>,
@@ -65,10 +70,10 @@ impl ComponentTypes {
         self.values.add(e_id, c_types);
     }
 
-    pub fn push(&mut self, e_id: usize, c_type: ComponentType) -> Option<()> {
-        let current = self.values.get_mut(e_id)?;
+    pub fn push(&mut self, e_id: usize, c_type: ComponentType) -> Result<(), Errors> {
+        let current = self.values.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
         current.push(c_type);
-        Some(())
+        Ok(())
     }
 }
 
