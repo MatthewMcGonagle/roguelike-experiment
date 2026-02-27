@@ -46,6 +46,27 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn remove(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
 }
 
+trait Component<T> {
+    fn get(&self, e_id: usize) -> Option<&T>;
+    fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
+    fn add(&mut self, e_id: usize, value: T) -> ComponentType;
+}
+
+trait UsesVecIndexedByEid<T> {
+    fn the_values(&self) -> &VecIndexedByEid<T>;
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<T>;
+    fn component_type() -> ComponentType;
+}
+
+impl<T: Clone, U: UsesVecIndexedByEid<T>> Component<T> for U {
+    fn get(&self, e_id: usize) -> Option<&T> { self.the_values().get(e_id) }
+    fn get_mut(&mut self, e_id: usize) -> Option<&mut T> { self.mut_values().get_mut(e_id) }
+    fn add(&mut self, e_id: usize, value: T) -> ComponentType {
+        self.mut_values().add(e_id, value);
+        U::component_type()
+    }
+}
+
 #[derive(Clone)]
 pub enum ComponentType {
     Coordinates,
