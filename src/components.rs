@@ -312,7 +312,7 @@ impl UsesVecIndexedByEid<Render> for Renders {
 }
 
 pub struct Targets {
-    pub values: VecIndexedByEid<Vec<usize>>
+    values: VecIndexedByEid<Vec<usize>>
 }
 
 impl Targets {

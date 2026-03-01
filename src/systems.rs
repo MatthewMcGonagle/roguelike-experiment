@@ -102,7 +102,7 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
 }
 
 fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
-    let targets: Vec<usize> = e_components.targets.values.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
+    let targets: Vec<usize> = e_components.targets.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
     for target in targets {
         entities.remove(target, e_components);
     }
