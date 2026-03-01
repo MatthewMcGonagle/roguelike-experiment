@@ -111,9 +111,10 @@ impl Entities {
             self.remove(t_by, e_components);
         }
 
-        e_components.component_types.values.get(e_id).map(
+        e_components.component_types.get(e_id).map(
             |c_types| for c_type in c_types { 
                 match c_type {
+                    ComponentType::ComponentTypeList => (),
                     ComponentType::Coordinates => {
                         e_components.coords.get(e_id).map(|c|
                             e_components.coords_query.get_mut(c.x, c.y).map(|s| *s = SpaceData::Empty)
@@ -132,6 +133,6 @@ impl Entities {
             }
         );
 
-        e_components.component_types.values.remove(e_id);
+        e_components.component_types.remove(e_id);
     }
 }

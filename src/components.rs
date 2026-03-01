@@ -13,7 +13,7 @@ pub enum Errors {
 }
 
 pub struct VecIndexedByEid<T> {
-    pub values: Vec<Option<T>>
+    values: Vec<Option<T>>
 }
 
 impl<T: Clone> VecIndexedByEid<T> {
@@ -73,6 +73,7 @@ where
 
 #[derive(Clone)]
 pub enum ComponentType {
+    ComponentTypeList,
     Coordinates,
     CoordinatesQuery,
     ActionTimer,
@@ -85,7 +86,7 @@ pub enum ComponentType {
 }
 
 pub struct ComponentTypes {
-    pub values: VecIndexedByEid<Vec<ComponentType>>
+    values: VecIndexedByEid<Vec<ComponentType>>
 }
 
 impl ComponentTypes {
@@ -93,15 +94,17 @@ impl ComponentTypes {
         ComponentTypes { values: VecIndexedByEid::initialize(e_id_capacity) }
     }
 
-    pub fn add(&mut self, e_id: usize, c_types: Vec<ComponentType>) {
-        self.values.add(e_id, c_types);
-    }
-
     pub fn push(&mut self, e_id: usize, c_type: ComponentType) -> Result<(), Errors> {
         let current = self.values.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
         current.push(c_type);
         Ok(())
     }
+}
+
+impl UsesVecIndexedByEid<Vec<ComponentType>> for ComponentTypes {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<ComponentType>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<ComponentType>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::ComponentTypeList }
 }
 
 #[derive(Clone)]
