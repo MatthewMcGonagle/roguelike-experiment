@@ -61,7 +61,7 @@ fn move_coords_for_blocking(e_id: usize, e_coords: &mut CoordinateComponents, c_
 fn move_coords(
     e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, target_coords: Coordinates
     ) -> Option<()> {
-    if blocking.values.get(e_id).map(|b| b.clone() == BlockingType::Movement).unwrap_or(false) {
+    if blocking.get(e_id).map(|b| b.clone() == BlockingType::Movement).unwrap_or(false) {
         move_coords_for_blocking(e_id, e_coords, c_query, target_coords)
     } else {
         let coords = e_coords.get_mut(e_id)?;

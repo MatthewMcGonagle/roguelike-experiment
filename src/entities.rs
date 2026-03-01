@@ -121,7 +121,7 @@ impl Entities {
                         e_components.coords.remove(e_id);
                     },
                     ComponentType::CoordinatesQuery => (),
-                    ComponentType::Blocking => e_components.blocking.values.remove(e_id),
+                    ComponentType::Blocking => e_components.blocking.remove(e_id),
                     ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
                     ComponentType::Ai => e_components.ais.values.remove(e_id),
                     ComponentType::State => e_components.states.values.remove(e_id),

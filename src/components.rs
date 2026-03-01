@@ -182,7 +182,7 @@ pub enum BlockingType {
 }
 
 pub struct Blocking {
-    pub values: VecIndexedByEid<BlockingType>
+    values: VecIndexedByEid<BlockingType>
 }
 
 impl Blocking {
