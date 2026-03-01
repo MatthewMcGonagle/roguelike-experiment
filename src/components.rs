@@ -60,7 +60,11 @@ trait UsesVecIndexedByEid<T> {
     fn component_type() -> ComponentType;
 }
 
-impl<'a, T, U> Component<'a, T> for U where T: 'a + Clone, U: UsesVecIndexedByEid<T> {
+impl<'a, T, U> Component<'a, T> for U
+where
+    T: 'a + Clone,
+    U: UsesVecIndexedByEid<T>
+{
     fn get(&self, e_id: usize) -> Option<&T> { self.the_values().get(e_id) }
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T> { self.mut_values().get_mut(e_id) }
     fn add(&mut self, e_id: usize, value: T) -> ComponentType {
@@ -68,7 +72,7 @@ impl<'a, T, U> Component<'a, T> for U where T: 'a + Clone, U: UsesVecIndexedByEi
         U::component_type()
     }
     fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
-    fn iter_w_eid(&'a self) -> impl Iterator { self.the_values().iter_w_eid() }
+    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &Option<T>)> { self.the_values().iter_w_eid() }
 }
 
 #[derive(Clone)]
