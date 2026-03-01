@@ -45,8 +45,8 @@ pub trait Component<'a, T> where T: 'a {
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
     fn add(&mut self, e_id: usize, value: T) -> ComponentType;
     fn remove(&mut self, e_id: usize);
-    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &Option<T>)>;
-    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &mut Option<T>)>;
+    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)>;
+    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
 }
 
 trait UsesVecIndexedByEid<T> {
@@ -67,8 +67,8 @@ where
         U::component_type()
     }
     fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
-    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &Option<T>)> { self.the_values().iter_w_eid() }
-    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &mut Option<T>)> { self.mut_values().iter_mut_w_eid() }
+    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)> { self.the_values().iter_w_eid() }
+    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)> { self.mut_values().iter_mut_w_eid() }
 }
 
 #[derive(Clone)]
