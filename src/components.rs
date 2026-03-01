@@ -125,6 +125,7 @@ impl CoordinateComponents {
         }
     }
 }
+
 impl UsesVecIndexedByEid<Coordinates> for CoordinateComponents {
     fn the_values(&self) -> &VecIndexedByEid<Coordinates> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Coordinates> { &mut self.values }
@@ -175,8 +176,13 @@ impl CoordinatesQuery {
     }
 }
 
+#[derive(Clone, PartialEq)]
+pub enum BlockingType {
+    Movement
+}
+
 pub struct Blocking {
-    pub values: VecIndexedByEid<bool>
+    pub values: VecIndexedByEid<BlockingType>
 }
 
 impl Blocking {
@@ -185,11 +191,12 @@ impl Blocking {
             values: VecIndexedByEid::initialize(capacity)
         }
     }
+}
 
-    pub fn add(&mut self, e_id: usize) -> ComponentType {
-        self.values.add(e_id, true);
-        ComponentType::Blocking
-    }
+impl UsesVecIndexedByEid<BlockingType> for Blocking {
+    fn the_values(&self) -> &VecIndexedByEid<BlockingType> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<BlockingType> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Blocking }
 }
 
 #[derive(Clone)]

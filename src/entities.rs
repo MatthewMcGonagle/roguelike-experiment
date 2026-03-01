@@ -51,7 +51,7 @@ impl Entities {
         let components = Vec::from([
             space_data,
             e_components.coords.add(e_id, coords),
-            e_components.blocking.add(e_id),
+            e_components.blocking.add(e_id, BlockingType::Movement),
             e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             e_components.ais.add(e_id, ai),
             e_components.renders.add(e_id, render)
