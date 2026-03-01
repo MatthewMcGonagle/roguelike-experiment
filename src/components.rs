@@ -52,6 +52,7 @@ pub trait Component<'a, T> where T: 'a {
     fn add(&mut self, e_id: usize, value: T) -> ComponentType;
     fn remove(&mut self, e_id: usize);
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &Option<T>)>;
+    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &mut Option<T>)>;
 }
 
 trait UsesVecIndexedByEid<T> {
@@ -73,6 +74,7 @@ where
     }
     fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &Option<T>)> { self.the_values().iter_w_eid() }
+    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &mut Option<T>)> { self.mut_values().iter_mut_w_eid() }
 }
 
 #[derive(Clone)]
@@ -219,7 +221,7 @@ impl Timer {
 }
 
 pub struct ActionTimers {
-    pub values: VecIndexedByEid<Timer>
+    values: VecIndexedByEid<Timer>
 }
 
 impl ActionTimers {
@@ -228,11 +230,12 @@ impl ActionTimers {
             values: VecIndexedByEid::initialize(capacity)
         }
     }
+}
 
-    pub fn add(&mut self, e_id: usize, timer: Timer) -> ComponentType {
-        self.values.add(e_id, timer);
-        ComponentType::ActionTimer
-    }
+impl UsesVecIndexedByEid<Timer> for ActionTimers {
+    fn the_values(&self) -> &VecIndexedByEid<Timer> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Timer> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::ActionTimer }
 }
 
 #[derive(Clone)]

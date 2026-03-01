@@ -34,7 +34,7 @@ fn update_timer(timer: &mut Timer) -> bool {
 }
 
 pub fn update_timers(action_timers: &mut ActionTimers, actions_ready: &mut ActionsReady) {
-    for (e_id, maybe_timer) in action_timers.values.iter_mut_w_eid() {
+    for (e_id, maybe_timer) in action_timers.iter_mut_w_eid() {
         if let Some(t) = maybe_timer.as_mut() { 
             if update_timer(t) {
                 actions_ready.add(e_id);
