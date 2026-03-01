@@ -319,15 +319,12 @@ impl Targets {
     pub fn initialize(capacity: usize) -> Targets {
         Targets { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, e_id: usize, target_e_id: usize) -> ComponentType {
-        match self.values.get_mut(e_id) {
-            None => self.values.add(e_id, Vec::new()),
-            _ => ()
-        };
-        self.values.get_mut(e_id).map(|targets| targets.push(target_e_id));
-        ComponentType::Target
-    }
+impl UsesVecIndexedByEid<Vec<usize>> for Targets {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Target }
 }
 
 // If we kill this e_id then we need to appropriately updates other entities that target this one.

@@ -81,7 +81,7 @@ impl Entities {
         let components = Vec::from([
             e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             e_components.ais.add(e_id, Ai::Kill),
-            e_components.targets.add(e_id, target_e_id)
+            e_components.targets.add(e_id, Vec::from([target_e_id]))
         ]);
         e_components.component_types.add(e_id, components);
 
