@@ -296,20 +296,19 @@ pub struct Render {
 }
 
 pub struct Renders {
-    pub values: VecIndexedByEid<Render>
+    values: VecIndexedByEid<Render>
 }
 
 impl Renders {
     pub fn initialize(capacity: usize) -> Renders {
         Renders { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, e_id: usize, render: Render) -> ComponentType {
-        self.values.add(e_id, render);
-        ComponentType::Render
-    }
-
-    pub fn get(&self, e_id: usize) -> Option<&Render> { self.values.get(e_id) }
+impl UsesVecIndexedByEid<Render> for Renders {
+    fn the_values(&self) -> &VecIndexedByEid<Render> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Render> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Render }
 }
 
 pub struct Targets {

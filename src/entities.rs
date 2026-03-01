@@ -125,7 +125,7 @@ impl Entities {
                     ComponentType::ActionTimer => e_components.action_timers.remove(e_id),
                     ComponentType::Ai => e_components.ais.remove(e_id),
                     ComponentType::State => e_components.states.remove(e_id),
-                    ComponentType::Render => e_components.renders.values.remove(e_id),
+                    ComponentType::Render => e_components.renders.remove(e_id),
                     ComponentType::Target => e_components.targets.values.remove(e_id),
                     ComponentType::TargetedBy => e_components.targeted_by.values.remove(e_id)
                 }
