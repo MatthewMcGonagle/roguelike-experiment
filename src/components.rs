@@ -247,18 +247,19 @@ pub enum Ai {
 }
 
 pub struct Ais {
-    pub values: VecIndexedByEid<Ai>
+    values: VecIndexedByEid<Ai>
 }
 
 impl Ais {
     pub fn initialize(capacity: usize) -> Ais {
         Ais { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, e_id: usize, ai: Ai) -> ComponentType {
-        self.values.add(e_id, ai);
-        ComponentType::Ai
-    }
+impl UsesVecIndexedByEid<Ai> for Ais {
+    fn the_values(&self) -> &VecIndexedByEid<Ai> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Ai> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Ai }
 }
 
 pub struct States {
