@@ -86,7 +86,7 @@ impl Entities {
         e_components.component_types.add(e_id, components);
 
         // Need to handle the target too.
-        let target_component = e_components.targeted_by.add(target_e_id, e_id);
+        let target_component = e_components.targeted_by.add(target_e_id, Vec::from([e_id]));
         e_components.component_types.push(target_e_id, target_component)
     }
 
@@ -106,7 +106,7 @@ impl Entities {
 
         // To avoid borrow checker difficulties, let us just collect a list. This will also help us
         // avoid any dropped linkage errors created by deletion process. 
-        let targeted_by: Vec<usize> = e_components.targeted_by.values.get(e_id).into_iter().flat_map(|targeted_by| targeted_by.clone()).collect();
+        let targeted_by: Vec<usize> = e_components.targeted_by.get(e_id).into_iter().flat_map(|targeted_by| targeted_by.clone()).collect();
         for t_by in targeted_by {
             self.remove(t_by, e_components);
         }
@@ -127,7 +127,7 @@ impl Entities {
                     ComponentType::State => e_components.states.remove(e_id),
                     ComponentType::Render => e_components.renders.remove(e_id),
                     ComponentType::Target => e_components.targets.remove(e_id),
-                    ComponentType::TargetedBy => e_components.targeted_by.values.remove(e_id)
+                    ComponentType::TargetedBy => e_components.targeted_by.remove(e_id)
                 }
             }
         );
