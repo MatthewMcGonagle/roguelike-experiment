@@ -12,12 +12,6 @@ pub enum Errors {
     UnexpectedlyEmpty
 }
 
-#[derive(Clone)]
-pub struct EidWithValue<T> {
-    pub e_id: Option<usize>,
-    pub value: T
-}
-
 pub struct VecIndexedByEid<T> {
     pub values: Vec<Option<T>>
 }

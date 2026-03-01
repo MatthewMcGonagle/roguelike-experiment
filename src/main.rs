@@ -14,6 +14,10 @@ use sdl3::pixels::Color;
 use std::time::Duration;
 
 pub fn main() {
+    let _ = safe_main();
+}
+
+pub fn safe_main() -> Result<(), Errors> {
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
@@ -37,11 +41,11 @@ pub fn main() {
     let mut components = Components::initialize(display, coord_width, coord_height);
     let mut entities = Entities::initialize();
 
-    entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50); 
-    entities.add_timed_square(&mut components.e_components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, Render { color: Color::RGB(0, 0, 0) });
-    entities.add_timed_square(&mut components.e_components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, Render { color: Color::RGB(255, 0, 0) });
-    entities.add_timed_square(&mut components.e_components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, Render { color: Color::RGB(0, 255, 0) });
-    entities.add_timed_square(&mut components.e_components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, Render { color: Color::RGB(0, 0, 255) });
+    let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);
+    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, Render { color: Color::RGB(0, 0, 0) })?;
+    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, Render { color: Color::RGB(255, 0, 0) })?;
+    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, Render { color: Color::RGB(0, 255, 0) })?;
+    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, Render { color: Color::RGB(0, 0, 255) })?;
 
     'running: loop {
         i = (i + 1) % 255;
@@ -64,4 +68,5 @@ pub fn main() {
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
+    Ok(())
 }
