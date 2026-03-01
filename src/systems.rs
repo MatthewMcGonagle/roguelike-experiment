@@ -83,11 +83,11 @@ fn shift_y(e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateCompon
 }
 
 fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
-    let square_ai = match e_components.states.values.get(e_id).unwrap() {
+    let square_ai = match e_components.states.get(e_id).unwrap() {
         0 => Ai::ShiftX,
         _ => Ai::ShiftY
     };
-    e_components.states.values.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
+    e_components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     if entities.n_free_ids() >= 2 {
         let maybe_spawned_e_id = entities.add_timed_square(
             e_components,

@@ -263,18 +263,19 @@ impl UsesVecIndexedByEid<Ai> for Ais {
 }
 
 pub struct States {
-    pub values: VecIndexedByEid<u32>
+    values: VecIndexedByEid<u32>
 }
 
 impl States {
     pub fn initialize(capacity: usize) -> States {
         States { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, e_id: usize, state: u32) -> ComponentType {
-        self.values.add(e_id, state);
-        ComponentType::State
-    }
+impl UsesVecIndexedByEid<u32> for States {
+    fn the_values(&self) -> &VecIndexedByEid<u32> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<u32> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::State }
 }
 
 pub struct ActionsReady {
