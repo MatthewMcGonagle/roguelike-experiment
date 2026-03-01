@@ -51,7 +51,7 @@ pub trait Component<'a, T> where T: 'a {
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
     fn add(&mut self, e_id: usize, value: T) -> ComponentType;
     fn remove(&mut self, e_id: usize);
-    fn iter_w_eid(&'a self) -> impl Iterator;
+    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &Option<T>)>;
 }
 
 trait UsesVecIndexedByEid<T> {
@@ -125,16 +125,10 @@ impl CoordinateComponents {
         }
     }
 }
-
-impl<'a> Component<'a, Coordinates> for CoordinateComponents {
-    fn get(&self, e_id: usize) -> Option<&Coordinates> { self.values.get(e_id) }
-    fn get_mut(&mut self, e_id: usize) -> Option<&mut Coordinates> { self.values.get_mut(e_id) }
-    fn add(&mut self, e_id: usize, coords: Coordinates) -> ComponentType {
-        self.values.add(e_id, coords);
-        ComponentType::Coordinates
-    }
-    fn remove(&mut self, e_id: usize) { self.values.remove(e_id) }
-    fn iter_w_eid(&self) -> impl Iterator<Item = (usize, &Option<Coordinates>)> { self.values.iter_w_eid() }
+impl UsesVecIndexedByEid<Coordinates> for CoordinateComponents {
+    fn the_values(&self) -> &VecIndexedByEid<Coordinates> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Coordinates> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Coordinates}
 }
 
 #[derive(Clone)]
