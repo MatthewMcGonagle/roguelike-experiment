@@ -115,10 +115,10 @@ impl Entities {
             |c_types| for c_type in c_types { 
                 match c_type {
                     ComponentType::Coordinates => {
-                        e_components.coords.values.get(e_id).map(|c|
+                        e_components.coords.get(e_id).map(|c|
                             e_components.coords_query.get_mut(c.x, c.y).map(|s| *s = SpaceData::Empty)
                         );
-                        e_components.coords.values.remove(e_id);
+                        e_components.coords.remove(e_id);
                     },
                     ComponentType::CoordinatesQuery => (),
                     ComponentType::Blocking => e_components.blocking.values.remove(e_id),

@@ -46,10 +46,12 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn remove(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
 }
 
-pub trait Component<T> {
+pub trait Component<'a, T> where T: 'a {
     fn get(&self, e_id: usize) -> Option<&T>;
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
     fn add(&mut self, e_id: usize, value: T) -> ComponentType;
+    fn remove(&mut self, e_id: usize);
+    fn iter_w_eid(&'a self) -> impl Iterator;
 }
 
 trait UsesVecIndexedByEid<T> {
@@ -58,13 +60,15 @@ trait UsesVecIndexedByEid<T> {
     fn component_type() -> ComponentType;
 }
 
-impl<T: Clone, U: UsesVecIndexedByEid<T>> Component<T> for U {
+impl<'a, T, U> Component<'a, T> for U where T: 'a + Clone, U: UsesVecIndexedByEid<T> {
     fn get(&self, e_id: usize) -> Option<&T> { self.the_values().get(e_id) }
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T> { self.mut_values().get_mut(e_id) }
     fn add(&mut self, e_id: usize, value: T) -> ComponentType {
         self.mut_values().add(e_id, value);
         U::component_type()
     }
+    fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
+    fn iter_w_eid(&'a self) -> impl Iterator { self.the_values().iter_w_eid() }
 }
 
 #[derive(Clone)]
@@ -107,7 +111,7 @@ pub struct Coordinates {
 }
 
 pub struct CoordinateComponents {
-    pub values: VecIndexedByEid<Coordinates>,
+    values: VecIndexedByEid<Coordinates>,
 }
 
 impl CoordinateComponents {
@@ -118,13 +122,15 @@ impl CoordinateComponents {
     }
 }
 
-impl Component<Coordinates> for CoordinateComponents {
+impl<'a> Component<'a, Coordinates> for CoordinateComponents {
     fn get(&self, e_id: usize) -> Option<&Coordinates> { self.values.get(e_id) }
     fn get_mut(&mut self, e_id: usize) -> Option<&mut Coordinates> { self.values.get_mut(e_id) }
     fn add(&mut self, e_id: usize, coords: Coordinates) -> ComponentType {
         self.values.add(e_id, coords);
         ComponentType::Coordinates
     }
+    fn remove(&mut self, e_id: usize) { self.values.remove(e_id) }
+    fn iter_w_eid(&self) -> impl Iterator<Item = (usize, &Option<Coordinates>)> { self.values.iter_w_eid() }
 }
 
 #[derive(Clone)]
