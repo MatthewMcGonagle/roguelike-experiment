@@ -5,14 +5,15 @@ use std::iter::Enumerate;
 
 const CAPACITY: usize = 10;
 
-#[derive(Clone)]
-pub struct EidWithValue<T> {
-    pub e_id: Option<usize>,
-    pub value: T
+pub enum Errors {
+    CoordinateMissing,
+    MissingExpectedEid,
+    SpaceAlreadyNonempty,
+    UnexpectedlyEmpty
 }
 
 pub struct VecIndexedByEid<T> {
-    pub values: Vec<Option<T>>
+    values: Vec<Option<T>>
 }
 
 impl<T: Clone> VecIndexedByEid<T> {
@@ -39,9 +40,42 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn remove(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
 }
 
+pub trait Component<'a, T> where T: 'a {
+    fn get(&self, e_id: usize) -> Option<&T>;
+    fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
+    fn add(&mut self, e_id: usize, value: T) -> ComponentType;
+    fn remove(&mut self, e_id: usize);
+    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)>;
+    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
+}
+
+trait UsesVecIndexedByEid<T> {
+    fn the_values(&self) -> &VecIndexedByEid<T>;
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<T>;
+    fn component_type() -> ComponentType;
+}
+
+impl<'a, T, U> Component<'a, T> for U
+where
+    T: 'a + Clone,
+    U: UsesVecIndexedByEid<T>
+{
+    fn get(&self, e_id: usize) -> Option<&T> { self.the_values().get(e_id) }
+    fn get_mut(&mut self, e_id: usize) -> Option<&mut T> { self.mut_values().get_mut(e_id) }
+    fn add(&mut self, e_id: usize, value: T) -> ComponentType {
+        self.mut_values().add(e_id, value);
+        U::component_type()
+    }
+    fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
+    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)> { self.the_values().iter_w_eid() }
+    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)> { self.mut_values().iter_mut_w_eid() }
+}
+
 #[derive(Clone)]
 pub enum ComponentType {
+    ComponentTypeList,
     Coordinates,
+    CoordinatesQuery,
     ActionTimer,
     Ai,
     State,
@@ -52,7 +86,7 @@ pub enum ComponentType {
 }
 
 pub struct ComponentTypes {
-    pub values: VecIndexedByEid<Vec<ComponentType>>
+    values: VecIndexedByEid<Vec<ComponentType>>
 }
 
 impl ComponentTypes {
@@ -60,18 +94,17 @@ impl ComponentTypes {
         ComponentTypes { values: VecIndexedByEid::initialize(e_id_capacity) }
     }
 
-    const CT_CAPACITY: usize = 10;
-    pub fn add(&mut self, e_id: usize, c_type: ComponentType) {
-        let maybe_types = self.values.get_mut(e_id);
-        let types: Option<&mut Vec<ComponentType>> = match maybe_types {
-            None => {
-                self.values.add(e_id, Vec::with_capacity(ComponentTypes::CT_CAPACITY));
-                self.values.get_mut(e_id)
-            },
-            _ => maybe_types
-        };
-        types.map(|ts| ts.push(c_type));
+    pub fn push(&mut self, e_id: usize, c_type: ComponentType) -> Result<(), Errors> {
+        let current = self.values.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
+        current.push(c_type);
+        Ok(())
     }
+}
+
+impl UsesVecIndexedByEid<Vec<ComponentType>> for ComponentTypes {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<ComponentType>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<ComponentType>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::ComponentTypeList }
 }
 
 #[derive(Clone)]
@@ -81,7 +114,7 @@ pub struct Coordinates {
 }
 
 pub struct CoordinateComponents {
-    pub values: VecIndexedByEid<Coordinates>,
+    values: VecIndexedByEid<Coordinates>,
 }
 
 impl CoordinateComponents {
@@ -90,11 +123,12 @@ impl CoordinateComponents {
             values: VecIndexedByEid::initialize(capacity)
         }
     }
+}
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, coords: Coordinates) {
-        component_types.add(e_id, ComponentType::Coordinates);
-        self.values.add(e_id, coords)
-    }
+impl UsesVecIndexedByEid<Coordinates> for CoordinateComponents {
+    fn the_values(&self) -> &VecIndexedByEid<Coordinates> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Coordinates> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Coordinates}
 }
 
 #[derive(Clone)]
@@ -121,17 +155,33 @@ impl CoordinatesQuery {
         }
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Option<&SpaceData> {
-        self.values.get(y * self.coord_width + x)
+    pub fn get(&self, x: usize, y: usize) -> Result<&SpaceData, Errors> {
+        self.values.get(y * self.coord_width + x).ok_or(Errors::CoordinateMissing)
     }
 
-    pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut SpaceData> {
-        self.values.get_mut(y * self.coord_width + x)
+    pub fn get_mut(&mut self, x: usize, y: usize) -> Result<&mut SpaceData, Errors> {
+        self.values.get_mut(y * self.coord_width + x).ok_or(Errors::CoordinateMissing)
+    }
+
+    pub fn add(&mut self, x: usize, y: usize, space_data: SpaceData) -> Result<ComponentType, Errors> {
+        let space = self.get_mut(x, y)?;
+        match space {
+            SpaceData::Empty => {
+                *space = space_data;
+                Ok(ComponentType::CoordinatesQuery)
+            },
+            _ => Err(Errors::SpaceAlreadyNonempty) 
+        }
     }
 }
 
+#[derive(Clone, PartialEq)]
+pub enum BlockingType {
+    Movement
+}
+
 pub struct Blocking {
-    pub values: VecIndexedByEid<bool>
+    values: VecIndexedByEid<BlockingType>
 }
 
 impl Blocking {
@@ -140,11 +190,12 @@ impl Blocking {
             values: VecIndexedByEid::initialize(capacity)
         }
     }
+}
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize) {
-        component_types.add(e_id, ComponentType::Blocking);
-        self.values.add(e_id, true);
-    }
+impl UsesVecIndexedByEid<BlockingType> for Blocking {
+    fn the_values(&self) -> &VecIndexedByEid<BlockingType> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<BlockingType> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Blocking }
 }
 
 #[derive(Clone)]
@@ -167,7 +218,7 @@ impl Timer {
 }
 
 pub struct ActionTimers {
-    pub values: VecIndexedByEid<Timer>
+    values: VecIndexedByEid<Timer>
 }
 
 impl ActionTimers {
@@ -176,11 +227,12 @@ impl ActionTimers {
             values: VecIndexedByEid::initialize(capacity)
         }
     }
+}
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, timer: Timer) {
-        component_types.add(e_id, ComponentType::ActionTimer);
-        self.values.add(e_id, timer);
-    }
+impl UsesVecIndexedByEid<Timer> for ActionTimers {
+    fn the_values(&self) -> &VecIndexedByEid<Timer> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Timer> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::ActionTimer }
 }
 
 #[derive(Clone)]
@@ -192,33 +244,35 @@ pub enum Ai {
 }
 
 pub struct Ais {
-    pub values: VecIndexedByEid<Ai>
+    values: VecIndexedByEid<Ai>
 }
 
 impl Ais {
     pub fn initialize(capacity: usize) -> Ais {
         Ais { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, ai: Ai) {
-        component_types.add(e_id, ComponentType::Ai);
-        self.values.add(e_id, ai);
-    }
+impl UsesVecIndexedByEid<Ai> for Ais {
+    fn the_values(&self) -> &VecIndexedByEid<Ai> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Ai> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Ai }
 }
 
 pub struct States {
-    pub values: VecIndexedByEid<u32>
+    values: VecIndexedByEid<u32>
 }
 
 impl States {
     pub fn initialize(capacity: usize) -> States {
         States { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, c_types: &mut ComponentTypes, e_id: usize, state: u32) {
-        c_types.add(e_id, ComponentType::State);
-        self.values.add(e_id, state);
-    }
+impl UsesVecIndexedByEid<u32> for States {
+    fn the_values(&self) -> &VecIndexedByEid<u32> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<u32> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::State }
 }
 
 pub struct ActionsReady {
@@ -239,61 +293,52 @@ pub struct Render {
 }
 
 pub struct Renders {
-    pub values: VecIndexedByEid<Render>
+    values: VecIndexedByEid<Render>
 }
 
 impl Renders {
     pub fn initialize(capacity: usize) -> Renders {
         Renders { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, render: Render) {
-        component_types.add(e_id, ComponentType::Render);
-        self.values.add(e_id, render)
-    }
-
-    pub fn get(&self, e_id: usize) -> Option<&Render> { self.values.get(e_id) }
+impl UsesVecIndexedByEid<Render> for Renders {
+    fn the_values(&self) -> &VecIndexedByEid<Render> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Render> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Render }
 }
 
 pub struct Targets {
-    pub values: VecIndexedByEid<Vec<usize>>
+    values: VecIndexedByEid<Vec<usize>>
 }
 
 impl Targets {
     pub fn initialize(capacity: usize) -> Targets {
         Targets { values: VecIndexedByEid::initialize(capacity) }
     }
+}
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, target_e_id: usize) {
-        component_types.add(e_id, ComponentType::Target);
-        match self.values.get_mut(e_id) {
-            None => self.values.add(e_id, Vec::new()),
-            _ => ()
-        };
-        self.values.get_mut(e_id).map(|targets| targets.push(target_e_id));
-    }
+impl UsesVecIndexedByEid<Vec<usize>> for Targets {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Target }
 }
 
 // If we kill this e_id then we need to appropriately updates other entities that target this one.
 pub struct TargetedBy {
-    pub values: VecIndexedByEid<Vec<usize>>
+    values: VecIndexedByEid<Vec<usize>>
 }
 
 impl TargetedBy {
     pub fn initialize(capacity: usize) -> TargetedBy {
         TargetedBy { values: VecIndexedByEid::initialize(capacity) } 
     }
+}
 
-    pub fn add(&mut self, component_types: &mut ComponentTypes, e_id: usize, targeted_by_e_id: usize) {
-        // TODO: this could double up on TargetedBy if an entity is targeted by more than one other
-        // entity. Is this a problem?
-        component_types.add(e_id, ComponentType::TargetedBy);
-        match self.values.get_mut(e_id) {
-            None => self.values.add(e_id, Vec::new()),
-            _ => ()
-        };
-        self.values.get_mut(e_id).map(|targets| targets.push(targeted_by_e_id));
-    }
+impl UsesVecIndexedByEid<Vec<usize>> for TargetedBy {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::TargetedBy }
 }
 
 pub struct EntityComponents {

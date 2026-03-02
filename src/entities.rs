@@ -23,45 +23,71 @@ impl Entities {
         self.free_ids.len()
     }
 
-    pub fn add_timed_square(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render) -> Option<usize> {
-        let space = e_components.coords_query.get_mut(coords.x, coords.y)?;
-        match space {
-            SpaceData::Empty => Some(()),
-            SpaceData::HasEid(_) => None
+    fn activate_new_id(&mut self) -> Result<usize, Errors> {
+        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
+        self.active_ids.push(e_id);
+        Ok(e_id)
+    }
+
+    fn free_most_recent_id(&mut self) -> Result<(), Errors> {
+        let e_id = self.active_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
+        self.free_ids.push(e_id);
+        Ok(())
+    }
+
+    pub fn add_timed_square(
+        &mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render
+    ) -> Result<usize, Errors> {
+        let e_id = self.activate_new_id()?;
+        // Make sure we exit if we couldn't add the space data.
+        let space_data = match e_components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
+            Err(e) => {
+                let _ = self.free_most_recent_id()?;
+                Err(e) 
+            },
+            Ok(x) => Ok(x)
         }?;
 
-        let e_id = self.free_ids.pop()?;
-        self.active_ids.push(e_id);
-
-        e_components.coords.add(&mut e_components.component_types, e_id, coords);
-        e_components.blocking.add(&mut e_components.component_types, e_id);
-        *space = SpaceData::HasEid(e_id);
-        e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size }); 
-        e_components.ais.add(&mut e_components.component_types, e_id, ai);
-        e_components.renders.add(&mut e_components.component_types, e_id, render);
-        Some(e_id)
+        let components = Vec::from([
+            space_data,
+            e_components.coords.add(e_id, coords),
+            e_components.blocking.add(e_id, BlockingType::Movement),
+            e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
+            e_components.ais.add(e_id, ai),
+            e_components.renders.add(e_id, render)
+        ]);
+        e_components.component_types.add(e_id, components);
+        Ok(e_id)
     }
 
     pub fn add_timed_square_creator(&mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32) -> Option<()> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        e_components.coords.add(&mut e_components.component_types, e_id, coords);
-        e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size });
-        e_components.ais.add(&mut e_components.component_types, e_id, Ai::AddAvailableSquare); 
-        e_components.states.add(&mut e_components.component_types, e_id, 0);
+        let components = Vec::from([
+            e_components.coords.add(e_id, coords),
+            e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
+            e_components.ais.add(e_id, Ai::AddAvailableSquare),
+            e_components.states.add(e_id, 0)
+        ]);
+        e_components.component_types.add(e_id, components);
         Some(())
     }
 
-    pub fn add_kill_timer(&mut self, e_components: &mut EntityComponents, time_size: u32, target_e_id: usize) -> Option<()> {
-        let e_id = self.free_ids.pop()?;
+    pub fn add_kill_timer(&mut self, e_components: &mut EntityComponents, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
+        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
         self.active_ids.push(e_id);
 
-        e_components.action_timers.add(&mut e_components.component_types, e_id, Timer { time: time_size, reset: time_size });
-        e_components.ais.add(&mut e_components.component_types, e_id, Ai::Kill);
-        e_components.targets.add(&mut e_components.component_types, e_id, target_e_id);
-        e_components.targeted_by.add(&mut e_components.component_types, target_e_id, e_id);
-        Some(())
+        let components = Vec::from([
+            e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
+            e_components.ais.add(e_id, Ai::Kill),
+            e_components.targets.add(e_id, Vec::from([target_e_id]))
+        ]);
+        e_components.component_types.add(e_id, components);
+
+        // Need to handle the target too.
+        let target_component = e_components.targeted_by.add(target_e_id, Vec::from([e_id]));
+        e_components.component_types.push(target_e_id, target_component)
     }
 
     pub fn remove(&mut self, e_id: usize, e_components: &mut EntityComponents) {
@@ -80,31 +106,33 @@ impl Entities {
 
         // To avoid borrow checker difficulties, let us just collect a list. This will also help us
         // avoid any dropped linkage errors created by deletion process. 
-        let targeted_by: Vec<usize> = e_components.targeted_by.values.get(e_id).into_iter().flat_map(|targeted_by| targeted_by.clone()).collect();
+        let targeted_by: Vec<usize> = e_components.targeted_by.get(e_id).into_iter().flat_map(|targeted_by| targeted_by.clone()).collect();
         for t_by in targeted_by {
             self.remove(t_by, e_components);
         }
 
-        e_components.component_types.values.get(e_id).map(
+        e_components.component_types.get(e_id).map(
             |c_types| for c_type in c_types { 
                 match c_type {
+                    ComponentType::ComponentTypeList => (),
                     ComponentType::Coordinates => {
-                        e_components.coords.values.get(e_id).map(|c|
+                        e_components.coords.get(e_id).map(|c|
                             e_components.coords_query.get_mut(c.x, c.y).map(|s| *s = SpaceData::Empty)
                         );
-                        e_components.coords.values.remove(e_id);
+                        e_components.coords.remove(e_id);
                     },
-                    ComponentType::Blocking => e_components.blocking.values.remove(e_id),
-                    ComponentType::ActionTimer => e_components.action_timers.values.remove(e_id),
-                    ComponentType::Ai => e_components.ais.values.remove(e_id),
-                    ComponentType::State => e_components.states.values.remove(e_id),
-                    ComponentType::Render => e_components.renders.values.remove(e_id),
-                    ComponentType::Target => e_components.targets.values.remove(e_id),
-                    ComponentType::TargetedBy => e_components.targeted_by.values.remove(e_id)
+                    ComponentType::CoordinatesQuery => (),
+                    ComponentType::Blocking => e_components.blocking.remove(e_id),
+                    ComponentType::ActionTimer => e_components.action_timers.remove(e_id),
+                    ComponentType::Ai => e_components.ais.remove(e_id),
+                    ComponentType::State => e_components.states.remove(e_id),
+                    ComponentType::Render => e_components.renders.remove(e_id),
+                    ComponentType::Target => e_components.targets.remove(e_id),
+                    ComponentType::TargetedBy => e_components.targeted_by.remove(e_id)
                 }
             }
         );
 
-        e_components.component_types.values.remove(e_id);
+        e_components.component_types.remove(e_id);
     }
 }
