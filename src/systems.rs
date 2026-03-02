@@ -126,10 +126,15 @@ fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities:
 }
 
 pub fn do_actions(components: &mut Components, entities: &mut Entities) -> Option<LoopState> {
-    for e_id in components.actions_ready.values.iter() {
-        let maybe_ai: Option<Ai> = components.e_components.ais.get(*e_id).cloned();
-        maybe_ai.map(|ai| do_action(*e_id, ai, &mut components.e_components, entities));
+    while !components.actions_ready.values.is_empty() {
+        let e_id = components.actions_ready.values.pop().unwrap();
+        let maybe_ai: Option<Ai> = components.e_components.ais.get(e_id).cloned();
+        maybe_ai.map(|ai| do_action(e_id, ai, &mut components.e_components, entities));
     }
-    components.actions_ready.values.clear();
-    None
+
+    if components.actions_ready.values.is_empty() {
+        None
+    } else {
+        Some(LoopState::DoActions)
+    }
 }
