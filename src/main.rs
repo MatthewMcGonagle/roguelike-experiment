@@ -38,7 +38,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut components = Components::initialize(display, coord_width, coord_height);
+    let mut components = Components::initialize(LoopState::RunGame, display, coord_width, coord_height);
     let mut entities = Entities::initialize();
 
     let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);

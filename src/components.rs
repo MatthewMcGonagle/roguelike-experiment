@@ -377,15 +377,22 @@ pub struct Display {
     pub coord_scale: usize
 }
 
+pub enum LoopState {
+    RunGame,
+    PlayerInput
+}
+
 pub struct Components {
+    pub loop_state: LoopState,
     pub display: Display,
     pub actions_ready: ActionsReady,
     pub e_components: EntityComponents
 }
 
 impl Components {
-    pub fn initialize(display: Display, coord_width: usize, coord_height: usize) -> Components {
+    pub fn initialize(loop_state: LoopState, display: Display, coord_width: usize, coord_height: usize) -> Components {
         Components {
+            loop_state: loop_state,
             display: display,
             actions_ready: ActionsReady::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
