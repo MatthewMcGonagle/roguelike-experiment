@@ -240,7 +240,8 @@ pub enum Ai {
     ShiftX,
     ShiftY,
     AddAvailableSquare,
-    Kill
+    Kill,
+    User
 }
 
 pub struct Ais {

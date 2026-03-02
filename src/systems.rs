@@ -121,7 +121,8 @@ fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities:
             shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h)
         },
         Ai::AddAvailableSquare => add_available_square(e_id, e_components, entities),
-        Ai::Kill => kill_others_and_self(e_id, e_components, entities) 
+        Ai::Kill => kill_others_and_self(e_id, e_components, entities),
+        Ai::User => Some(())
     }
 }
 
@@ -129,7 +130,11 @@ pub fn do_actions(components: &mut Components, entities: &mut Entities) -> Optio
     while !components.actions_ready.values.is_empty() {
         let e_id = components.actions_ready.values.pop().unwrap();
         let maybe_ai: Option<Ai> = components.e_components.ais.get(e_id).cloned();
-        maybe_ai.map(|ai| do_action(e_id, ai, &mut components.e_components, entities));
+        match maybe_ai {
+            Some(Ai::User) => None,
+            Some(ai) => do_action(e_id, ai, &mut components.e_components, entities),
+            None => None
+        };
     }
 
     if components.actions_ready.values.is_empty() {
