@@ -38,7 +38,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut components = Components::initialize(LoopState::RunGame, display, coord_width, coord_height);
+    let mut components = Components::initialize(LoopState::RunTimers, display, coord_width, coord_height);
     let mut entities = Entities::initialize();
 
     let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);
@@ -61,10 +61,17 @@ pub fn safe_main() -> Result<(), Errors> {
             }
         }
         // The rest of the game loop goes here...
-      
         draw_squares(&components.e_components.coords, components.display.coord_scale, &components.e_components.renders, &mut canvas);
-        update_timers(&mut components.e_components.action_timers, &mut components.actions_ready);
-        do_actions(&mut components, &mut entities);
+
+        if components.loop_state == LoopState::RunTimers {
+            update_timers(&mut components.e_components.action_timers, &mut components.actions_ready);
+            components.loop_state = LoopState::DoActions;
+        }
+
+        if components.loop_state == LoopState::DoActions {
+            components.loop_state = do_actions(&mut components, &mut entities).unwrap_or(LoopState::RunTimers);
+        }
+
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }

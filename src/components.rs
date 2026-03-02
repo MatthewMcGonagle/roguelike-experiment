@@ -377,8 +377,10 @@ pub struct Display {
     pub coord_scale: usize
 }
 
+#[derive(PartialEq)]
 pub enum LoopState {
-    RunGame,
+    RunTimers,
+    DoActions,
     PlayerInput
 }
 
