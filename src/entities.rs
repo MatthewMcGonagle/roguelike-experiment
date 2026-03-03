@@ -123,7 +123,7 @@ impl Entities {
                     },
                     ComponentType::CoordinatesQuery => (),
                     ComponentType::Blocking => e_components.blocking.remove(e_id),
-                    ComponentType::ActionTimer => e_components.action_timers.remove(e_id),
+                    ComponentType::DecisionTimer => e_components.action_timers.remove(e_id),
                     ComponentType::Ai => e_components.ais.remove(e_id),
                     ComponentType::State => e_components.states.remove(e_id),
                     ComponentType::Render => e_components.renders.remove(e_id),

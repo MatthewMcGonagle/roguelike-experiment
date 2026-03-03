@@ -76,7 +76,7 @@ pub enum ComponentType {
     ComponentTypeList,
     Coordinates,
     CoordinatesQuery,
-    ActionTimer,
+    DecisionTimer,
     Ai,
     State,
     Render,
@@ -217,22 +217,22 @@ impl Timer {
     }
 }
 
-pub struct ActionTimers {
+pub struct DecisionTimers {
     values: VecIndexedByEid<Timer>
 }
 
-impl ActionTimers {
-    pub fn initialize(capacity: usize) -> ActionTimers {
-        ActionTimers {
+impl DecisionTimers {
+    pub fn initialize(capacity: usize) -> DecisionTimers {
+        DecisionTimers {
             values: VecIndexedByEid::initialize(capacity)
         }
     }
 }
 
-impl UsesVecIndexedByEid<Timer> for ActionTimers {
+impl UsesVecIndexedByEid<Timer> for DecisionTimers {
     fn the_values(&self) -> &VecIndexedByEid<Timer> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Timer> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::ActionTimer }
+    fn component_type() -> ComponentType { ComponentType::DecisionTimer }
 }
 
 #[derive(Clone)]
@@ -347,7 +347,7 @@ pub struct EntityComponents {
     pub coords: CoordinateComponents,
     pub coords_query: CoordinatesQuery,
     pub blocking: Blocking,
-    pub action_timers: ActionTimers,
+    pub action_timers: DecisionTimers,
     pub ais: Ais,
     pub states: States,
     pub renders: Renders,
@@ -362,7 +362,7 @@ impl EntityComponents {
             coords: CoordinateComponents::initialize(capacity),
             coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
             blocking: Blocking::initialize(capacity),
-            action_timers: ActionTimers::initialize(capacity),
+            action_timers: DecisionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),
             renders: Renders::initialize(capacity),
