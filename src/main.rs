@@ -61,6 +61,9 @@ pub fn safe_main() -> Result<(), Errors> {
                 Event::KeyDown { keycode: Some(Keycode::J), .. } => {
                     components.user_decision = Some(UserDecision::MoveDown);
                 },
+                Event::KeyDown { keycode: Some(Keycode::K), .. } => {
+                    components.user_decision = Some(UserDecision::MoveUp);
+                },
                 _ => {}
             }
         }

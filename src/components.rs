@@ -386,7 +386,8 @@ pub enum LoopState {
 }
 
 pub enum UserDecision {
-    MoveDown
+    MoveDown,
+    MoveUp
 }
 
 pub struct Components {
