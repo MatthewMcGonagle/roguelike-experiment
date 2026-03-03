@@ -382,7 +382,7 @@ pub struct Display {
 pub enum LoopState {
     RunTimers,
     DoActions,
-    PlayerInput
+    User
 }
 
 pub struct Components {

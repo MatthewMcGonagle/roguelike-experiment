@@ -127,17 +127,24 @@ fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities:
 }
 
 pub fn do_actions(components: &mut Components, entities: &mut Entities) -> Option<LoopState> {
-    while !components.actions_ready.values.is_empty() {
+    let mut need_user_action = false;
+
+    while !components.actions_ready.values.is_empty() && !need_user_action {
         let e_id = components.actions_ready.values.pop().unwrap();
         let maybe_ai: Option<Ai> = components.e_components.ais.get(e_id).cloned();
         match maybe_ai {
-            Some(Ai::User) => None,
+            Some(Ai::User) => {
+                need_user_action = true;
+                None
+            },
             Some(ai) => do_action(e_id, ai, &mut components.e_components, entities),
             None => None
         };
     }
 
-    if components.actions_ready.values.is_empty() {
+    if need_user_action {
+        Some(LoopState::User)
+    } else if components.actions_ready.values.is_empty() {
         None
     } else {
         Some(LoopState::DoActions)
