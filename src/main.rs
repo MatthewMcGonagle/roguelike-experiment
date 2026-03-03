@@ -58,6 +58,9 @@ pub fn safe_main() -> Result<(), Errors> {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
+                Event::KeyDown { keycode: Some(Keycode::J), .. } => {
+                    components.user_decision = Some(UserDecision::MoveDown);
+                },
                 _ => {}
             }
         }
@@ -73,9 +76,10 @@ pub fn safe_main() -> Result<(), Errors> {
             components.loop_state = do_actions(&mut components, &mut entities).unwrap_or(LoopState::RunTimers);
         }
 
-        if components.loop_state == LoopState::User {
+        if components.loop_state == LoopState::User && components.user_decision.is_some() {
             println!("Player turn");
             components.loop_state = LoopState::DoActions;
+            components.user_decision = None;
         }
 
         canvas.present();
