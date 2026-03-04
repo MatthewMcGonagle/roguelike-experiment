@@ -110,6 +110,9 @@ fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entiti
     Some(())
 }
 
+fn make_decisions(decisions_ready: &mut DecisionsReady) { //, &mut actions_ready: ActionsReady) {
+}
+
 fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     match ai {
         Ai::ShiftX => {
