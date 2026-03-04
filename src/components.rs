@@ -276,13 +276,13 @@ impl UsesVecIndexedByEid<u32> for States {
     fn component_type() -> ComponentType { ComponentType::State }
 }
 
-pub struct ActionsReady {
+pub struct DecisionsReady {
     pub values: Vec<usize>
 }
 
-impl ActionsReady {
-    pub fn initialize(capacity: usize) -> ActionsReady {
-        ActionsReady { values: Vec::with_capacity(capacity) }
+impl DecisionsReady {
+    pub fn initialize(capacity: usize) -> DecisionsReady {
+        DecisionsReady { values: Vec::with_capacity(capacity) }
     }
 
     pub fn add(&mut self, e_id: usize) { self.values.push(e_id) }
@@ -347,7 +347,7 @@ pub struct EntityComponents {
     pub coords: CoordinateComponents,
     pub coords_query: CoordinatesQuery,
     pub blocking: Blocking,
-    pub action_timers: DecisionTimers,
+    pub decision_timers: DecisionTimers,
     pub ais: Ais,
     pub states: States,
     pub renders: Renders,
@@ -362,7 +362,7 @@ impl EntityComponents {
             coords: CoordinateComponents::initialize(capacity),
             coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
             blocking: Blocking::initialize(capacity),
-            action_timers: DecisionTimers::initialize(capacity),
+            decision_timers: DecisionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),
             renders: Renders::initialize(capacity),
@@ -394,7 +394,7 @@ pub struct Components {
     pub loop_state: LoopState,
     pub user_decision: Option<UserDecision>,
     pub display: Display,
-    pub actions_ready: ActionsReady,
+    pub decisions_ready: DecisionsReady,
     pub e_components: EntityComponents
 }
 
@@ -404,7 +404,7 @@ impl Components {
             loop_state: loop_state,
             user_decision: None,
             display: display,
-            actions_ready: ActionsReady::initialize(CAPACITY),
+            decisions_ready: DecisionsReady::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }

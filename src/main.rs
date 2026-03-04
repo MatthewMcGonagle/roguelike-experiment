@@ -71,7 +71,7 @@ pub fn safe_main() -> Result<(), Errors> {
         draw_squares(&components.e_components.coords, components.display.coord_scale, &components.e_components.renders, &mut canvas);
 
         if components.loop_state == LoopState::RunTimers {
-            update_timers(&mut components.e_components.action_timers, &mut components.actions_ready);
+            update_timers(&mut components.e_components.decision_timers, &mut components.decisions_ready);
             components.loop_state = LoopState::DoActions;
         }
 

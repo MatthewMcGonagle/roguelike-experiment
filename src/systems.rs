@@ -33,11 +33,11 @@ fn update_timer(timer: &mut Timer) -> bool {
     }
 }
 
-pub fn update_timers(action_timers: &mut DecisionTimers, actions_ready: &mut ActionsReady) {
-    for (e_id, maybe_timer) in action_timers.iter_mut_w_eid() {
+pub fn update_timers(decision_timers: &mut DecisionTimers, decisions_ready: &mut DecisionsReady) {
+    for (e_id, maybe_timer) in decision_timers.iter_mut_w_eid() {
         if let Some(t) = maybe_timer.as_mut() { 
             if update_timer(t) {
-                actions_ready.add(e_id);
+                decisions_ready.add(e_id);
             }
         }
     }
@@ -129,8 +129,8 @@ fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities:
 pub fn do_actions(components: &mut Components, entities: &mut Entities) -> Option<LoopState> {
     let mut need_user_action = false;
 
-    while !components.actions_ready.values.is_empty() && !need_user_action {
-        let e_id = components.actions_ready.values.pop().unwrap();
+    while !components.decisions_ready.values.is_empty() && !need_user_action {
+        let e_id = components.decisions_ready.values.pop().unwrap();
         let maybe_ai: Option<Ai> = components.e_components.ais.get(e_id).cloned();
         match maybe_ai {
             Some(Ai::User) => {
@@ -144,7 +144,7 @@ pub fn do_actions(components: &mut Components, entities: &mut Entities) -> Optio
 
     if need_user_action {
         Some(LoopState::User)
-    } else if components.actions_ready.values.is_empty() {
+    } else if components.decisions_ready.values.is_empty() {
         None
     } else {
         Some(LoopState::DoActions)

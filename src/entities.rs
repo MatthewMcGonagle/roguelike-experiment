@@ -52,7 +52,7 @@ impl Entities {
             space_data,
             e_components.coords.add(e_id, coords),
             e_components.blocking.add(e_id, BlockingType::Movement),
-            e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
+            e_components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             e_components.ais.add(e_id, ai),
             e_components.renders.add(e_id, render)
         ]);
@@ -66,7 +66,7 @@ impl Entities {
 
         let components = Vec::from([
             e_components.coords.add(e_id, coords),
-            e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
+            e_components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             e_components.ais.add(e_id, Ai::AddAvailableSquare),
             e_components.states.add(e_id, 0)
         ]);
@@ -79,7 +79,7 @@ impl Entities {
         self.active_ids.push(e_id);
 
         let components = Vec::from([
-            e_components.action_timers.add(e_id, Timer { time: time_size, reset: time_size }),
+            e_components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             e_components.ais.add(e_id, Ai::Kill),
             e_components.targets.add(e_id, Vec::from([target_e_id]))
         ]);
@@ -123,7 +123,7 @@ impl Entities {
                     },
                     ComponentType::CoordinatesQuery => (),
                     ComponentType::Blocking => e_components.blocking.remove(e_id),
-                    ComponentType::DecisionTimer => e_components.action_timers.remove(e_id),
+                    ComponentType::DecisionTimer => e_components.decision_timers.remove(e_id),
                     ComponentType::Ai => e_components.ais.remove(e_id),
                     ComponentType::State => e_components.states.remove(e_id),
                     ComponentType::Render => e_components.renders.remove(e_id),
