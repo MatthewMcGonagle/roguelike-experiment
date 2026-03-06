@@ -40,6 +40,7 @@ pub fn safe_main() -> Result<(), Errors> {
     let mut i = 0;
     let mut components = Components::initialize(LoopState::RunTimers, display, coord_width, coord_height);
     let mut entities = Entities::initialize();
+    let mut key_press: Option<Keycode> = None;
 
     let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);
     let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 1, y: 1 }, 10, Ai::User, Render { color: Color::RGB(100, 100, 100) })?;
@@ -59,12 +60,12 @@ pub fn safe_main() -> Result<(), Errors> {
                     break 'running
                 },
                 Event::KeyDown { keycode: Some(Keycode::J), .. } => {
-                    components.user_action = Some(Action::MoveDown);
+                    key_press = Some(Keycode::J);
                 },
                 Event::KeyDown { keycode: Some(Keycode::K), .. } => {
-                    components.user_action = Some(Action::MoveUp);
+                    key_press = Some(Keycode::K);
                 },
-                _ => {}
+                _ => { key_press = None; }
             }
         }
         // The rest of the game loop goes here...
@@ -75,14 +76,23 @@ pub fn safe_main() -> Result<(), Errors> {
             components.loop_state = LoopState::DoActions;
         }
 
-        if components.loop_state == LoopState::DoActions {
-            components.loop_state = do_actions(&mut components, &mut entities).unwrap_or(LoopState::RunTimers);
+        if components.loop_state == LoopState::MakeDecisions {
+            let maybe_loop_state = make_decisions(&mut components.decisions_ready, & components.e_components.ais, &mut components.planned_actions)?;
         }
 
-        if components.loop_state == LoopState::User && components.user_action.is_some() {
-            println!("Player turn");
-            components.loop_state = LoopState::DoActions;
-            components.user_action = None;
+        match components.loop_state {
+            LoopState::User(e_id) =>
+                if key_press.is_some() {
+                    println!("Player turn");
+                    components.loop_state = LoopState::DoActions;
+                    components.user_action = None;
+                },
+            _ => {}
+        }
+
+        if components.loop_state == LoopState::DoActions {
+            do_actions(&mut components, &mut entities);
+            components.loop_state = LoopState::RunTimers;
         }
 
         canvas.present();

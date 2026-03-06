@@ -381,13 +381,29 @@ pub struct Display {
 #[derive(PartialEq)]
 pub enum LoopState {
     RunTimers,
+    MakeDecisions,
     DoActions,
-    User
+    User(usize)
 }
 
 pub enum Action {
-    MoveDown,
-    MoveUp
+    MoveDown(usize),
+    MoveUp(usize),
+    MoveRight(usize),
+    MoveLeft(usize),
+    Spawn(usize),
+    Kill(usize),
+    User(usize)
+}
+
+pub struct PlannedActions {
+    pub values: Vec<Action>
+}
+
+impl PlannedActions {
+    pub fn initialize(capacity: usize) -> PlannedActions {
+        PlannedActions { values: Vec::with_capacity(capacity) }
+    }
 }
 
 pub struct Components {
@@ -395,6 +411,7 @@ pub struct Components {
     pub user_action: Option<Action>,
     pub display: Display,
     pub decisions_ready: DecisionsReady,
+    pub planned_actions: PlannedActions,
     pub e_components: EntityComponents
 }
 
@@ -405,6 +422,7 @@ impl Components {
             user_action: None,
             display: display,
             decisions_ready: DecisionsReady::initialize(CAPACITY),
+            planned_actions: PlannedActions::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }

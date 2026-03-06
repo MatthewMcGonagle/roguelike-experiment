@@ -110,46 +110,62 @@ fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entiti
     Some(())
 }
 
-fn make_decisions(decisions_ready: &mut DecisionsReady) { //, &mut actions_ready: ActionsReady) {
+fn make_decision(e_id: usize, ai: &Ai) -> Action {
+    match ai {
+        Ai::ShiftX => Action::MoveRight(e_id),
+        Ai::ShiftY => Action::MoveLeft(e_id),
+        Ai::AddAvailableSquare => Action::Spawn(e_id),
+        Ai::Kill => Action::Kill(e_id),
+        Ai::User => Action::User(e_id)
+    }
 }
 
-fn do_action(e_id: usize, ai: Ai, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
-    match ai {
-        Ai::ShiftX => {
+pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_actions: &mut PlannedActions) -> Result<Option<LoopState>, Errors> {
+    let mut e_id_needs_user_decision: Option<usize> = None;
+
+    while !decisions_ready.values.is_empty() && e_id_needs_user_decision.is_none() {
+        let e_id = decisions_ready.values.pop().unwrap();
+        let ai = ais.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+        match ai {
+            Ai::User => {
+                e_id_needs_user_decision = Some(e_id);
+            },
+            ai => {
+                let action = make_decision(e_id, &ai);
+                planned_actions.values.push(action);
+            }
+        }
+    }
+
+    if e_id_needs_user_decision.is_some() {
+        Ok(Some(LoopState::User(e_id_needs_user_decision.unwrap())))
+    } else if decisions_ready.values.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(LoopState::DoActions))
+    }
+}
+
+fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
+    match action {
+        Action::MoveLeft(e_id) => {
             let w = e_components.coords_query.coord_width.clone();
             shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w)
         },
-        Ai::ShiftY => {
+        Action::MoveRight(e_id) => {
             let h = e_components.coords_query.coord_height.clone();
             shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h)
         },
-        Ai::AddAvailableSquare => add_available_square(e_id, e_components, entities),
-        Ai::Kill => kill_others_and_self(e_id, e_components, entities),
-        Ai::User => Some(())
+        Action::Spawn(e_id) => add_available_square(e_id, e_components, entities),
+        Action::Kill(e_id) => kill_others_and_self(e_id, e_components, entities),
+        Action::User(e_id) => Some(()),
+        _ => Some(())
     }
 }
 
-pub fn do_actions(components: &mut Components, entities: &mut Entities) -> Option<LoopState> {
-    let mut need_user_action = false;
-
-    while !components.decisions_ready.values.is_empty() && !need_user_action {
-        let e_id = components.decisions_ready.values.pop().unwrap();
-        let maybe_ai: Option<Ai> = components.e_components.ais.get(e_id).cloned();
-        match maybe_ai {
-            Some(Ai::User) => {
-                need_user_action = true;
-                None
-            },
-            Some(ai) => do_action(e_id, ai, &mut components.e_components, entities),
-            None => None
-        };
-    }
-
-    if need_user_action {
-        Some(LoopState::User)
-    } else if components.decisions_ready.values.is_empty() {
-        None
-    } else {
-        Some(LoopState::DoActions)
+pub fn do_actions(components: &mut Components, entities: &mut Entities) {
+    while !components.planned_actions.values.is_empty() {
+        let action = components.planned_actions.values.pop().unwrap();
+        do_action(action, &mut components.e_components, entities);
     }
 }
