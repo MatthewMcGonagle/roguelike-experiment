@@ -110,13 +110,13 @@ fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entiti
     Some(())
 }
 
-fn make_decision(e_id: usize, ai: &Ai) -> Action {
+fn make_decision(e_id: usize, ai: &Ai) -> Result<Action, Errors> {
     match ai {
-        Ai::ShiftX => Action::MoveRight(e_id),
-        Ai::ShiftY => Action::MoveLeft(e_id),
-        Ai::AddAvailableSquare => Action::Spawn(e_id),
-        Ai::Kill => Action::Kill(e_id),
-        Ai::User => Action::User(e_id)
+        Ai::ShiftX => Ok(Action::MoveRight(e_id)),
+        Ai::ShiftY => Ok(Action::MoveLeft(e_id)),
+        Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
+        Ai::Kill => Ok(Action::Kill(e_id)),
+        Ai::User => Err(Errors::NotExpectingAiForUser)
     }
 }
 
@@ -130,11 +130,10 @@ pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_a
             Ai::User => {
                 e_id_needs_user_decision = Some(e_id);
             },
-            ai => {
-                let action = make_decision(e_id, &ai);
-                planned_actions.values.push(action);
-            }
+            _ => {}
         }
+        let action = make_decision(e_id, &ai)?;
+        planned_actions.values.push(action);
     }
 
     if e_id_needs_user_decision.is_some() {

@@ -9,7 +9,8 @@ pub enum Errors {
     CoordinateMissing,
     MissingExpectedEid,
     SpaceAlreadyNonempty,
-    UnexpectedlyEmpty
+    UnexpectedlyEmpty,
+    NotExpectingAiForUser
 }
 
 pub struct VecIndexedByEid<T> {
