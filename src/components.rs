@@ -409,7 +409,6 @@ impl PlannedActions {
 
 pub struct Components {
     pub loop_state: LoopState,
-    pub user_action: Option<Action>,
     pub display: Display,
     pub decisions_ready: DecisionsReady,
     pub planned_actions: PlannedActions,
@@ -420,7 +419,6 @@ impl Components {
     pub fn initialize(loop_state: LoopState, display: Display, coord_width: usize, coord_height: usize) -> Components {
         Components {
             loop_state: loop_state,
-            user_action: None,
             display: display,
             decisions_ready: DecisionsReady::initialize(CAPACITY),
             planned_actions: PlannedActions::initialize(CAPACITY),

@@ -88,6 +88,7 @@ pub fn safe_main() -> Result<(), Errors> {
             }
         }
 
+        // Use a match to pull out the e_id.
         match components.loop_state {
             LoopState::User(e_id) => if key_press.is_some() {
                 println!("Player pressed key");
