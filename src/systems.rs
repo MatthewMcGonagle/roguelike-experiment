@@ -71,15 +71,21 @@ fn move_coords(
     }
 }
 
-fn shift_x(e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_width: usize) -> Option<()> {
+fn shift_x(
+    e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_width: usize, shift: i32 
+    ) -> Option<()> {
     let coords = e_coords.get(e_id)?;
-    let target_coords = Coordinates { x: (coords.x + 1) % coord_width, y: coords.y }; 
+    let shift_x: usize = ((coords.x as i32) + shift) as usize;
+    let target_coords = Coordinates { x: shift_x % coord_width, y: coords.y }; 
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
-fn shift_y(e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_height: usize) -> Option<()> {
+fn shift_y(
+    e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_height: usize, shift: i32 
+    ) -> Option<()> {
     let coords = e_coords.get(e_id)?;
-    let target_coords = Coordinates { x: coords.x, y: (coords.y + 1) % coord_height }; 
+    let shift_y: usize = ((coords.y as i32) + shift) as usize;
+    let target_coords = Coordinates { x: coords.x, y: shift_y % coord_height }; 
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
@@ -173,13 +179,21 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
 
 fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     match action {
+        Action::MoveLeft(e_id) => {
+            let w = e_components.coords_query.coord_width.clone();
+            shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, -1)
+        },
         Action::MoveRight(e_id) => {
             let w = e_components.coords_query.coord_width.clone();
-            shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w)
+            shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, 1)
         },
         Action::MoveDown(e_id) => {
             let h = e_components.coords_query.coord_height.clone();
-            shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h)
+            shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h, 1)
+        },
+        Action::MoveUp(e_id) => {
+            let h = e_components.coords_query.coord_height.clone();
+            shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h, -1)
         },
         Action::Spawn(e_id) => add_available_square(e_id, e_components, entities),
         Action::Kill(e_id) => kill_others_and_self(e_id, e_components, entities),
