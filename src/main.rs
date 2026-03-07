@@ -59,11 +59,8 @@ pub fn safe_main() -> Result<(), Errors> {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                Event::KeyDown { keycode: Some(Keycode::J), .. } => {
-                    key_press = Some(Keycode::J);
-                },
-                Event::KeyDown { keycode: Some(Keycode::K), .. } => {
-                    key_press = Some(Keycode::K);
+                Event::KeyDown { keycode: k, .. } => {
+                    key_press = k;
                 },
                 _ => { key_press = None; }
             }
@@ -90,9 +87,14 @@ pub fn safe_main() -> Result<(), Errors> {
 
         // Use a match to pull out the e_id.
         match components.loop_state {
-            LoopState::User(e_id) => if key_press.is_some() {
-                println!("Player pressed key");
-                components.loop_state = LoopState::MakeDecisions;
+            LoopState::User(e_id) => match key_press {
+                Some(k) => {
+                    match make_user_decision(e_id, &k, &mut components.planned_actions) {
+                        Some(l) => components.loop_state = l,
+                        _ => {}
+                    }
+                },
+                None => {}
             },
             _ => {}
         }

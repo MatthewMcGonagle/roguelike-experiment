@@ -1,3 +1,4 @@
+use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
 use sdl3::rect::Rect;
 use sdl3::render::Canvas;
@@ -141,6 +142,28 @@ pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_a
         Ok(Some(LoopState::User(e_id_needs_user_decision.unwrap())))
     } else {
         Ok(None)
+    }
+}
+
+pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions) -> Option<LoopState> {
+    match key_press {
+        Keycode::J => {
+            println!("Pressed J");
+            Some(LoopState::MakeDecisions)
+        },
+        Keycode::K => {
+            println!("Pressed K");
+            Some(LoopState::MakeDecisions)
+        },
+        Keycode::L => {
+            println!("Pressed L");
+            Some(LoopState::MakeDecisions)
+        },
+        Keycode::H => {
+            println!("Pressed H");
+            Some(LoopState::MakeDecisions)
+        },
+        _ => None
     }
 }
 
