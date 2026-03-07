@@ -114,7 +114,7 @@ fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entiti
 fn make_decision(e_id: usize, ai: &Ai) -> Result<Action, Errors> {
     match ai {
         Ai::ShiftX => Ok(Action::MoveRight(e_id)),
-        Ai::ShiftY => Ok(Action::MoveLeft(e_id)),
+        Ai::ShiftY => Ok(Action::MoveDown(e_id)),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::Kill => Ok(Action::Kill(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)
@@ -148,18 +148,22 @@ pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_a
 pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions) -> Option<LoopState> {
     match key_press {
         Keycode::J => {
+            planned_actions.values.push(Action::MoveDown(e_id));
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
         },
         Keycode::K => {
+            planned_actions.values.push(Action::MoveUp(e_id));
             println!("Pressed K");
             Some(LoopState::MakeDecisions)
         },
         Keycode::L => {
+            planned_actions.values.push(Action::MoveRight(e_id));
             println!("Pressed L");
             Some(LoopState::MakeDecisions)
         },
         Keycode::H => {
+            planned_actions.values.push(Action::MoveLeft(e_id));
             println!("Pressed H");
             Some(LoopState::MakeDecisions)
         },
@@ -169,11 +173,11 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
 
 fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     match action {
-        Action::MoveLeft(e_id) => {
+        Action::MoveRight(e_id) => {
             let w = e_components.coords_query.coord_width.clone();
             shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w)
         },
-        Action::MoveRight(e_id) => {
+        Action::MoveDown(e_id) => {
             let h = e_components.coords_query.coord_height.clone();
             shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h)
         },
