@@ -73,20 +73,26 @@ pub fn safe_main() -> Result<(), Errors> {
 
         if components.loop_state == LoopState::RunTimers {
             update_timers(&mut components.e_components.decision_timers, &mut components.decisions_ready);
-            components.loop_state = LoopState::DoActions;
+            components.loop_state = LoopState::MakeDecisions;
         }
 
         if components.loop_state == LoopState::MakeDecisions {
             let maybe_loop_state = make_decisions(&mut components.decisions_ready, & components.e_components.ais, &mut components.planned_actions)?;
+            components.loop_state = match maybe_loop_state {
+                Some(LoopState::User(e_id)) => {
+                    println!("Player turn for {e_id}");
+                    LoopState::User(e_id)
+                },
+                Some(x) => x,
+                None => LoopState::DoActions
+            }
         }
 
         match components.loop_state {
-            LoopState::User(e_id) =>
-                if key_press.is_some() {
-                    println!("Player turn");
-                    components.loop_state = LoopState::DoActions;
-                    components.user_action = None;
-                },
+            LoopState::User(e_id) => if key_press.is_some() {
+                println!("Player pressed key");
+                components.loop_state = LoopState::MakeDecisions;
+            },
             _ => {}
         }
 

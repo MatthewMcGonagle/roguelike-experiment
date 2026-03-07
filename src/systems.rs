@@ -130,18 +130,17 @@ pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_a
             Ai::User => {
                 e_id_needs_user_decision = Some(e_id);
             },
-            _ => {}
+            _ => {
+                let action = make_decision(e_id, &ai)?;
+                planned_actions.values.push(action);
+            }
         }
-        let action = make_decision(e_id, &ai)?;
-        planned_actions.values.push(action);
     }
 
     if e_id_needs_user_decision.is_some() {
         Ok(Some(LoopState::User(e_id_needs_user_decision.unwrap())))
-    } else if decisions_ready.values.is_empty() {
-        Ok(None)
     } else {
-        Ok(Some(LoopState::DoActions))
+        Ok(None)
     }
 }
 
