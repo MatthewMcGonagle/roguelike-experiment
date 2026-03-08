@@ -38,10 +38,12 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut components = Components::initialize(display, coord_width, coord_height);
+    let mut components = Components::initialize(LoopState::RunTimers, display, coord_width, coord_height);
     let mut entities = Entities::initialize();
+    let mut key_press: Option<Keycode> = None;
 
     let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);
+    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 1, y: 1 }, 10, Ai::User, Render { color: Color::RGB(100, 100, 100) })?;
     let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, Render { color: Color::RGB(0, 0, 0) })?;
     let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, Render { color: Color::RGB(255, 0, 0) })?;
     let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, Render { color: Color::RGB(0, 255, 0) })?;
@@ -57,14 +59,51 @@ pub fn safe_main() -> Result<(), Errors> {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                _ => {}
+                Event::KeyDown { keycode: k, .. } => {
+                    key_press = k;
+                },
+                _ => { key_press = None; }
             }
         }
         // The rest of the game loop goes here...
-      
         draw_squares(&components.e_components.coords, components.display.coord_scale, &components.e_components.renders, &mut canvas);
-        update_timers(&mut components.e_components.action_timers, &mut components.actions_ready);
-        do_actions(&mut components, &mut entities);
+
+        if components.loop_state == LoopState::RunTimers {
+            update_timers(&mut components.e_components.decision_timers, &mut components.decisions_ready);
+            components.loop_state = LoopState::MakeDecisions;
+        }
+
+        if components.loop_state == LoopState::MakeDecisions {
+            let maybe_loop_state = make_decisions(&mut components.decisions_ready, & components.e_components.ais, &mut components.planned_actions)?;
+            components.loop_state = match maybe_loop_state {
+                Some(LoopState::User(e_id)) => {
+                    println!("Player turn for {e_id}");
+                    LoopState::User(e_id)
+                },
+                Some(x) => x,
+                None => LoopState::DoActions
+            }
+        }
+
+        // Use a match to pull out the e_id.
+        match components.loop_state {
+            LoopState::User(e_id) => match key_press {
+                Some(k) => {
+                    match make_user_decision(e_id, &k, &mut components.planned_actions) {
+                        Some(l) => components.loop_state = l,
+                        _ => {}
+                    }
+                },
+                None => {}
+            },
+            _ => {}
+        }
+
+        if components.loop_state == LoopState::DoActions {
+            do_actions(&mut components, &mut entities);
+            components.loop_state = LoopState::RunTimers;
+        }
+
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
