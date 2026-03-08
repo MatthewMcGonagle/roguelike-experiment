@@ -9,7 +9,8 @@ pub enum Errors {
     CoordinateMissing,
     MissingExpectedEid,
     SpaceAlreadyNonempty,
-    UnexpectedlyEmpty
+    UnexpectedlyEmpty,
+    NotExpectingAiForUser
 }
 
 pub struct VecIndexedByEid<T> {
@@ -76,7 +77,7 @@ pub enum ComponentType {
     ComponentTypeList,
     Coordinates,
     CoordinatesQuery,
-    ActionTimer,
+    DecisionTimer,
     Ai,
     State,
     Render,
@@ -217,22 +218,22 @@ impl Timer {
     }
 }
 
-pub struct ActionTimers {
+pub struct DecisionTimers {
     values: VecIndexedByEid<Timer>
 }
 
-impl ActionTimers {
-    pub fn initialize(capacity: usize) -> ActionTimers {
-        ActionTimers {
+impl DecisionTimers {
+    pub fn initialize(capacity: usize) -> DecisionTimers {
+        DecisionTimers {
             values: VecIndexedByEid::initialize(capacity)
         }
     }
 }
 
-impl UsesVecIndexedByEid<Timer> for ActionTimers {
+impl UsesVecIndexedByEid<Timer> for DecisionTimers {
     fn the_values(&self) -> &VecIndexedByEid<Timer> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Timer> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::ActionTimer }
+    fn component_type() -> ComponentType { ComponentType::DecisionTimer }
 }
 
 #[derive(Clone)]
@@ -240,7 +241,8 @@ pub enum Ai {
     ShiftX,
     ShiftY,
     AddAvailableSquare,
-    Kill
+    Kill,
+    User
 }
 
 pub struct Ais {
@@ -275,13 +277,13 @@ impl UsesVecIndexedByEid<u32> for States {
     fn component_type() -> ComponentType { ComponentType::State }
 }
 
-pub struct ActionsReady {
+pub struct DecisionsReady {
     pub values: Vec<usize>
 }
 
-impl ActionsReady {
-    pub fn initialize(capacity: usize) -> ActionsReady {
-        ActionsReady { values: Vec::with_capacity(capacity) }
+impl DecisionsReady {
+    pub fn initialize(capacity: usize) -> DecisionsReady {
+        DecisionsReady { values: Vec::with_capacity(capacity) }
     }
 
     pub fn add(&mut self, e_id: usize) { self.values.push(e_id) }
@@ -346,7 +348,7 @@ pub struct EntityComponents {
     pub coords: CoordinateComponents,
     pub coords_query: CoordinatesQuery,
     pub blocking: Blocking,
-    pub action_timers: ActionTimers,
+    pub decision_timers: DecisionTimers,
     pub ais: Ais,
     pub states: States,
     pub renders: Renders,
@@ -361,7 +363,7 @@ impl EntityComponents {
             coords: CoordinateComponents::initialize(capacity),
             coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
             blocking: Blocking::initialize(capacity),
-            action_timers: ActionTimers::initialize(capacity),
+            decision_timers: DecisionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),
             renders: Renders::initialize(capacity),
@@ -377,17 +379,48 @@ pub struct Display {
     pub coord_scale: usize
 }
 
+#[derive(PartialEq)]
+pub enum LoopState {
+    RunTimers,
+    MakeDecisions,
+    DoActions,
+    User(usize)
+}
+
+pub enum Action {
+    MoveDown(usize),
+    MoveUp(usize),
+    MoveRight(usize),
+    MoveLeft(usize),
+    Spawn(usize),
+    Kill(usize)
+}
+
+pub struct PlannedActions {
+    pub values: Vec<Action>
+}
+
+impl PlannedActions {
+    pub fn initialize(capacity: usize) -> PlannedActions {
+        PlannedActions { values: Vec::with_capacity(capacity) }
+    }
+}
+
 pub struct Components {
+    pub loop_state: LoopState,
     pub display: Display,
-    pub actions_ready: ActionsReady,
+    pub decisions_ready: DecisionsReady,
+    pub planned_actions: PlannedActions,
     pub e_components: EntityComponents
 }
 
 impl Components {
-    pub fn initialize(display: Display, coord_width: usize, coord_height: usize) -> Components {
+    pub fn initialize(loop_state: LoopState, display: Display, coord_width: usize, coord_height: usize) -> Components {
         Components {
+            loop_state: loop_state,
             display: display,
-            actions_ready: ActionsReady::initialize(CAPACITY),
+            decisions_ready: DecisionsReady::initialize(CAPACITY),
+            planned_actions: PlannedActions::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }
