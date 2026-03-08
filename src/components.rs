@@ -393,8 +393,7 @@ pub enum Action {
     MoveRight(usize),
     MoveLeft(usize),
     Spawn(usize),
-    Kill(usize),
-    User(usize)
+    Kill(usize)
 }
 
 pub struct PlannedActions {

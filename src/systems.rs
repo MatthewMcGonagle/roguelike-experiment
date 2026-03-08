@@ -197,7 +197,6 @@ fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut
         },
         Action::Spawn(e_id) => add_available_square(e_id, e_components, entities),
         Action::Kill(e_id) => kill_others_and_self(e_id, e_components, entities),
-        Action::User(e_id) => Some(()),
         _ => Some(())
     }
 }
