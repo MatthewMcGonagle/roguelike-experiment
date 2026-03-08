@@ -173,6 +173,10 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
             println!("Pressed H");
             Some(LoopState::MakeDecisions)
         },
+        Keycode::Period => {
+            println!("Wait");
+            Some(LoopState::MakeDecisions)
+        },
         _ => None
     }
 }
