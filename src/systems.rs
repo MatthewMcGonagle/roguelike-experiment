@@ -71,21 +71,29 @@ fn move_coords(
     }
 }
 
+fn target_shift_x(coords: &Coordinates, coord_width: usize, shift: i32) -> Coordinates {
+    let shift_x: usize = ((coords.x as i32) + shift) as usize;
+    Coordinates { x: shift_x % coord_width, y: coords.y }
+}
+
 fn shift_x(
     e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_width: usize, shift: i32 
     ) -> Option<()> {
     let coords = e_coords.get(e_id)?;
-    let shift_x: usize = ((coords.x as i32) + shift) as usize;
-    let target_coords = Coordinates { x: shift_x % coord_width, y: coords.y }; 
+    let target_coords = target_shift_x(coords, coord_width, shift);
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
+}
+
+fn target_shift_y(coords: &Coordinates, coord_height: usize, shift: i32) -> Coordinates {
+    let shift_y: usize = ((coords.y as i32) + shift) as usize;
+    Coordinates { x: coords.x, y: shift_y % coord_height }
 }
 
 fn shift_y(
     e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_height: usize, shift: i32 
     ) -> Option<()> {
     let coords = e_coords.get(e_id)?;
-    let shift_y: usize = ((coords.y as i32) + shift) as usize;
-    let target_coords = Coordinates { x: coords.x, y: shift_y % coord_height }; 
+    let target_coords = target_shift_y(coords, coord_height, shift);
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
@@ -127,6 +135,16 @@ fn make_decision(e_id: usize, ai: &Ai) -> Result<Action, Errors> {
     }
 }
 
+fn shift_of(action: Action) -> Option<i32> {
+    match action {
+        Action::MoveLeft(e_id) => Some(-1),
+        Action::MoveRight(e_id) => Some(1),
+        Action::MoveDown(e_id) => Some(1),
+        Action::MoveUp(e_id) => Some(-1),
+        _ => None
+    }
+}
+
 pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_actions: &mut PlannedActions) -> Result<Option<LoopState>, Errors> {
     let mut e_id_needs_user_decision: Option<usize> = None;
 
@@ -151,9 +169,13 @@ pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_a
     }
 }
 
-pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions) -> Option<LoopState> {
+pub fn make_user_decision(
+    e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions, e_components: &EntityComponents
+    ) -> Option<LoopState> {
+    let coords = e_components.coords.get(e_id);
     match key_press {
         Keycode::J => {
+            let target = 
             planned_actions.values.push(Action::MoveDown(e_id));
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
