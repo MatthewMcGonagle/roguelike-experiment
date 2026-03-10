@@ -128,7 +128,8 @@ impl Entities {
                     ComponentType::State => e_components.states.remove(e_id),
                     ComponentType::Render => e_components.renders.remove(e_id),
                     ComponentType::Target => e_components.targets.remove(e_id),
-                    ComponentType::TargetedBy => e_components.targeted_by.remove(e_id)
+                    ComponentType::TargetedBy => e_components.targeted_by.remove(e_id),
+                    ComponentType::Alignment => e_components.alignments.remove(e_id)
                 }
             }
         );
