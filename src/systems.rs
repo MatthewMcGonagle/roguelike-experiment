@@ -71,6 +71,22 @@ fn move_coords(
     }
 }
 
+fn target_of_shift(coords: &Coordinates, coord_width: usize, coord_height: usize, shift: (i32, i32)) -> Coordinates {
+    let (shift_x, shift_y) = shift;
+    let target_x_no_mod: usize = ((coords.x as i32) + shift_x) as usize;
+    let target_y_no_mod: usize = ((coords.y as i32) + shift_y) as usize;
+    Coordinates { x: target_x_no_mod % coord_width, y: target_y_no_mod % coord_height }
+}
+
+fn shift(
+    e_id: usize, blocking: &mut Blocking, e_coords: &mut CoordinateComponents, c_query: &mut CoordinatesQuery, coord_width: usize, coord_height: usize,
+    shift: (i32, i32)
+    ) -> Option<()> {
+    let coords = e_coords.get(e_id)?;
+    let target_coords = target_of_shift(coords, coord_width, coord_height, shift);
+    move_coords(e_id, blocking, e_coords, c_query, target_coords)
+}
+
 fn target_shift_x(coords: &Coordinates, coord_width: usize, shift: i32) -> Coordinates {
     let shift_x: usize = ((coords.x as i32) + shift) as usize;
     Coordinates { x: shift_x % coord_width, y: coords.y }
@@ -127,21 +143,20 @@ fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entiti
 
 fn make_decision(e_id: usize, ai: &Ai) -> Result<Action, Errors> {
     match ai {
-        Ai::ShiftX => Ok(Action::MoveRight(e_id)),
-        Ai::ShiftY => Ok(Action::MoveDown(e_id)),
+        Ai::ShiftX => Ok(Action::Move(e_id, Direction::Right)),
+        Ai::ShiftY => Ok(Action::Move(e_id, Direction::Down)),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::Kill => Ok(Action::Kill(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)
     }
 }
 
-fn shift_of(action: Action) -> Option<i32> {
-    match action {
-        Action::MoveLeft(e_id) => Some(-1),
-        Action::MoveRight(e_id) => Some(1),
-        Action::MoveDown(e_id) => Some(1),
-        Action::MoveUp(e_id) => Some(-1),
-        _ => None
+fn shift_of(direction: Direction) -> (i32, i32) {
+    match direction {
+        Direction::Left => (-1, 0),
+        Direction::Right => (1, 0),
+        Direction::Down => (0, 1),
+        Direction::Up => (0, -1)
     }
 }
 
@@ -176,22 +191,22 @@ pub fn make_user_decision(
     match key_press {
         Keycode::J => {
             let target = 
-            planned_actions.values.push(Action::MoveDown(e_id));
+            planned_actions.values.push(Action::Move(e_id, Direction::Down));
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
         },
         Keycode::K => {
-            planned_actions.values.push(Action::MoveUp(e_id));
+            planned_actions.values.push(Action::Move(e_id, Direction::Up));
             println!("Pressed K");
             Some(LoopState::MakeDecisions)
         },
         Keycode::L => {
-            planned_actions.values.push(Action::MoveRight(e_id));
+            planned_actions.values.push(Action::Move(e_id, Direction::Right));
             println!("Pressed L");
             Some(LoopState::MakeDecisions)
         },
         Keycode::H => {
-            planned_actions.values.push(Action::MoveLeft(e_id));
+            planned_actions.values.push(Action::Move(e_id, Direction::Left));
             println!("Pressed H");
             Some(LoopState::MakeDecisions)
         },
@@ -205,19 +220,19 @@ pub fn make_user_decision(
 
 fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     match action {
-        Action::MoveLeft(e_id) => {
+        Action::Move(e_id, Direction::Left) => {
             let w = e_components.coords_query.coord_width.clone();
             shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, -1)
         },
-        Action::MoveRight(e_id) => {
+        Action::Move(e_id, Direction::Right) => {
             let w = e_components.coords_query.coord_width.clone();
             shift_x(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, 1)
         },
-        Action::MoveDown(e_id) => {
+        Action::Move(e_id, Direction::Down) => {
             let h = e_components.coords_query.coord_height.clone();
             shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h, 1)
         },
-        Action::MoveUp(e_id) => {
+        Action::Move(e_id, Direction::Up) => {
             let h = e_components.coords_query.coord_height.clone();
             shift_y(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, h, -1)
         },

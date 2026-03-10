@@ -387,11 +387,15 @@ pub enum LoopState {
     User(usize)
 }
 
+pub enum Direction {
+    Down,
+    Up,
+    Right,
+    Left
+}
+
 pub enum Action {
-    MoveDown(usize),
-    MoveUp(usize),
-    MoveRight(usize),
-    MoveLeft(usize),
+    Move(usize, Direction),
     Spawn(usize),
     Kill(usize)
 }
