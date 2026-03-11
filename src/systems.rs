@@ -73,9 +73,11 @@ fn move_coords(
 
 fn target_of_shift(coords: &Coordinates, coord_width: usize, coord_height: usize, shift: (i32, i32)) -> Coordinates {
     let (shift_x, shift_y) = shift;
-    let target_x_no_mod: usize = ((coords.x as i32) + shift_x) as usize;
-    let target_y_no_mod: usize = ((coords.y as i32) + shift_y) as usize;
-    Coordinates { x: target_x_no_mod % coord_width, y: target_y_no_mod % coord_height }
+    let target_x_no_mod: i32 = (coords.x as i32) + shift_x;
+    let target_y_no_mod: i32 = (coords.y as i32) + shift_y;
+    let target_x = if target_x_no_mod < 0 { target_x_no_mod + (coord_width as i32) } else { target_x_no_mod };
+    let target_y = if target_y_no_mod < 0 { target_y_no_mod + (coord_height as i32) } else { target_y_no_mod };
+    Coordinates { x: (target_x as usize) % coord_width, y: (target_y as usize) % coord_height }
 }
 
 fn shift(
