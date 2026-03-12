@@ -43,11 +43,16 @@ pub fn safe_main() -> Result<(), Errors> {
     let mut key_press: Option<Keycode> = None;
 
     let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);
-    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 1, y: 1 }, 10, Ai::User, Render { color: Color::RGB(100, 100, 100) })?;
-    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, Render { color: Color::RGB(0, 0, 0) })?;
-    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, Render { color: Color::RGB(255, 0, 0) })?;
-    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, Render { color: Color::RGB(0, 255, 0) })?;
-    let _ = entities.add_timed_square(&mut components.e_components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, Render { color: Color::RGB(0, 0, 255) })?;
+    let _ = entities.add_timed_square(
+        &mut components.e_components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, Render { color: Color::RGB(100, 100, 100) })?;
+    let _ = entities.add_timed_square(
+        &mut components.e_components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, AlignmentType::User, Render { color: Color::RGB(0, 0, 0) })?;
+    let _ = entities.add_timed_square(
+        &mut components.e_components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, AlignmentType::HostileToUser, Render { color: Color::RGB(255, 0, 0) })?;
+    let _ = entities.add_timed_square(
+        &mut components.e_components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, AlignmentType::HostileToUser, Render { color: Color::RGB(0, 255, 0) })?;
+    let _ = entities.add_timed_square(
+        &mut components.e_components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, AlignmentType::HostileToUser, Render { color: Color::RGB(0, 0, 255) })?;
 
     'running: loop {
         i = (i + 1) % 255;

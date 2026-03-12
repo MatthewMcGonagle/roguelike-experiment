@@ -101,6 +101,7 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
             e_components.coords.get(e_id).unwrap().clone(),
             10,
             square_ai,
+            AlignmentType::User,
             Render { color: Color::RGB(255, 255, 255) }
         );
         maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
@@ -219,6 +220,7 @@ fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut
         },
         Action::Spawn(e_id) => add_available_square(e_id, e_components, entities),
         Action::Kill(e_id) => kill_others_and_self(e_id, e_components, entities),
+        Action::Attack(e_id, target_id) => { println!("{e_id} attacks {target_id}"); Some(()) }
         _ => Some(())
     }
 }
