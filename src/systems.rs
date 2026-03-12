@@ -89,7 +89,7 @@ fn shift(
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
-fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
+fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
     let square_ai = match e_components.states.get(e_id).unwrap() {
         0 => Ai::ShiftX,
         _ => Ai::ShiftY
@@ -106,16 +106,14 @@ fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entiti
         );
         maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
     }
-    Some(())
 }
 
-fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
+fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
     let targets: Vec<usize> = e_components.targets.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
     for target in targets {
         entities.remove(target, e_components);
     }
     entities.remove(e_id, e_components);
-    Some(())
 }
 
 fn make_decision(e_id: usize, ai: &Ai) -> Result<Action, Errors> {
@@ -211,6 +209,10 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
     Ok(loop_state)
 }
 
+fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents) {
+    println!("{e_id} attacks {target_id}");
+}
+
 fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
     match action {
         Action::Move(e_id, direction) => {
@@ -218,9 +220,9 @@ fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut
             let h = e_components.coords_query.coord_height.clone();
             shift(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, h, shift_of(&direction))
         },
-        Action::Spawn(e_id) => add_available_square(e_id, e_components, entities),
-        Action::Kill(e_id) => kill_others_and_self(e_id, e_components, entities),
-        Action::Attack(e_id, target_id) => { println!("{e_id} attacks {target_id}"); Some(()) }
+        Action::Spawn(e_id) => Some(add_available_square(e_id, e_components, entities)),
+        Action::Kill(e_id) => Some(kill_others_and_self(e_id, e_components, entities)),
+        Action::Attack(e_id, target_id) => { Some(do_attack(e_id, target_id, e_components)) }
         _ => Some(())
     }
 }
