@@ -421,8 +421,10 @@ pub enum Direction {
 
 pub enum Action {
     Move(usize, Direction),
+    Attack(usize, usize),
     Spawn(usize),
-    Kill(usize)
+    Kill(usize),
+    Wait
 }
 
 pub struct PlannedActions {

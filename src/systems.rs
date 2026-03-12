@@ -163,8 +163,14 @@ pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_a
 fn decide_user_direction_action(e_id: usize, direction: Direction, e_components: &EntityComponents) -> Result<Action, Errors> {
     let shift = shift_of(&direction);
     let user_coords = e_components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
-    let target = target_of_shift(user_coords, e_components.coords_query.coord_width, e_components.coords_query.coord_height, shift);
-    Ok(Action::Move(e_id, direction))
+    let target_coords = target_of_shift(user_coords, e_components.coords_query.coord_width, e_components.coords_query.coord_height, shift);
+    match e_components.coords_query.get(target_coords.x, target_coords.y)? {
+        SpaceData::Empty => Ok(Action::Move(e_id, direction)),
+        SpaceData::HasEid(target_eid) => match e_components.alignments.get(*target_eid) {
+            Some(AlignmentType::HostileToUser) => Ok(Action::Attack(e_id, *target_eid)),
+            _ => Ok(Action::Wait)
+        }
+    }
 }
 
 pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions, e_components: &EntityComponents) ->
