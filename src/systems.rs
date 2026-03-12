@@ -127,7 +127,7 @@ fn make_decision(e_id: usize, ai: &Ai) -> Result<Action, Errors> {
     }
 }
 
-fn shift_of(direction: Direction) -> (i32, i32) {
+fn shift_of(direction: &Direction) -> (i32, i32) {
     match direction {
         Direction::Left => (-1, 0),
         Direction::Right => (1, 0),
@@ -160,29 +160,38 @@ pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_a
     }
 }
 
-pub fn make_user_decision(
-    e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions, e_components: &EntityComponents
-    ) -> Option<LoopState> {
+fn decide_user_direction_action(e_id: usize, direction: Direction, e_components: &EntityComponents) -> Result<Action, Errors> {
+    let shift = shift_of(&direction);
+    let user_coords = e_components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+    let target = target_of_shift(user_coords, e_components.coords_query.coord_width, e_components.coords_query.coord_height, shift);
+    Ok(Action::Move(e_id, direction))
+}
+
+pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions, e_components: &EntityComponents) ->
+    Result<Option<LoopState>, Errors> {
     let coords = e_components.coords.get(e_id);
-    match key_press {
+    let loop_state = match key_press {
         Keycode::J => {
-            let target = 
-            planned_actions.values.push(Action::Move(e_id, Direction::Down));
+            let action = decide_user_direction_action(e_id, Direction::Down, e_components)?;
+            planned_actions.values.push(action);
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
         },
         Keycode::K => {
-            planned_actions.values.push(Action::Move(e_id, Direction::Up));
+            let action = decide_user_direction_action(e_id, Direction::Up, e_components)?;
+            planned_actions.values.push(action);
             println!("Pressed K");
             Some(LoopState::MakeDecisions)
         },
         Keycode::L => {
+            let action = decide_user_direction_action(e_id, Direction::Right, e_components)?;
             planned_actions.values.push(Action::Move(e_id, Direction::Right));
             println!("Pressed L");
             Some(LoopState::MakeDecisions)
         },
         Keycode::H => {
-            planned_actions.values.push(Action::Move(e_id, Direction::Left));
+            let action = decide_user_direction_action(e_id, Direction::Left, e_components)?;
+            planned_actions.values.push(action);
             println!("Pressed H");
             Some(LoopState::MakeDecisions)
         },
@@ -191,7 +200,8 @@ pub fn make_user_decision(
             Some(LoopState::MakeDecisions)
         },
         _ => None
-    }
+    };
+    Ok(loop_state)
 }
 
 fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
@@ -199,7 +209,7 @@ fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut
         Action::Move(e_id, direction) => {
             let w = e_components.coords_query.coord_width.clone();
             let h = e_components.coords_query.coord_height.clone();
-            shift(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, h, shift_of(direction))
+            shift(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, h, shift_of(&direction))
         },
         Action::Spawn(e_id) => add_available_square(e_id, e_components, entities),
         Action::Kill(e_id) => kill_others_and_self(e_id, e_components, entities),

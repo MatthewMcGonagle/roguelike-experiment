@@ -89,7 +89,8 @@ pub fn safe_main() -> Result<(), Errors> {
         match components.loop_state {
             LoopState::User(e_id) => match key_press {
                 Some(k) => {
-                    match make_user_decision(e_id, &k, &mut components.planned_actions, &components.e_components) {
+                    match make_user_decision(
+                        e_id, &k, &mut components.planned_actions, &components.e_components)? {
                         Some(l) => components.loop_state = l,
                         _ => {}
                     }
