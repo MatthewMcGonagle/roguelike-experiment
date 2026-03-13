@@ -84,7 +84,8 @@ pub enum ComponentType {
     Target,
     TargetedBy,
     Blocking,
-    Alignment
+    Alignment,
+    Health
 }
 
 pub struct ComponentTypes {
@@ -366,6 +367,22 @@ impl UsesVecIndexedByEid<AlignmentType> for Alignments {
     fn component_type() -> ComponentType { ComponentType::Alignment }
 }
 
+pub struct Healths {
+    values: VecIndexedByEid<u32>
+}
+
+impl Healths {
+    pub fn initialize(capacity: usize) -> Healths {
+        Healths { values: VecIndexedByEid::initialize(capacity) } 
+    }
+}
+
+impl UsesVecIndexedByEid<u32> for Healths {
+    fn the_values(&self) -> &VecIndexedByEid<u32> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<u32> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Health }
+}
+
 pub struct EntityComponents {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
@@ -377,7 +394,8 @@ pub struct EntityComponents {
     pub renders: Renders,
     pub targets: Targets,
     pub targeted_by: TargetedBy,
-    pub alignments: Alignments
+    pub alignments: Alignments,
+    pub healths: Healths
 }
 
 impl EntityComponents {
@@ -393,7 +411,8 @@ impl EntityComponents {
             renders: Renders::initialize(capacity),
             targets: Targets::initialize(capacity),
             targeted_by: TargetedBy::initialize(capacity),
-            alignments: Alignments::initialize(capacity)
+            alignments: Alignments::initialize(capacity),
+            healths: Healths::initialize(capacity)
         }
     }
 }
