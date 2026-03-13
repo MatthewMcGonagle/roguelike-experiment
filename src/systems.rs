@@ -210,35 +210,50 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
     Ok(loop_state)
 }
 
-fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents) {
+fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents) -> Option<Reaction> {
     println!("{e_id} attacks {target_id}");
     let maybe_h = e_components.healths.get_mut(target_id);
     match maybe_h {
         Some(h) => {
             *h -= 1;
             println!("    health now {h}");
+            if *h <= 0 { Some(Reaction::Kill(e_id)) }
+            else { None }
         },
-        None => println!("    but has no health")
+        None => {
+            println!("    but has no health");
+            None
+        }
     }
 }
 
-fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
+fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<Reaction> {
     match action {
         Action::Move(e_id, direction) => {
             let w = e_components.coords_query.coord_width.clone();
             let h = e_components.coords_query.coord_height.clone();
-            shift(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, h, shift_of(&direction))
+            shift(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, h, shift_of(&direction));
+            None
         },
-        Action::Spawn(e_id) => Some(add_available_square(e_id, e_components, entities)),
-        Action::Kill(e_id) => Some(kill_others_and_self(e_id, e_components, entities)),
-        Action::Attack(e_id, target_id) => { Some(do_attack(e_id, target_id, e_components)) }
-        _ => Some(())
+        Action::Spawn(e_id) => { add_available_square(e_id, e_components, entities); None },
+        Action::Kill(e_id) => { kill_others_and_self(e_id, e_components, entities); None },
+        Action::Attack(e_id, target_id) => do_attack(e_id, target_id, e_components),
+        _ => None
     }
 }
 
 pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     while !components.planned_actions.values.is_empty() {
         let action = components.planned_actions.values.pop().unwrap();
-        do_action(action, &mut components.e_components, entities);
+        match do_action(action, &mut components.e_components, entities) {
+            Some(reaction) => components.reactions_ready.values.push(reaction),
+            None => ()
+        }
     }
+}
+
+fn react_to_no_health(e_id: usize, health: i32, e_components: &mut EntityComponents) {
+}
+
+pub fn do_reactions(reactions_ready: &mut ReactionsReady, e_components: &mut EntityComponents, entities: &mut Entities) {
 }

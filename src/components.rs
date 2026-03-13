@@ -456,11 +456,26 @@ impl PlannedActions {
     }
 }
 
+pub enum Reaction {
+    Kill(usize)
+}
+
+pub struct ReactionsReady {
+    pub values: Vec<Reaction>
+}
+
+impl ReactionsReady {
+    pub fn initialize(capacity: usize) -> ReactionsReady {
+        ReactionsReady { values: Vec::with_capacity(capacity) }
+    }
+}
+
 pub struct Components {
     pub loop_state: LoopState,
     pub display: Display,
     pub decisions_ready: DecisionsReady,
     pub planned_actions: PlannedActions,
+    pub reactions_ready: ReactionsReady,
     pub e_components: EntityComponents
 }
 
@@ -471,6 +486,7 @@ impl Components {
             display: display,
             decisions_ready: DecisionsReady::initialize(CAPACITY),
             planned_actions: PlannedActions::initialize(CAPACITY),
+            reactions_ready: ReactionsReady::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }
