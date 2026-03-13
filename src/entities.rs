@@ -36,7 +36,7 @@ impl Entities {
     }
 
     pub fn add_timed_square(
-        &mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: u32, render: Render
+        &mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
     ) -> Result<usize, Errors> {
         let e_id = self.activate_new_id()?;
         // Make sure we exit if we couldn't add the space data.

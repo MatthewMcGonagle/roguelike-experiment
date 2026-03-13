@@ -368,7 +368,7 @@ impl UsesVecIndexedByEid<AlignmentType> for Alignments {
 }
 
 pub struct Healths {
-    values: VecIndexedByEid<u32>
+    values: VecIndexedByEid<i32>
 }
 
 impl Healths {
@@ -377,9 +377,9 @@ impl Healths {
     }
 }
 
-impl UsesVecIndexedByEid<u32> for Healths {
-    fn the_values(&self) -> &VecIndexedByEid<u32> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<u32> { &mut self.values }
+impl UsesVecIndexedByEid<i32> for Healths {
+    fn the_values(&self) -> &VecIndexedByEid<i32> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<i32> { &mut self.values }
     fn component_type() -> ComponentType { ComponentType::Health }
 }
 
