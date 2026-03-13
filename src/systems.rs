@@ -212,6 +212,14 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
 
 fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents) {
     println!("{e_id} attacks {target_id}");
+    let maybe_h = e_components.healths.get_mut(target_id);
+    match maybe_h {
+        Some(h) => {
+            *h -= 1;
+            println!("    health now {h}");
+        },
+        None => println!("    but has no health")
+    }
 }
 
 fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<()> {
