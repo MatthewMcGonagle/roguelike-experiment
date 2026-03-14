@@ -217,7 +217,7 @@ fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents)
         Some(h) => {
             *h -= 1;
             println!("    health now {h}");
-            if *h <= 0 { Some(Reaction::Kill(e_id)) }
+            if *h <= 0 { Some(Reaction::Kill(target_id)) }
             else { None }
         },
         None => {
@@ -252,8 +252,15 @@ pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     }
 }
 
-fn react_to_no_health(e_id: usize, health: i32, e_components: &mut EntityComponents) {
+fn do_reaction(reaction: Reaction, e_components: &mut EntityComponents, entities: &mut Entities) {
+    match reaction {
+        Reaction::Kill(e_id) => kill_others_and_self(e_id, e_components, entities)
+    }
 }
 
 pub fn do_reactions(reactions_ready: &mut ReactionsReady, e_components: &mut EntityComponents, entities: &mut Entities) {
+    while !reactions_ready.values.is_empty() {
+        let reaction = reactions_ready.values.pop().unwrap();
+        do_reaction(reaction, e_components, entities);
+    }
 }
