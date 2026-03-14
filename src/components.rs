@@ -428,6 +428,7 @@ pub enum LoopState {
     RunTimers,
     MakeDecisions,
     DoActions,
+    DoReactions,
     User(usize)
 }
 
