@@ -114,7 +114,7 @@ pub fn safe_main() -> Result<(), Errors> {
         }
 
         if components.loop_state == LoopState::DoReactions {
-            do_reactions(&mut components.reactions_ready, &mut components.e_components, &mut entities);
+            do_reactions(&mut components.reactions_ready, &mut components.to_kill, &mut components.e_components, &mut entities);
             components.loop_state = LoopState::RunTimers;
         }
 

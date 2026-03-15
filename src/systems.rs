@@ -227,7 +227,7 @@ fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents)
     }
 }
 
-fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<Reaction> {
+fn do_action(action: Action, to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<Reaction> {
     match action {
         Action::Move(e_id, direction) => {
             let w = e_components.coords_query.coord_width.clone();
@@ -236,7 +236,7 @@ fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut
             None
         },
         Action::Spawn(e_id) => { add_available_square(e_id, e_components, entities); None },
-        Action::Kill(e_id) => { kill_others_and_self(e_id, e_components, entities); None },
+        Action::Kill(e_id) => { to_kill.values.push(e_id); None },
         Action::Attack(e_id, target_id) => do_attack(e_id, target_id, e_components),
         _ => None
     }
@@ -245,22 +245,30 @@ fn do_action(action: Action, e_components: &mut EntityComponents, entities: &mut
 pub fn do_actions(components: &mut Components, entities: &mut Entities) {
     while !components.planned_actions.values.is_empty() {
         let action = components.planned_actions.values.pop().unwrap();
-        match do_action(action, &mut components.e_components, entities) {
+        match do_action(action, &mut components.to_kill, &mut components.e_components, entities) {
             Some(reaction) => components.reactions_ready.values.push(reaction),
             None => ()
         }
     }
 }
 
-fn do_reaction(reaction: Reaction, e_components: &mut EntityComponents, entities: &mut Entities) {
+fn do_reaction(reaction: Reaction, to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) {
     match reaction {
-        Reaction::Kill(e_id) => kill_others_and_self(e_id, e_components, entities)
+        Reaction::Kill(e_id) => to_kill.values.push(e_id)
     }
 }
 
-pub fn do_reactions(reactions_ready: &mut ReactionsReady, e_components: &mut EntityComponents, entities: &mut Entities) {
+pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) {
     while !reactions_ready.values.is_empty() {
         let reaction = reactions_ready.values.pop().unwrap();
-        do_reaction(reaction, e_components, entities);
+        do_reaction(reaction, to_kill, e_components, entities);
     }
 }
+
+pub fn do_killings(to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) {
+    while !to_kill.values.is_empty() {
+        let e_id = to_kill.values.pop().unwrap();
+        kill_others_and_self(e_id, e_components, entities);
+    }
+}
+

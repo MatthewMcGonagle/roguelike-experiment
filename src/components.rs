@@ -471,12 +471,23 @@ impl ReactionsReady {
     }
 }
 
+pub struct ToKill {
+    pub values: Vec<usize>
+}
+
+impl ToKill {
+    pub fn initialize(capacity: usize) -> ToKill {
+        ToKill { values: Vec::with_capacity(capacity) }
+    }
+}
+
 pub struct Components {
     pub loop_state: LoopState,
     pub display: Display,
     pub decisions_ready: DecisionsReady,
     pub planned_actions: PlannedActions,
     pub reactions_ready: ReactionsReady,
+    pub to_kill: ToKill,
     pub e_components: EntityComponents
 }
 
@@ -488,6 +499,7 @@ impl Components {
             decisions_ready: DecisionsReady::initialize(CAPACITY),
             planned_actions: PlannedActions::initialize(CAPACITY),
             reactions_ready: ReactionsReady::initialize(CAPACITY),
+            to_kill: ToKill::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }
