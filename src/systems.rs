@@ -191,7 +191,7 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
         },
         Keycode::L => {
             let action = decide_user_direction_action(e_id, Direction::Right, e_components)?;
-            planned_actions.values.push(Action::Move(e_id, Direction::Right));
+            planned_actions.values.push(action);
             println!("Pressed L");
             Some(LoopState::MakeDecisions)
         },
