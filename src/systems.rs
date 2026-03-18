@@ -117,10 +117,30 @@ fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entiti
     entities.remove(e_id, e_components);
 }
 
-fn make_decision(e_id: usize, ai: &Ai) -> Result<Action, Errors> {
+fn decide_move_or_attack(e_id: usize, direction: Direction, e_components: &EntityComponents) -> Result<Action, Errors> {
+    let (shift_x, shift_y) = shift_of(&direction);
+    let coords = e_components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+    let coord_width = e_components.coords_query.coord_width;
+    let coord_height = e_components.coords_query.coord_height;
+    let target_coords = target_of_shift(coords, coord_width, coord_height, (shift_x, shift_y));
+    let space = e_components.coords_query.get(target_coords.x, target_coords.y)?;
+    let action = match space {
+        SpaceData::Empty => Action::Move(e_id, direction),
+        SpaceData::HasEid(target_id) => {
+            match e_components.alignments.get(*target_id) {
+                Some(AlignmentType::User) => Action::Attack(e_id, *target_id),
+                Some(_) => Action::Wait,
+                None => Action::Wait
+            }
+        }
+    };
+    Ok(action)
+}
+
+fn make_decision(e_id: usize, ai: &Ai, e_components: &EntityComponents) -> Result<Action, Errors> {
     match ai {
-        Ai::ShiftX => Ok(Action::Move(e_id, Direction::Right)),
-        Ai::ShiftY => Ok(Action::Move(e_id, Direction::Down)),
+        Ai::ShiftX => decide_move_or_attack(e_id, Direction::Right, e_components),
+        Ai::ShiftY => decide_move_or_attack(e_id, Direction::Down, e_components),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::Kill => Ok(Action::Kill(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)
@@ -136,18 +156,20 @@ fn shift_of(direction: &Direction) -> (i32, i32) {
     }
 }
 
-pub fn make_decisions(decisions_ready: &mut DecisionsReady, ais: &Ais, planned_actions: &mut PlannedActions) -> Result<Option<LoopState>, Errors> {
+pub fn make_decisions( 
+    decisions_ready: &mut DecisionsReady, e_components: &EntityComponents, planned_actions: &mut PlannedActions
+    ) -> Result<Option<LoopState>, Errors> {
     let mut e_id_needs_user_decision: Option<usize> = None;
 
     while !decisions_ready.values.is_empty() && e_id_needs_user_decision.is_none() {
         let e_id = decisions_ready.values.pop().unwrap();
-        let ai = ais.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+        let ai = e_components.ais.get(e_id).ok_or(Errors::MissingExpectedEid)?;
         match ai {
             Ai::User => {
                 e_id_needs_user_decision = Some(e_id);
             },
             _ => {
-                let action = make_decision(e_id, &ai)?;
+                let action = make_decision(e_id, &ai, e_components)?;
                 planned_actions.values.push(action);
             }
         }

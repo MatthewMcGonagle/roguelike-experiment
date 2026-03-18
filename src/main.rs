@@ -82,7 +82,8 @@ pub fn safe_main() -> Result<(), Errors> {
         }
 
         if components.loop_state == LoopState::MakeDecisions {
-            let maybe_loop_state = make_decisions(&mut components.decisions_ready, & components.e_components.ais, &mut components.planned_actions)?;
+            let maybe_loop_state = make_decisions(
+                &mut components.decisions_ready, & components.e_components, &mut components.planned_actions)?;
             components.loop_state = match maybe_loop_state {
                 Some(LoopState::User(e_id)) => {
                     println!("Player turn for {e_id}");
