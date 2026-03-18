@@ -127,10 +127,9 @@ fn decide_move_or_attack(e_id: usize, direction: Direction, e_components: &Entit
     let action = match space {
         SpaceData::Empty => Action::Move(e_id, direction),
         SpaceData::HasEid(target_id) => {
-            match e_components.alignments.get(*target_id) {
-                Some(AlignmentType::User) => Action::Attack(e_id, *target_id),
-                Some(_) => Action::Wait,
-                None => Action::Wait
+            match (e_components.alignments.get(e_id), e_components.alignments.get(*target_id)) {
+                (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => Action::Attack(e_id, *target_id),
+                _ => Action::Wait
             }
         }
     };

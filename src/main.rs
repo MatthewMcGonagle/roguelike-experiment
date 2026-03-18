@@ -44,7 +44,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);
     let _ = entities.add_timed_square(
-        &mut components.e_components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 1, Render { color: Color::RGB(100, 100, 100) })?;
+        &mut components.e_components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10, Render { color: Color::RGB(100, 100, 100) })?;
     let _ = entities.add_timed_square(
         &mut components.e_components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, AlignmentType::User, 2, Render { color: Color::RGB(0, 0, 0) })?;
     let _ = entities.add_timed_square(
