@@ -348,6 +348,7 @@ impl UsesVecIndexedByEid<Vec<usize>> for TargetedBy {
 #[derive(Clone)]
 pub enum AlignmentType {
     User,
+    Neutral,
     HostileToUser
 }
 
