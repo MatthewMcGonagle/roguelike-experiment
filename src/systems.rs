@@ -129,6 +129,7 @@ fn decide_move_or_attack(e_id: usize, direction: Direction, e_components: &Entit
         SpaceData::HasEid(target_id) => {
             match (e_components.alignments.get(e_id), e_components.alignments.get(*target_id)) {
                 (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => Action::Attack(e_id, *target_id),
+                (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => Action::Attack(e_id, *target_id),
                 _ => Action::Wait
             }
         }
