@@ -83,7 +83,9 @@ pub enum ComponentType {
     Render,
     Target,
     TargetedBy,
-    Blocking
+    Blocking,
+    Alignment,
+    Health
 }
 
 pub struct ComponentTypes {
@@ -343,6 +345,45 @@ impl UsesVecIndexedByEid<Vec<usize>> for TargetedBy {
     fn component_type() -> ComponentType { ComponentType::TargetedBy }
 }
 
+#[derive(Clone)]
+pub enum AlignmentType {
+    User,
+    Neutral,
+    HostileToUser
+}
+
+pub struct Alignments {
+    values: VecIndexedByEid<AlignmentType>
+}
+
+impl Alignments {
+    pub fn initialize(capacity: usize) -> Alignments {
+        Alignments { values: VecIndexedByEid::initialize(capacity) } 
+    }
+}
+
+impl UsesVecIndexedByEid<AlignmentType> for Alignments {
+    fn the_values(&self) -> &VecIndexedByEid<AlignmentType> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<AlignmentType> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Alignment }
+}
+
+pub struct Healths {
+    values: VecIndexedByEid<i32>
+}
+
+impl Healths {
+    pub fn initialize(capacity: usize) -> Healths {
+        Healths { values: VecIndexedByEid::initialize(capacity) } 
+    }
+}
+
+impl UsesVecIndexedByEid<i32> for Healths {
+    fn the_values(&self) -> &VecIndexedByEid<i32> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<i32> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Health }
+}
+
 pub struct EntityComponents {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
@@ -353,7 +394,9 @@ pub struct EntityComponents {
     pub states: States,
     pub renders: Renders,
     pub targets: Targets,
-    pub targeted_by: TargetedBy
+    pub targeted_by: TargetedBy,
+    pub alignments: Alignments,
+    pub healths: Healths
 }
 
 impl EntityComponents {
@@ -368,7 +411,9 @@ impl EntityComponents {
             states: States::initialize(capacity),
             renders: Renders::initialize(capacity),
             targets: Targets::initialize(capacity),
-            targeted_by: TargetedBy::initialize(capacity)
+            targeted_by: TargetedBy::initialize(capacity),
+            alignments: Alignments::initialize(capacity),
+            healths: Healths::initialize(capacity)
         }
     }
 }
@@ -387,13 +432,19 @@ pub enum LoopState {
     User(usize)
 }
 
+pub enum Direction {
+    Down,
+    Up,
+    Right,
+    Left
+}
+
 pub enum Action {
-    MoveDown(usize),
-    MoveUp(usize),
-    MoveRight(usize),
-    MoveLeft(usize),
+    Move(usize, Direction),
+    Attack(usize, usize),
     Spawn(usize),
-    Kill(usize)
+    Kill(usize),
+    Wait
 }
 
 pub struct PlannedActions {
@@ -406,11 +457,37 @@ impl PlannedActions {
     }
 }
 
+pub enum Reaction {
+    Kill(usize)
+}
+
+pub struct ReactionsReady {
+    pub values: Vec<Reaction>
+}
+
+impl ReactionsReady {
+    pub fn initialize(capacity: usize) -> ReactionsReady {
+        ReactionsReady { values: Vec::with_capacity(capacity) }
+    }
+}
+
+pub struct ToKill {
+    pub values: Vec<usize>
+}
+
+impl ToKill {
+    pub fn initialize(capacity: usize) -> ToKill {
+        ToKill { values: Vec::with_capacity(capacity) }
+    }
+}
+
 pub struct Components {
     pub loop_state: LoopState,
     pub display: Display,
     pub decisions_ready: DecisionsReady,
     pub planned_actions: PlannedActions,
+    pub reactions_ready: ReactionsReady,
+    pub to_kill: ToKill,
     pub e_components: EntityComponents
 }
 
@@ -421,6 +498,8 @@ impl Components {
             display: display,
             decisions_ready: DecisionsReady::initialize(CAPACITY),
             planned_actions: PlannedActions::initialize(CAPACITY),
+            reactions_ready: ReactionsReady::initialize(CAPACITY),
+            to_kill: ToKill::initialize(CAPACITY),
             e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
         }
     }

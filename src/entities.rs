@@ -36,7 +36,7 @@ impl Entities {
     }
 
     pub fn add_timed_square(
-        &mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, render: Render
+        &mut self, e_components: &mut EntityComponents, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
     ) -> Result<usize, Errors> {
         let e_id = self.activate_new_id()?;
         // Make sure we exit if we couldn't add the space data.
@@ -54,6 +54,8 @@ impl Entities {
             e_components.blocking.add(e_id, BlockingType::Movement),
             e_components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             e_components.ais.add(e_id, ai),
+            e_components.alignments.add(e_id, alignment),
+            e_components.healths.add(e_id, health),
             e_components.renders.add(e_id, render)
         ]);
         e_components.component_types.add(e_id, components);
@@ -128,7 +130,9 @@ impl Entities {
                     ComponentType::State => e_components.states.remove(e_id),
                     ComponentType::Render => e_components.renders.remove(e_id),
                     ComponentType::Target => e_components.targets.remove(e_id),
-                    ComponentType::TargetedBy => e_components.targeted_by.remove(e_id)
+                    ComponentType::TargetedBy => e_components.targeted_by.remove(e_id),
+                    ComponentType::Alignment => e_components.alignments.remove(e_id),
+                    ComponentType::Health => e_components.healths.remove(e_id)
                 }
             }
         );
