@@ -2,18 +2,11 @@ mod containers;
 pub mod for_entities;
 
 use containers::*;
+use crate::data::*;
 use for_entities::*;
 use sdl3::pixels::Color;
 
 const CAPACITY: usize = 10;
-
-pub enum Errors {
-    CoordinateMissing,
-    MissingExpectedEid,
-    SpaceAlreadyNonempty,
-    UnexpectedlyEmpty,
-    NotExpectingAiForUser
-}
 
 pub trait Component<'a, T> where T: 'a {
     fn get(&self, e_id: usize) -> Option<&T>;

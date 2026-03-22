@@ -1,4 +1,5 @@
 use crate::components::*;
+use crate::data::*;
 
 pub struct Entities {
     free_ids: Vec<usize>,

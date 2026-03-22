@@ -6,6 +6,7 @@ use sdl3::video::Window;
 
 use crate::components::*;
 use crate::components::for_entities::*;
+use crate::data::*;
 use crate::entities::Entities;
 
 pub fn draw_squares(coords: &CoordinateComponents, coord_scale: usize, renders: &Renders, canvas: &mut Canvas<Window>) { 
