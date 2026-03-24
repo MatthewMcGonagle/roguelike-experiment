@@ -267,7 +267,7 @@ fn do_action(action: Action, to_kill: &mut ToKill, e_components: &mut EntityComp
     }
 }
 
-pub fn do_actions(components: &mut Components, entities: &mut Entities) {
+pub fn do_actions(components: &mut GameState, entities: &mut Entities) {
     while !components.planned_actions.values.is_empty() {
         let action = components.planned_actions.values.pop().unwrap();
         match do_action(action, &mut components.to_kill, &mut components.e_components, entities) {

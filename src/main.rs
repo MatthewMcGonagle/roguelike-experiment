@@ -42,7 +42,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut components = Components::initialize(LoopState::RunTimers, display, coord_width, coord_height);
+    let mut components = GameState::initialize(LoopState::RunTimers, display, coord_width, coord_height);
     let mut entities = Entities::initialize();
     let mut key_press: Option<Keycode> = None;
 

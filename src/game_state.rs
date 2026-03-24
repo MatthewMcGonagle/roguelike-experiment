@@ -34,7 +34,7 @@ impl ToKill {
     }
 }
 
-pub struct Components {
+pub struct GameState {
     pub loop_state: LoopState,
     pub display: Display,
     pub decisions_ready: DecisionsReady,
@@ -44,9 +44,9 @@ pub struct Components {
     pub e_components: EntityComponents
 }
 
-impl Components {
-    pub fn initialize(loop_state: LoopState, display: Display, coord_width: usize, coord_height: usize) -> Components {
-        Components {
+impl GameState {
+    pub fn initialize(loop_state: LoopState, display: Display, coord_width: usize, coord_height: usize) -> GameState {
+        GameState {
             loop_state: loop_state,
             display: display,
             decisions_ready: DecisionsReady::initialize(CAPACITY),
