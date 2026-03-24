@@ -41,7 +41,7 @@ pub struct GameState {
     pub planned_actions: PlannedActions,
     pub reactions_ready: ReactionsReady,
     pub to_kill: ToKill,
-    pub e_components: EntityComponents
+    pub components: Components
 }
 
 impl GameState {
@@ -53,7 +53,7 @@ impl GameState {
             planned_actions: PlannedActions::initialize(CAPACITY),
             reactions_ready: ReactionsReady::initialize(CAPACITY),
             to_kill: ToKill::initialize(CAPACITY),
-            e_components: EntityComponents::initialize(CAPACITY, coord_width, coord_height)
+            components: Components::initialize(CAPACITY, coord_width, coord_height)
         }
     }
 }

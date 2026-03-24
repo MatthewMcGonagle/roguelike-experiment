@@ -92,45 +92,45 @@ fn shift(
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
-fn add_available_square(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
-    let square_ai = match e_components.states.get(e_id).unwrap() {
+fn add_available_square(e_id: usize, components: &mut Components, entities: &mut Entities) {
+    let square_ai = match components.states.get(e_id).unwrap() {
         0 => Ai::ShiftX,
         _ => Ai::ShiftY
     };
-    e_components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
+    components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     if entities.n_free_ids() >= 2 {
         let maybe_spawned_e_id = entities.add_timed_square(
-            e_components,
-            e_components.coords.get(e_id).unwrap().clone(),
+            components,
+            components.coords.get(e_id).unwrap().clone(),
             10,
             square_ai,
             AlignmentType::User,
             1,
             Render { color: Color::RGB(255, 255, 255) }
         );
-        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(e_components, 140, s_e_id));
+        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(components, 140, s_e_id));
     }
 }
 
-fn kill_others_and_self(e_id: usize, e_components: &mut EntityComponents, entities: &mut Entities) {
-    let targets: Vec<usize> = e_components.targets.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
+fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
+    let targets: Vec<usize> = components.targets.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
     for target in targets {
-        entities.remove(target, e_components);
+        entities.remove(target, components);
     }
-    entities.remove(e_id, e_components);
+    entities.remove(e_id, components);
 }
 
-fn decide_move_or_attack(e_id: usize, direction: Direction, e_components: &EntityComponents) -> Result<Action, Errors> {
+fn decide_move_or_attack(e_id: usize, direction: Direction, components: &Components) -> Result<Action, Errors> {
     let (shift_x, shift_y) = shift_of(&direction);
-    let coords = e_components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
-    let coord_width = e_components.coords_query.coord_width;
-    let coord_height = e_components.coords_query.coord_height;
+    let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+    let coord_width = components.coords_query.coord_width;
+    let coord_height = components.coords_query.coord_height;
     let target_coords = target_of_shift(coords, coord_width, coord_height, (shift_x, shift_y));
-    let space = e_components.coords_query.get(target_coords.x, target_coords.y)?;
+    let space = components.coords_query.get(target_coords.x, target_coords.y)?;
     let action = match space {
         SpaceData::Empty => Action::Move(e_id, direction),
         SpaceData::HasEid(target_id) => {
-            match (e_components.alignments.get(e_id), e_components.alignments.get(*target_id)) {
+            match (components.alignments.get(e_id), components.alignments.get(*target_id)) {
                 (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => Action::Attack(e_id, *target_id),
                 (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => Action::Attack(e_id, *target_id),
                 _ => Action::Wait
@@ -140,10 +140,10 @@ fn decide_move_or_attack(e_id: usize, direction: Direction, e_components: &Entit
     Ok(action)
 }
 
-fn make_decision(e_id: usize, ai: &Ai, e_components: &EntityComponents) -> Result<Action, Errors> {
+fn make_decision(e_id: usize, ai: &Ai, components: &Components) -> Result<Action, Errors> {
     match ai {
-        Ai::ShiftX => decide_move_or_attack(e_id, Direction::Right, e_components),
-        Ai::ShiftY => decide_move_or_attack(e_id, Direction::Down, e_components),
+        Ai::ShiftX => decide_move_or_attack(e_id, Direction::Right, components),
+        Ai::ShiftY => decide_move_or_attack(e_id, Direction::Down, components),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::Kill => Ok(Action::Kill(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)
@@ -160,19 +160,19 @@ fn shift_of(direction: &Direction) -> (i32, i32) {
 }
 
 pub fn make_decisions( 
-    decisions_ready: &mut DecisionsReady, e_components: &EntityComponents, planned_actions: &mut PlannedActions
+    decisions_ready: &mut DecisionsReady, components: &Components, planned_actions: &mut PlannedActions
     ) -> Result<Option<LoopState>, Errors> {
     let mut e_id_needs_user_decision: Option<usize> = None;
 
     while !decisions_ready.values.is_empty() && e_id_needs_user_decision.is_none() {
         let e_id = decisions_ready.values.pop().unwrap();
-        let ai = e_components.ais.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+        let ai = components.ais.get(e_id).ok_or(Errors::MissingExpectedEid)?;
         match ai {
             Ai::User => {
                 e_id_needs_user_decision = Some(e_id);
             },
             _ => {
-                let action = make_decision(e_id, &ai, e_components)?;
+                let action = make_decision(e_id, &ai, components)?;
                 planned_actions.values.push(action);
             }
         }
@@ -185,43 +185,43 @@ pub fn make_decisions(
     }
 }
 
-fn decide_user_direction_action(e_id: usize, direction: Direction, e_components: &EntityComponents) -> Result<Action, Errors> {
+fn decide_user_direction_action(e_id: usize, direction: Direction, components: &Components) -> Result<Action, Errors> {
     let shift = shift_of(&direction);
-    let user_coords = e_components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
-    let target_coords = target_of_shift(user_coords, e_components.coords_query.coord_width, e_components.coords_query.coord_height, shift);
-    match e_components.coords_query.get(target_coords.x, target_coords.y)? {
+    let user_coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+    let target_coords = target_of_shift(user_coords, components.coords_query.coord_width, components.coords_query.coord_height, shift);
+    match components.coords_query.get(target_coords.x, target_coords.y)? {
         SpaceData::Empty => Ok(Action::Move(e_id, direction)),
-        SpaceData::HasEid(target_eid) => match e_components.alignments.get(*target_eid) {
+        SpaceData::HasEid(target_eid) => match components.alignments.get(*target_eid) {
             Some(AlignmentType::HostileToUser) => Ok(Action::Attack(e_id, *target_eid)),
             _ => Ok(Action::Wait)
         }
     }
 }
 
-pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions, e_components: &EntityComponents) ->
+pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions, components: &Components) ->
     Result<Option<LoopState>, Errors> {
-    let coords = e_components.coords.get(e_id);
+    let coords = components.coords.get(e_id);
     let loop_state = match key_press {
         Keycode::J => {
-            let action = decide_user_direction_action(e_id, Direction::Down, e_components)?;
+            let action = decide_user_direction_action(e_id, Direction::Down, components)?;
             planned_actions.values.push(action);
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
         },
         Keycode::K => {
-            let action = decide_user_direction_action(e_id, Direction::Up, e_components)?;
+            let action = decide_user_direction_action(e_id, Direction::Up, components)?;
             planned_actions.values.push(action);
             println!("Pressed K");
             Some(LoopState::MakeDecisions)
         },
         Keycode::L => {
-            let action = decide_user_direction_action(e_id, Direction::Right, e_components)?;
+            let action = decide_user_direction_action(e_id, Direction::Right, components)?;
             planned_actions.values.push(action);
             println!("Pressed L");
             Some(LoopState::MakeDecisions)
         },
         Keycode::H => {
-            let action = decide_user_direction_action(e_id, Direction::Left, e_components)?;
+            let action = decide_user_direction_action(e_id, Direction::Left, components)?;
             planned_actions.values.push(action);
             println!("Pressed H");
             Some(LoopState::MakeDecisions)
@@ -235,9 +235,9 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
     Ok(loop_state)
 }
 
-fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents) -> Option<Reaction> {
+fn do_attack(e_id: usize, target_id: usize, components: &mut Components) -> Option<Reaction> {
     println!("{e_id} attacks {target_id}");
-    let maybe_h = e_components.healths.get_mut(target_id);
+    let maybe_h = components.healths.get_mut(target_id);
     match maybe_h {
         Some(h) => {
             *h -= 1;
@@ -252,17 +252,17 @@ fn do_attack(e_id: usize, target_id: usize, e_components: &mut EntityComponents)
     }
 }
 
-fn do_action(action: Action, to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) -> Option<Reaction> {
+fn do_action(action: Action, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) -> Option<Reaction> {
     match action {
         Action::Move(e_id, direction) => {
-            let w = e_components.coords_query.coord_width.clone();
-            let h = e_components.coords_query.coord_height.clone();
-            shift(e_id, &mut e_components.blocking, &mut e_components.coords, &mut e_components.coords_query, w, h, shift_of(&direction));
+            let w = components.coords_query.coord_width.clone();
+            let h = components.coords_query.coord_height.clone();
+            shift(e_id, &mut components.blocking, &mut components.coords, &mut components.coords_query, w, h, shift_of(&direction));
             None
         },
-        Action::Spawn(e_id) => { add_available_square(e_id, e_components, entities); None },
+        Action::Spawn(e_id) => { add_available_square(e_id, components, entities); None },
         Action::Kill(e_id) => { to_kill.values.push(e_id); None },
-        Action::Attack(e_id, target_id) => do_attack(e_id, target_id, e_components),
+        Action::Attack(e_id, target_id) => do_attack(e_id, target_id, components),
         _ => None
     }
 }
@@ -270,30 +270,30 @@ fn do_action(action: Action, to_kill: &mut ToKill, e_components: &mut EntityComp
 pub fn do_actions(components: &mut GameState, entities: &mut Entities) {
     while !components.planned_actions.values.is_empty() {
         let action = components.planned_actions.values.pop().unwrap();
-        match do_action(action, &mut components.to_kill, &mut components.e_components, entities) {
+        match do_action(action, &mut components.to_kill, &mut components.components, entities) {
             Some(reaction) => components.reactions_ready.values.push(reaction),
             None => ()
         }
     }
 }
 
-fn do_reaction(reaction: Reaction, to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) {
+fn do_reaction(reaction: Reaction, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
     match reaction {
         Reaction::Kill(e_id) => to_kill.values.push(e_id)
     }
 }
 
-pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) {
+pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
     while !reactions_ready.values.is_empty() {
         let reaction = reactions_ready.values.pop().unwrap();
-        do_reaction(reaction, to_kill, e_components, entities);
+        do_reaction(reaction, to_kill, components, entities);
     }
 }
 
-pub fn do_killings(to_kill: &mut ToKill, e_components: &mut EntityComponents, entities: &mut Entities) {
+pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
     while !to_kill.values.is_empty() {
         let e_id = to_kill.values.pop().unwrap();
-        kill_others_and_self(e_id, e_components, entities);
+        kill_others_and_self(e_id, components, entities);
     }
 }
 

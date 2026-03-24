@@ -13,7 +13,7 @@ pub trait Component<'a, T> where T: 'a {
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
 }
 
-pub struct EntityComponents {
+pub struct Components {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
     pub coords_query: CoordinatesQuery,
@@ -28,9 +28,9 @@ pub struct EntityComponents {
     pub healths: Healths
 }
 
-impl EntityComponents {
-    pub fn initialize(capacity: usize, coord_width: usize, coord_height: usize) -> EntityComponents {
-        EntityComponents {
+impl Components {
+    pub fn initialize(capacity: usize, coord_width: usize, coord_height: usize) -> Components {
+        Components {
             component_types: ComponentTypes::initialize(capacity),
             coords: CoordinateComponents::initialize(capacity),
             coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
