@@ -3,11 +3,13 @@ extern crate sdl3;
 mod components;
 mod data;
 mod entities;
+mod game_state;
 mod systems;
 
 use components::*;
 use data::*;
 use entities::*;
+use game_state::*;
 use systems::*;
 
 use sdl3::event::Event;

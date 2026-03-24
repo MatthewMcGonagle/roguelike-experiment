@@ -1,4 +1,5 @@
 use super::*;
+use super::containers::*;
 
 pub struct ComponentTypes {
     values: VecIndexedByEid<Vec<ComponentType>>
