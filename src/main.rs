@@ -78,7 +78,7 @@ pub fn safe_main() -> Result<(), Errors> {
             }
         }
         // The rest of the game loop goes here...
-        draw_squares(&components.components.coords, components.display.coord_scale, &components.components.renders, &mut canvas);
+        draw_squares(&components.components.coords, components.display.coord_scale, &components.components.renders, &mut canvas)?;
 
         if components.loop_state == LoopState::RunTimers {
             update_timers(&mut components.components.decision_timers, &mut components.decisions_ready);

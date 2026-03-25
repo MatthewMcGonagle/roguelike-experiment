@@ -1,3 +1,4 @@
+use sdl3::Error;
 use sdl3::pixels::Color;
 
 pub enum Errors {
@@ -5,7 +6,8 @@ pub enum Errors {
     MissingExpectedEid,
     SpaceAlreadyNonempty,
     UnexpectedlyEmpty,
-    NotExpectingAiForUser
+    NotExpectingAiForUser,
+    SDL3Error(Error)
 }
 
 #[derive(Clone)]

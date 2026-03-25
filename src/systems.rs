@@ -1,3 +1,4 @@
+use sdl3::Error;
 use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
 use sdl3::rect::Rect;
@@ -10,24 +11,25 @@ use crate::data::*;
 use crate::game_state::*;
 use crate::entities::Entities;
 
-pub fn draw_squares(coords: &CoordinateComponents, coord_scale: usize, renders: &Renders, canvas: &mut Canvas<Window>) { 
+fn draw_square(coords: &Coordinates, coord_scale: usize, render: &Render, canvas: &mut Canvas<Window>) -> Result<(), Errors> {
+    let square = Rect::new((coords.x * coord_scale) as i32, (coords.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
+    canvas.set_draw_color(render.color);
+    canvas.fill_rect(square).map_err(|e| Errors::SDL3Error(e))
+}
+
+pub fn draw_squares(coords: &CoordinateComponents, coord_scale: usize, renders: &Renders, canvas: &mut Canvas<Window>) -> Result<(), Errors> { 
     for (e_id, c) in coords.iter_w_eid() {
         match c {
             None => (),
             Some(c) => {
                 match renders.get(e_id) {
                     None => (),
-                    Some(render) => {
-                        let square = Rect::new((c.x * coord_scale) as i32, (c.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
-                        canvas.set_draw_color(render.color);
-                        _ = canvas.fill_rect(square);
-                    }
+                    Some(render) => draw_square(c, coord_scale, render, canvas)?
                 }
-
             }
-
         }
     }
+    Ok(())
 }
 
 fn update_timer(timer: &mut Timer) -> bool {
