@@ -93,7 +93,7 @@ fn shift(
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
-fn add_available_square(e_id: usize, components: &mut Components, entities: &mut Entities) {
+fn add_available_square(e_id: usize, components: &mut Components, entities: &mut Entities) -> Result<(), Errors> {
     let square_ai = match components.states.get(e_id).unwrap() {
         0 => Ai::ShiftX,
         _ => Ai::ShiftY
@@ -109,8 +109,8 @@ fn add_available_square(e_id: usize, components: &mut Components, entities: &mut
             1,
             Render { color: Color::RGB(255, 255, 255) }
         );
-        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(components, 140, s_e_id));
-    }
+        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(components, 140, s_e_id))
+    } else { Ok(()) }
 }
 
 fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
@@ -252,29 +252,30 @@ fn do_attack(e_id: usize, target_id: usize, components: &mut Components) -> Opti
     }
 }
 
-fn do_action(action: Action, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) -> Option<Reaction> {
+fn do_action(action: Action, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) -> Result<Option<Reaction>, Errors> {
     match action {
         Action::Move(e_id, direction) => {
             let w = components.coords_query.coord_width.clone();
             let h = components.coords_query.coord_height.clone();
             shift(e_id, &mut components.blocking, &mut components.coords, &mut components.coords_query, w, h, shift_of(&direction));
-            None
+            Ok(None)
         },
-        Action::Spawn(e_id) => { add_available_square(e_id, components, entities); None },
-        Action::Kill(e_id) => { to_kill.values.push(e_id); None },
-        Action::Attack(e_id, target_id) => do_attack(e_id, target_id, components),
-        _ => None
+        Action::Spawn(e_id) => { add_available_square(e_id, components, entities).map(|x| None) },
+        Action::Kill(e_id) => { to_kill.values.push(e_id); Ok(None) },
+        Action::Attack(e_id, target_id) => Ok(do_attack(e_id, target_id, components)),
+        _ => Ok(None)
     }
 }
 
-pub fn do_actions(game_state: &mut GameState) {
+pub fn do_actions(game_state: &mut GameState) -> Result<(), Errors> {
     while !game_state.planned_actions.values.is_empty() {
         let action = game_state.planned_actions.values.pop().unwrap();
-        match do_action(action, &mut game_state.to_kill, &mut game_state.components, &mut game_state.entities) {
+        match do_action(action, &mut game_state.to_kill, &mut game_state.components, &mut game_state.entities)? {
             Some(reaction) => game_state.reactions_ready.values.push(reaction),
             None => ()
         }
     }
+    Ok(())
 }
 
 fn do_reaction(reaction: Reaction, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
