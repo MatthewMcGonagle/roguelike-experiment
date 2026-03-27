@@ -269,10 +269,10 @@ fn do_action(action: Action, to_kill: &mut ToKill, components: &mut Components, 
     }
 }
 
-pub fn do_actions(game_state: &mut GameState, entities: &mut Entities) {
+pub fn do_actions(game_state: &mut GameState) {
     while !game_state.planned_actions.values.is_empty() {
         let action = game_state.planned_actions.values.pop().unwrap();
-        match do_action(action, &mut game_state.to_kill, &mut game_state.components, entities) {
+        match do_action(action, &mut game_state.to_kill, &mut game_state.components, &mut game_state.entities) {
             Some(reaction) => game_state.reactions_ready.values.push(reaction),
             None => ()
         }
