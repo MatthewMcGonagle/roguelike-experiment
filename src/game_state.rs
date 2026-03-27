@@ -1,6 +1,7 @@
 use crate::components::*;
+use crate::components::for_entities::*;
 use crate::data::*;
-use crate::for_entities::*;
+use crate::entities::*;
 
 const CAPACITY: usize = 10;
 
@@ -41,7 +42,8 @@ pub struct GameState {
     pub planned_actions: PlannedActions,
     pub reactions_ready: ReactionsReady,
     pub to_kill: ToKill,
-    pub components: Components
+    pub components: Components,
+    pub entities: Entities
 }
 
 impl GameState {
@@ -53,7 +55,8 @@ impl GameState {
             planned_actions: PlannedActions::initialize(CAPACITY),
             reactions_ready: ReactionsReady::initialize(CAPACITY),
             to_kill: ToKill::initialize(CAPACITY),
-            components: Components::initialize(CAPACITY, coord_width, coord_height)
+            components: Components::initialize(CAPACITY, coord_width, coord_height),
+            entities: Entities::initialize()
         }
     }
 }
