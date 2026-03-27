@@ -1,4 +1,3 @@
-use sdl3::Error;
 use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
 use sdl3::rect::Rect;
@@ -202,7 +201,6 @@ fn decide_user_direction_action(e_id: usize, direction: Direction, components: &
 
 pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mut PlannedActions, components: &Components) ->
     Result<Option<LoopState>, Errors> {
-    let coords = components.coords.get(e_id);
     let loop_state = match key_press {
         Keycode::J => {
             let action = decide_user_direction_action(e_id, Direction::Down, components)?;
