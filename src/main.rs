@@ -1,11 +1,15 @@
 extern crate sdl3;
 
-mod entities;
 mod components;
+mod data;
+mod entities;
+mod game_state;
 mod systems;
 
-use entities::*;
 use components::*;
+use data::*;
+use entities::*;
+use game_state::*;
 use systems::*;
 
 use sdl3::event::Event;
@@ -38,23 +42,22 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut components = Components::initialize(LoopState::RunTimers, display, coord_width, coord_height);
-    let mut entities = Entities::initialize();
+    let mut game_state = GameState::initialize(LoopState::RunTimers, display, coord_width, coord_height);
     let mut key_press: Option<Keycode> = None;
 
-    let _ = entities.add_timed_square_creator(&mut components.e_components, Coordinates { x: 0, y: 0 }, 50);
-    let _ = entities.add_timed_square(
-        &mut components.e_components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10, Render { color: Color::RGB(100, 100, 100) })?;
-    let _ = entities.add_timed_square(
-        &mut components.e_components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, AlignmentType::Neutral, 2, Render { color: Color::RGB(0, 0, 0) })?;
-    let _ = entities.add_timed_square(
-        &mut components.e_components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, AlignmentType::User, 3,
+    let _ = game_state.entities.add_timed_square_creator(&mut game_state.components, Coordinates { x: 0, y: 0 }, 50);
+    let _ = game_state.entities.add_timed_square(
+        &mut game_state.components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10, Render { color: Color::RGB(100, 100, 100) })?;
+    let _ = game_state.entities.add_timed_square(
+        &mut game_state.components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, AlignmentType::Neutral, 2, Render { color: Color::RGB(0, 0, 0) })?;
+    let _ = game_state.entities.add_timed_square(
+        &mut game_state.components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, AlignmentType::User, 3,
         Render { color: Color::RGB(255, 0, 0) })?;
-    let _ = entities.add_timed_square(
-        &mut components.e_components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, AlignmentType::HostileToUser, 4,
+    let _ = game_state.entities.add_timed_square(
+        &mut game_state.components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, AlignmentType::HostileToUser, 4,
         Render { color: Color::RGB(0, 255, 0) })?;
-    let _ = entities.add_timed_square(
-        &mut components.e_components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, AlignmentType::HostileToUser, 5,
+    let _ = game_state.entities.add_timed_square(
+        &mut game_state.components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, AlignmentType::HostileToUser, 5,
         Render { color: Color::RGB(0, 0, 255) })?;
 
     'running: loop {
@@ -74,17 +77,17 @@ pub fn safe_main() -> Result<(), Errors> {
             }
         }
         // The rest of the game loop goes here...
-        draw_squares(&components.e_components.coords, components.display.coord_scale, &components.e_components.renders, &mut canvas);
+        draw_squares(&game_state.components.coords, game_state.display.coord_scale, &game_state.components.renders, &mut canvas)?;
 
-        if components.loop_state == LoopState::RunTimers {
-            update_timers(&mut components.e_components.decision_timers, &mut components.decisions_ready);
-            components.loop_state = LoopState::MakeDecisions;
+        if game_state.loop_state == LoopState::RunTimers {
+            update_timers(&mut game_state.components.decision_timers, &mut game_state.decisions_ready);
+            game_state.loop_state = LoopState::MakeDecisions;
         }
 
-        if components.loop_state == LoopState::MakeDecisions {
+        if game_state.loop_state == LoopState::MakeDecisions {
             let maybe_loop_state = make_decisions(
-                &mut components.decisions_ready, & components.e_components, &mut components.planned_actions)?;
-            components.loop_state = match maybe_loop_state {
+                &mut game_state.decisions_ready, & game_state.components, &mut game_state.planned_actions)?;
+            game_state.loop_state = match maybe_loop_state {
                 Some(LoopState::User(e_id)) => {
                     println!("Player turn for {e_id}");
                     LoopState::User(e_id)
@@ -95,12 +98,12 @@ pub fn safe_main() -> Result<(), Errors> {
         }
 
         // Use a match to pull out the e_id.
-        match components.loop_state {
+        match game_state.loop_state {
             LoopState::User(e_id) => match key_press {
                 Some(k) => {
                     match make_user_decision(
-                        e_id, &k, &mut components.planned_actions, &components.e_components)? {
-                        Some(l) => components.loop_state = l,
+                        e_id, &k, &mut game_state.planned_actions, &game_state.components)? {
+                        Some(l) => game_state.loop_state = l,
                         _ => {}
                     }
                 },
@@ -109,11 +112,11 @@ pub fn safe_main() -> Result<(), Errors> {
             _ => {}
         }
 
-        if components.loop_state == LoopState::DoActions {
-            do_actions(&mut components, &mut entities);
-            do_reactions(&mut components.reactions_ready, &mut components.to_kill, &mut components.e_components, &mut entities);
-            do_killings(&mut components.to_kill, &mut components.e_components, &mut entities);
-            components.loop_state = LoopState::RunTimers;
+        if game_state.loop_state == LoopState::DoActions {
+            do_actions(&mut game_state)?;
+            do_reactions(&mut game_state.reactions_ready, &mut game_state.to_kill, &mut game_state.components, &mut game_state.entities);
+            do_killings(&mut game_state.to_kill, &mut game_state.components, &mut game_state.entities);
+            game_state.loop_state = LoopState::RunTimers;
         }
 
         canvas.present();
