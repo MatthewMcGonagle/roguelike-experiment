@@ -25,6 +25,7 @@ pub fn safe_main() -> Result<(), Errors> {
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
+    let initial_max_eid = 20;
     let coord_width: usize = 16;
     let coord_height: usize = 12;
     let coord_scale: usize = 50;
@@ -42,7 +43,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut i = 0;
-    let mut game_state = GameState::initialize(LoopState::RunTimers, display, coord_width, coord_height);
+    let mut game_state = GameState::initialize(initial_max_eid, LoopState::RunTimers, display, coord_width, coord_height);
     let mut key_press: Option<Keycode> = None;
 
     let _ = game_state.entities.add_timed_square_creator(&mut game_state.components, Coordinates { x: 0, y: 0 }, 50);

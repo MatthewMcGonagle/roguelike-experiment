@@ -47,7 +47,7 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn initialize(loop_state: LoopState, display: Display, coord_width: usize, coord_height: usize) -> GameState {
+    pub fn initialize(initial_max_eid: usize, loop_state: LoopState, display: Display, coord_width: usize, coord_height: usize) -> GameState {
         GameState {
             loop_state: loop_state,
             display: display,
@@ -56,7 +56,7 @@ impl GameState {
             reactions_ready: ReactionsReady::initialize(CAPACITY),
             to_kill: ToKill::initialize(CAPACITY),
             components: Components::initialize(CAPACITY, coord_width, coord_height),
-            entities: Entities::initialize()
+            entities: Entities::initialize(initial_max_eid)
         }
     }
 }
