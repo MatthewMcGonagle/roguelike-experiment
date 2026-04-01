@@ -2,20 +2,22 @@ use crate::components::*;
 use crate::data::*;
 
 pub struct Entities {
+    free_ids_allocation_size: usize,
     exclusive_max_eid: usize,
     free_ids: Vec<usize>,
     pub active_ids: Vec<usize>
 }
 
 impl Entities {
-    pub fn initialize(initial_max_eid: usize) -> Entities {
-        let mut the_free_ids: Vec<usize> = (0..initial_max_eid).collect();
+    pub fn initialize(free_ids_allocation_size: usize) -> Entities {
+        let mut the_free_ids: Vec<usize> = (0..free_ids_allocation_size).collect();
         the_free_ids.reverse();
 
         Entities {
-            exclusive_max_eid: initial_max_eid,
+            free_ids_allocation_size: free_ids_allocation_size,
+            exclusive_max_eid: free_ids_allocation_size,
             free_ids: the_free_ids,
-            active_ids: Vec::with_capacity(initial_max_eid)
+            active_ids: Vec::with_capacity(free_ids_allocation_size)
         }
     }
 
