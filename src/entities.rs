@@ -25,7 +25,19 @@ impl Entities {
         self.free_ids.len()
     }
 
+    fn refill_free_ids(&mut self) {
+        let new_max_eid = self.exclusive_max_eid + self.free_ids_allocation_size;
+        for id in (self.exclusive_max_eid..new_max_eid) {
+            self.free_ids.push(id);
+        }
+        self.exclusive_max_eid = new_max_eid;
+    }
+
     fn activate_new_id(&mut self) -> Result<usize, Errors> {
+        if (self.n_free_ids() == 0) {
+            self.refill_free_ids();
+        }
+
         let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
         self.active_ids.push(e_id);
         Ok(e_id)
