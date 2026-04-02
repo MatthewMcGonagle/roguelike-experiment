@@ -99,18 +99,16 @@ fn add_available_square(e_id: usize, components: &mut Components, entities: &mut
         _ => Ai::ShiftY
     };
     components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
-    if entities.n_free_ids() >= 2 {
-        let maybe_spawned_e_id = entities.add_timed_square(
-            components,
-            components.coords.get(e_id).unwrap().clone(),
-            10,
-            square_ai,
-            AlignmentType::User,
-            1,
-            Render { color: Color::RGB(255, 255, 255) }
-        );
-        maybe_spawned_e_id.and_then(|s_e_id| entities.add_kill_timer(components, 140, s_e_id))
-    } else { Ok(()) }
+    let spawned_e_id = entities.add_timed_square(
+        components,
+        components.coords.get(e_id).unwrap().clone(),
+        10,
+        square_ai,
+        AlignmentType::User,
+        1,
+        Render { color: Color::RGB(255, 255, 255) }
+    )?;
+    entities.add_kill_timer(components, 140, spawned_e_id)
 }
 
 fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
