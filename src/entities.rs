@@ -1,58 +1,77 @@
 use crate::components::*;
 use crate::data::*;
 
-pub struct Entities {
+struct FreeEids {
     free_ids_allocation_size: usize,
     exclusive_max_eid: usize,
-    free_ids: Vec<usize>,
+    eids: Vec<usize>
+}
+
+impl FreeEids {
+    pub fn initialize(free_ids_allocation_size: usize) -> FreeEids {
+        let mut the_free_ids: Vec<usize> = (0..free_ids_allocation_size).collect();
+        the_free_ids.reverse();
+
+        FreeEids {
+            free_ids_allocation_size: free_ids_allocation_size,
+            exclusive_max_eid: free_ids_allocation_size,
+            eids: the_free_ids
+        }
+    }
+
+    fn allocate_new_ids(&mut self) {
+        let new_max_eid = self.exclusive_max_eid + self.free_ids_allocation_size;
+        let mut new_eids: Vec<usize> = (self.exclusive_max_eid..new_max_eid).collect();
+        new_eids.reverse();
+
+        for id in new_eids {
+            self.eids.push(id);
+        }
+        self.exclusive_max_eid = new_max_eid;
+    }
+
+    pub fn pop(&mut self) -> Result<usize, Errors> {
+        if (self.eids.len() == 0) {
+            self.allocate_new_ids();
+        }
+
+        let e_id = self.eids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
+        Ok(e_id)
+    }
+
+    pub fn push(&mut self, eid: usize) {
+        self.eids.push(eid);
+    }
+}
+
+// TODO: hide the free ids container details, prevent direct pop().
+pub struct Entities {
+    free_ids: FreeEids,
     pub active_ids: Vec<usize>
 }
 
 impl Entities {
     pub fn initialize(free_ids_allocation_size: usize) -> Entities {
-        let mut the_free_ids: Vec<usize> = (0..free_ids_allocation_size).collect();
-        the_free_ids.reverse();
-
         Entities {
-            free_ids_allocation_size: free_ids_allocation_size,
-            exclusive_max_eid: free_ids_allocation_size,
-            free_ids: the_free_ids,
+            free_ids: FreeEids::initialize(free_ids_allocation_size),
             active_ids: Vec::with_capacity(free_ids_allocation_size)
         }
     }
 
     pub fn n_free_ids(&self) -> usize {
-        self.free_ids.len()
-    }
-
-    fn refill_free_ids(&mut self) {
-        let new_max_eid = self.exclusive_max_eid + self.free_ids_allocation_size;
-        for id in (self.exclusive_max_eid..new_max_eid) {
-            self.free_ids.push(id);
-        }
-        self.exclusive_max_eid = new_max_eid;
-    }
-
-    fn activate_new_id(&mut self) -> Result<usize, Errors> {
-        if (self.n_free_ids() == 0) {
-            self.refill_free_ids();
-        }
-
-        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
-        self.active_ids.push(e_id);
-        Ok(e_id)
+        self.free_ids.eids.len()
     }
 
     fn free_most_recent_id(&mut self) -> Result<(), Errors> {
         let e_id = self.active_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
-        self.free_ids.push(e_id);
+        self.free_ids.eids.push(e_id);
         Ok(())
     }
 
     pub fn add_timed_square(
         &mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
     ) -> Result<usize, Errors> {
-        let e_id = self.activate_new_id()?;
+        let e_id = self.free_ids.pop()?;
         // Make sure we exit if we couldn't add the space data.
         let space_data = match components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
             Err(e) => {
@@ -77,7 +96,7 @@ impl Entities {
     }
 
     pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Option<()> {
-        let e_id = self.free_ids.pop()?;
+        let e_id = self.free_ids.pop().ok()?;
         self.active_ids.push(e_id);
 
         let components_added = Vec::from([
@@ -91,7 +110,7 @@ impl Entities {
     }
 
     pub fn add_kill_timer(&mut self, components: &mut Components, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
-        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
+        let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
         let components_added = Vec::from([
