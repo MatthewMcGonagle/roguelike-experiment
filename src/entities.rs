@@ -4,7 +4,6 @@ use crate::components::*;
 use crate::data::*;
 use free_eids::FreeEids;
 
-// TODO: hide the free ids container details, prevent direct pop().
 pub struct Entities {
     free_ids: FreeEids,
     pub active_ids: Vec<usize>
@@ -51,8 +50,8 @@ impl Entities {
         Ok(e_id)
     }
 
-    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Option<()> {
-        let e_id = self.free_ids.pop().ok()?;
+    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Result<(), Errors> {
+        let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
         let components_added = Vec::from([
@@ -62,7 +61,7 @@ impl Entities {
             components.states.add(e_id, 0)
         ]);
         components.component_types.add(e_id, components_added);
-        Some(())
+        Ok(())
     }
 
     pub fn add_kill_timer(&mut self, components: &mut Components, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
