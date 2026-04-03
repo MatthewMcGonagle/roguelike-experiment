@@ -6,9 +6,7 @@ mod entities;
 mod game_state;
 mod systems;
 
-use components::*;
 use data::*;
-use entities::*;
 use game_state::*;
 use systems::*;
 

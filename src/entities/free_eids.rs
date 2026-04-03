@@ -34,7 +34,7 @@ impl FreeEids {
     }
 
     pub fn pop(&mut self) -> Result<usize, Errors> {
-        if (self.n_free_ids() == 0) {
+        if self.n_free_ids() == 0 {
             self.allocate_new_ids();
         }
 
