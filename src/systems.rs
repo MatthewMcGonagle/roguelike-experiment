@@ -258,7 +258,7 @@ fn do_action(action: Action, to_kill: &mut ToKill, components: &mut Components, 
             shift(e_id, &mut components.blocking, &mut components.coords, &mut components.coords_query, w, h, shift_of(&direction));
             Ok(None)
         },
-        Action::Spawn(e_id) => { add_available_square(e_id, components, entities).map(|x| None) },
+        Action::Spawn(e_id) => { add_available_square(e_id, components, entities).map(|_x| None) },
         Action::Kill(e_id) => { to_kill.values.push(e_id); Ok(None) },
         Action::Attack(e_id, target_id) => Ok(do_attack(e_id, target_id, components)),
         _ => Ok(None)
@@ -276,16 +276,16 @@ pub fn do_actions(game_state: &mut GameState) -> Result<(), Errors> {
     Ok(())
 }
 
-fn do_reaction(reaction: Reaction, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
+fn do_reaction(reaction: Reaction, to_kill: &mut ToKill) {
     match reaction {
         Reaction::Kill(e_id) => to_kill.values.push(e_id)
     }
 }
 
-pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
+pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill) {
     while !reactions_ready.values.is_empty() {
         let reaction = reactions_ready.values.pop().unwrap();
-        do_reaction(reaction, to_kill, components, entities);
+        do_reaction(reaction, to_kill);
     }
 }
 

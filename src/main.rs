@@ -113,7 +113,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
         if game_state.loop_state == LoopState::DoActions {
             do_actions(&mut game_state)?;
-            do_reactions(&mut game_state.reactions_ready, &mut game_state.to_kill, &mut game_state.components, &mut game_state.entities);
+            do_reactions(&mut game_state.reactions_ready, &mut game_state.to_kill);
             do_killings(&mut game_state.to_kill, &mut game_state.components, &mut game_state.entities);
             game_state.loop_state = LoopState::RunTimers;
         }
