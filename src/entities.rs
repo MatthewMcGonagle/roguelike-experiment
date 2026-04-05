@@ -1,33 +1,20 @@
+mod free_eids;
+
 use crate::components::*;
 use crate::data::*;
+use free_eids::FreeEids;
 
 pub struct Entities {
-    free_ids: Vec<usize>,
+    free_ids: FreeEids,
     pub active_ids: Vec<usize>
 }
 
-const N_IDS: usize = 30;
-const ACTIVE_CAPACITY: usize = 30;
-
 impl Entities {
-    pub fn initialize() -> Entities {
-        let mut the_free_ids: Vec<usize> = (0..N_IDS).collect();
-        the_free_ids.reverse();
-
+    pub fn initialize(free_ids_allocation_size: usize) -> Entities {
         Entities {
-            free_ids: the_free_ids,
-            active_ids: Vec::with_capacity(ACTIVE_CAPACITY)
+            free_ids: FreeEids::initialize(free_ids_allocation_size),
+            active_ids: Vec::with_capacity(free_ids_allocation_size)
         }
-    }
-
-    pub fn n_free_ids(&self) -> usize {
-        self.free_ids.len()
-    }
-
-    fn activate_new_id(&mut self) -> Result<usize, Errors> {
-        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
-        self.active_ids.push(e_id);
-        Ok(e_id)
     }
 
     fn free_most_recent_id(&mut self) -> Result<(), Errors> {
@@ -39,7 +26,7 @@ impl Entities {
     pub fn add_timed_square(
         &mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
     ) -> Result<usize, Errors> {
-        let e_id = self.activate_new_id()?;
+        let e_id = self.free_ids.pop()?;
         // Make sure we exit if we couldn't add the space data.
         let space_data = match components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
             Err(e) => {
@@ -63,7 +50,7 @@ impl Entities {
         Ok(e_id)
     }
 
-    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Option<()> {
+    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Result<(), Errors> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
@@ -74,11 +61,11 @@ impl Entities {
             components.states.add(e_id, 0)
         ]);
         components.component_types.add(e_id, components_added);
-        Some(())
+        Ok(())
     }
 
     pub fn add_kill_timer(&mut self, components: &mut Components, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
-        let e_id = self.free_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
+        let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
         let components_added = Vec::from([
