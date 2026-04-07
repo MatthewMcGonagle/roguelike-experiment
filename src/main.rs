@@ -13,6 +13,7 @@ use systems::*;
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
+use std::fs;
 use std::time::Duration;
 
 pub fn main() {
@@ -22,6 +23,10 @@ pub fn main() {
 pub fn safe_main() -> Result<(), Errors> {
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
+
+    let world_state = fs::read_to_string("resources/world_state.txt")
+        .expect("World state file not found.");
+    println!("{world_state}");
 
     let free_ids_allocation_size = 20;
     let coord_width: usize = 16;
