@@ -49,6 +49,12 @@ pub fn safe_main() -> Result<(), Errors> {
     let mut game_state = GameState::initialize(free_ids_allocation_size, LoopState::RunTimers, display, coord_width, coord_height);
     let mut key_press: Option<Keycode> = None;
 
+    let wall_color = Color::RGB(150, 150, 150);
+    game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 2}, Render { color: wall_color })?;
+    game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 3}, Render { color: wall_color })?;
+    game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 4}, Render { color: wall_color })?;
+    game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 5}, Render { color: wall_color })?;
+
     game_state.entities.add_timed_square_creator(&mut game_state.components, Coordinates { x: 0, y: 0 }, 50)?;
     game_state.entities.add_timed_square(
         &mut game_state.components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10, Render { color: Color::RGB(100, 100, 100) })?;
