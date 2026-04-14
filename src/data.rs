@@ -1,6 +1,7 @@
 use sdl3::Error;
 use sdl3::pixels::Color;
 
+#[derive(Debug)]
 pub enum Errors {
     CoordinateMissing,
     MissingExpectedEid,

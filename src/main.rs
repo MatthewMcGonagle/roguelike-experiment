@@ -17,7 +17,10 @@ use std::fs;
 use std::time::Duration;
 
 pub fn main() {
-    let _ = safe_main();
+    match safe_main() {
+        Ok(()) => (),
+        Err(e) => println!("{:?}", e)
+    };
 }
 
 pub fn safe_main() -> Result<(), Errors> {
