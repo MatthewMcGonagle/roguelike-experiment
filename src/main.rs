@@ -62,15 +62,15 @@ pub fn safe_main() -> Result<(), Errors> {
     game_state.entities.add_timed_square(
         &mut game_state.components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10, Render { color: Color::RGB(100, 100, 100) })?;
     game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, AlignmentType::Neutral, 2, Render { color: Color::RGB(0, 0, 0) })?;
+        &mut game_state.components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX(0), AlignmentType::Neutral, 2, Render { color: Color::RGB(0, 0, 0) })?;
     game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, AlignmentType::User, 3,
+        &mut game_state.components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY(0), AlignmentType::User, 3,
         Render { color: Color::RGB(255, 0, 0) })?;
     game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, AlignmentType::HostileToUser, 4,
+        &mut game_state.components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX(1), AlignmentType::HostileToUser, 4,
         Render { color: Color::RGB(0, 255, 0) })?;
     game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, AlignmentType::HostileToUser, 5,
+        &mut game_state.components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY(1), AlignmentType::HostileToUser, 5,
         Render { color: Color::RGB(0, 0, 255) })?;
 
     'running: loop {

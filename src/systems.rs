@@ -95,8 +95,8 @@ fn shift(
 
 fn spawn_square_in_empty_space(e_id: usize, components: &mut Components, entities: &mut Entities, coords: Coordinates) -> Result<(), Errors> {
     let square_ai = match components.states.get(e_id).unwrap() {
-        0 => Ai::ShiftX,
-        _ => Ai::ShiftY
+        0 => Ai::ShiftX(0),
+        _ => Ai::ShiftY(0)
     };
     components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     let spawned_e_id = entities.add_timed_square(
@@ -149,8 +149,10 @@ fn decide_move_or_attack(e_id: usize, direction: Direction, components: &Compone
 
 fn make_decision(e_id: usize, ai: &Ai, components: &Components) -> Result<Action, Errors> {
     match ai {
-        Ai::ShiftX => decide_move_or_attack(e_id, Direction::Right, components),
-        Ai::ShiftY => decide_move_or_attack(e_id, Direction::Down, components),
+        Ai::ShiftX(0) => decide_move_or_attack(e_id, Direction::Left, components),
+        Ai::ShiftX(_) => decide_move_or_attack(e_id, Direction::Right, components),
+        Ai::ShiftY(0) => decide_move_or_attack(e_id, Direction::Down, components),
+        Ai::ShiftY(_) => decide_move_or_attack(e_id, Direction::Up, components),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::Kill => Ok(Action::Kill(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)

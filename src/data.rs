@@ -65,8 +65,8 @@ impl Timer {
 
 #[derive(Clone)]
 pub enum Ai {
-    ShiftX,
-    ShiftY,
+    ShiftX(usize),
+    ShiftY(usize),
     AddAvailableSquare,
     Kill,
     User
