@@ -33,7 +33,7 @@ pub struct Coordinates {
     pub y: usize 
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum SpaceData {
     Empty,
     HasEid(usize)

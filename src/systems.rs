@@ -93,7 +93,7 @@ fn shift(
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
-fn add_available_square(e_id: usize, components: &mut Components, entities: &mut Entities) -> Result<(), Errors> {
+fn spawn_square_in_empty_space(e_id: usize, components: &mut Components, entities: &mut Entities, coords: Coordinates) -> Result<(), Errors> {
     let square_ai = match components.states.get(e_id).unwrap() {
         0 => Ai::ShiftX,
         _ => Ai::ShiftY
@@ -101,7 +101,7 @@ fn add_available_square(e_id: usize, components: &mut Components, entities: &mut
     components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     let spawned_e_id = entities.add_timed_square(
         components,
-        components.coords.get(e_id).unwrap().clone(),
+        coords,
         10,
         square_ai,
         AlignmentType::User,
@@ -109,6 +109,14 @@ fn add_available_square(e_id: usize, components: &mut Components, entities: &mut
         Render { color: Color::RGB(255, 255, 255) }
     )?;
     entities.add_kill_timer(components, 140, spawned_e_id)
+}
+
+fn spawn_square(e_id: usize, components: &mut Components, entities: &mut Entities) -> Result<(), Errors> {
+    let coords = components.coords.get(e_id).ok_or(Errors::CoordinateMissing)?;
+    match components.coords_query.get(coords.x, coords.y)? {
+        SpaceData::Empty => spawn_square_in_empty_space(e_id, components, entities, coords.clone()),
+        SpaceData::HasEid(_) => Ok(())
+    }
 }
 
 fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
@@ -258,7 +266,7 @@ fn do_action(action: Action, to_kill: &mut ToKill, components: &mut Components, 
             shift(e_id, &mut components.blocking, &mut components.coords, &mut components.coords_query, w, h, shift_of(&direction));
             Ok(None)
         },
-        Action::Spawn(e_id) => { add_available_square(e_id, components, entities).map(|_x| None) },
+        Action::Spawn(e_id) => { spawn_square(e_id, components, entities).map(|_x| None) },
         Action::Kill(e_id) => { to_kill.values.push(e_id); Ok(None) },
         Action::Attack(e_id, target_id) => Ok(do_attack(e_id, target_id, components)),
         _ => Ok(None)
