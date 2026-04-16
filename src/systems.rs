@@ -147,6 +147,49 @@ fn decide_move_or_attack(e_id: usize, direction: Direction, components: &Compone
     Ok(action)
 }
 
+fn decide_shift_x(e_id: usize, state: &mut usize, components: &Components) -> Result<Action, Errors> {
+    let mut decided = false;
+    let mut tries = 0;
+    let mut action = Action::Wait;
+    let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+    let coord_width = components.coords_query.coord_width;
+    let coord_height = components.coords_query.coord_height;
+
+    while !decided && tries < 2 {
+        tries += 1;
+        let direction = match state {
+            0 => Direction::Left,
+            _ => Direction::Right
+        };
+        let (shift_x, shift_y) = shift_of(&direction);
+        let target_coords = target_of_shift(coords, coord_width, coord_height, (shift_x, shift_y));
+        let space = components.coords_query.get(target_coords.x, target_coords.y)?;
+        action = match space {
+            SpaceData::Empty => {
+                decided = true;
+                Action::Move(e_id, direction)
+            },
+            SpaceData::HasEid(target_id) => {
+                match (components.alignments.get(e_id), components.alignments.get(*target_id)) {
+                    (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => {
+                        decided = true;
+                        Action::Attack(e_id, *target_id)
+                    },
+                    (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => {
+                        decided = true;
+                        Action::Attack(e_id, *target_id)
+                    },
+                    _ => {
+                        *state = (*state + 1) % 2;
+                        Action::Wait
+                    }
+                }
+            }
+        };
+    }
+    Ok(action)
+}
+
 fn make_decision(e_id: usize, ai: &Ai, components: &Components) -> Result<Action, Errors> {
     match ai {
         Ai::ShiftX(0) => decide_move_or_attack(e_id, Direction::Left, components),
