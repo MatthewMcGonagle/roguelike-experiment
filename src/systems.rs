@@ -147,17 +147,18 @@ fn decide_move_or_attack(e_id: usize, direction: Direction, components: &Compone
     Ok(action)
 }
 
-fn decide_shift_x(e_id: usize, state: &mut usize, components: &Components) -> Result<Action, Errors> {
+fn decide_shift_x(e_id: usize, state: usize, components: &mut Components) -> Result<Action, Errors> {
     let mut decided = false;
     let mut tries = 0;
     let mut action = Action::Wait;
+    let mut new_state = state;
     let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
     let coord_width = components.coords_query.coord_width;
     let coord_height = components.coords_query.coord_height;
 
     while !decided && tries < 2 {
         tries += 1;
-        let direction = match state {
+        let direction = match new_state {
             0 => Direction::Left,
             _ => Direction::Right
         };
@@ -180,7 +181,8 @@ fn decide_shift_x(e_id: usize, state: &mut usize, components: &Components) -> Re
                         Action::Attack(e_id, *target_id)
                     },
                     _ => {
-                        *state = (*state + 1) % 2;
+                        new_state = (new_state + 1) % 2;
+                        components.ais.get_mut(e_id).map(|s| *s = Ai::ShiftX(new_state));
                         Action::Wait
                     }
                 }
@@ -190,10 +192,9 @@ fn decide_shift_x(e_id: usize, state: &mut usize, components: &Components) -> Re
     Ok(action)
 }
 
-fn make_decision(e_id: usize, ai: &Ai, components: &Components) -> Result<Action, Errors> {
+fn make_decision(e_id: usize, ai: &Ai, components: &mut Components) -> Result<Action, Errors> {
     match ai {
-        Ai::ShiftX(0) => decide_move_or_attack(e_id, Direction::Left, components),
-        Ai::ShiftX(_) => decide_move_or_attack(e_id, Direction::Right, components),
+        Ai::ShiftX(s) => decide_shift_x(e_id, *s, components),
         Ai::ShiftY(0) => decide_move_or_attack(e_id, Direction::Down, components),
         Ai::ShiftY(_) => decide_move_or_attack(e_id, Direction::Up, components),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
@@ -212,13 +213,13 @@ fn shift_of(direction: &Direction) -> (i32, i32) {
 }
 
 pub fn make_decisions( 
-    decisions_ready: &mut DecisionsReady, components: &Components, planned_actions: &mut PlannedActions
+    decisions_ready: &mut DecisionsReady, components: &mut Components, planned_actions: &mut PlannedActions
     ) -> Result<Option<LoopState>, Errors> {
     let mut e_id_needs_user_decision: Option<usize> = None;
 
     while !decisions_ready.values.is_empty() && e_id_needs_user_decision.is_none() {
         let e_id = decisions_ready.values.pop().unwrap();
-        let ai = components.ais.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+        let ai = (components.ais.get(e_id).ok_or(Errors::MissingExpectedEid)?).clone();
         match ai {
             Ai::User => {
                 e_id_needs_user_decision = Some(e_id);
