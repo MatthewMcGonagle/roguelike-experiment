@@ -67,6 +67,7 @@ impl Timer {
 pub enum Ai {
     ShiftX(usize),
     ShiftY(usize),
+    AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
     Kill,
     User
@@ -98,6 +99,7 @@ pub enum LoopState {
     User(usize)
 }
 
+#[derive(Clone)]
 pub enum Direction {
     Down,
     Up,
