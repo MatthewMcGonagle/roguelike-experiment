@@ -95,8 +95,8 @@ fn shift(
 
 fn spawn_square_in_empty_space(e_id: usize, components: &mut Components, entities: &mut Entities, coords: Coordinates) -> Result<(), Errors> {
     let square_ai = match components.states.get(e_id).unwrap() {
-        0 => Ai::ShiftX(0),
-        _ => Ai::ShiftY(0)
+        0 => Ai::AlternateDirections(0, Direction::Left, Direction::Right),
+        _ => Ai::AlternateDirections(0, Direction::Down, Direction::Up)
     };
     components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     let spawned_e_id = entities.add_timed_square(
@@ -147,51 +147,6 @@ fn decide_move_or_attack(e_id: usize, direction: Direction, components: &Compone
     Ok(action)
 }
 
-fn decide_shift_x(e_id: usize, state: usize, components: &mut Components) -> Result<Action, Errors> {
-    let mut decided = false;
-    let mut tries = 0;
-    let mut action = Action::Wait;
-    let mut new_state = state;
-    let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
-    let coord_width = components.coords_query.coord_width;
-    let coord_height = components.coords_query.coord_height;
-
-    while !decided && tries < 2 {
-        tries += 1;
-        let direction = match new_state {
-            0 => Direction::Left,
-            _ => Direction::Right
-        };
-        let (shift_x, shift_y) = shift_of(&direction);
-        let target_coords = target_of_shift(coords, coord_width, coord_height, (shift_x, shift_y));
-        let space = components.coords_query.get(target_coords.x, target_coords.y)?;
-        action = match space {
-            SpaceData::Empty => {
-                decided = true;
-                Action::Move(e_id, direction)
-            },
-            SpaceData::HasEid(target_id) => {
-                match (components.alignments.get(e_id), components.alignments.get(*target_id)) {
-                    (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => {
-                        decided = true;
-                        Action::Attack(e_id, *target_id)
-                    },
-                    (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => {
-                        decided = true;
-                        Action::Attack(e_id, *target_id)
-                    },
-                    _ => {
-                        new_state = (new_state + 1) % 2;
-                        components.ais.get_mut(e_id).map(|s| *s = Ai::ShiftX(new_state));
-                        Action::Wait
-                    }
-                }
-            }
-        };
-    }
-    Ok(action)
-}
-
 fn decide_alternate_directions(e_id: usize, state: &mut usize, dir0: &Direction, dir1: &Direction, components: &Components) -> Result<Action, Errors> {
     let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
     let mut decided = false;
@@ -239,9 +194,6 @@ fn decide_alternate_directions(e_id: usize, state: &mut usize, dir0: &Direction,
 fn make_decision(e_id: usize, ai: &mut Ai, components: &Components) -> Result<Action, Errors> {
     match ai {
         Ai::AlternateDirections(s,dir0, dir1) => decide_alternate_directions(e_id, s, dir0, dir1, components),
-        Ai::ShiftX(s) => decide_alternate_directions(e_id, s, &Direction::Left, &Direction::Right, components),
-        Ai::ShiftY(0) => decide_move_or_attack(e_id, Direction::Down, components),
-        Ai::ShiftY(_) => decide_move_or_attack(e_id, Direction::Up, components),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::Kill => Ok(Action::Kill(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)
