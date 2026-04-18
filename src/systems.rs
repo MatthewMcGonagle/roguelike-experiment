@@ -271,8 +271,9 @@ pub fn make_decisions(
             },
             _ => {
                 let action = make_decision(e_id, &mut ai, components)?;
-                components.ais.get_mut(e_id).map(|x| *x = ai);
+                let entity_ai = components.ais.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
                 planned_actions.values.push(action);
+                *entity_ai = ai;
             }
         }
     }
