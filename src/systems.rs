@@ -127,26 +127,6 @@ fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut
     entities.remove(e_id, components);
 }
 
-fn decide_move_or_attack(e_id: usize, direction: Direction, components: &Components) -> Result<Action, Errors> {
-    let (shift_x, shift_y) = shift_of(&direction);
-    let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
-    let coord_width = components.coords_query.coord_width;
-    let coord_height = components.coords_query.coord_height;
-    let target_coords = target_of_shift(coords, coord_width, coord_height, (shift_x, shift_y));
-    let space = components.coords_query.get(target_coords.x, target_coords.y)?;
-    let action = match space {
-        SpaceData::Empty => Action::Move(e_id, direction),
-        SpaceData::HasEid(target_id) => {
-            match (components.alignments.get(e_id), components.alignments.get(*target_id)) {
-                (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => Action::Attack(e_id, *target_id),
-                (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => Action::Attack(e_id, *target_id),
-                _ => Action::Wait
-            }
-        }
-    };
-    Ok(action)
-}
-
 fn decide_alternate_directions(e_id: usize, state: &mut usize, dir0: &Direction, dir1: &Direction, components: &Components) -> Result<Action, Errors> {
     let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
     let mut decided = false;
