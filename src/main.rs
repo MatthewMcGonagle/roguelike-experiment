@@ -29,6 +29,10 @@ pub fn safe_main() -> Result<(), Errors> {
 
     let world_state = fs::read_to_string("resources/world_state.txt")
         .expect("World state file not found.");
+    let world_state_lines = world_state.split('\n');
+    for s in world_state_lines {
+        println!("{s}");
+    }
     println!("{world_state}");
 
     let free_ids_allocation_size = 20;
