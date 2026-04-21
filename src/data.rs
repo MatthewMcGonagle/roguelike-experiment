@@ -33,6 +33,11 @@ pub struct Coordinates {
     pub y: usize 
 }
 
+#[derive(Clone)]
+pub enum WorldState {
+    Wall(usize, usize)
+}
+
 #[derive(Clone, PartialEq)]
 pub enum SpaceData {
     Empty,

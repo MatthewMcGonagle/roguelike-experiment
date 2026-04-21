@@ -1,6 +1,7 @@
+use data::*;
+
 fn parse_line(l: str) {
-    for (row_i, space) in s.split(' ').enumerate() {
-        if !s.is_empty() {}
+    for (row_i, space) in s.split(' ').filter(|s| s != "").enumerate() {
     }
 }
 
