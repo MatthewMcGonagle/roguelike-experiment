@@ -11,9 +11,16 @@ fn parse_line(row_i: usize, l: &str) -> Result<Vec<WorldState>, Errors> {
 }
 
 pub fn parse_world_state(world_string: &str) -> Result<Vec<WorldState>, Errors> {
-    let parsed_lines = world_string.split('\n').enumerate().map(|(row_i, line)|
-        parse_line(row_i, line)
-    );
-    let nested = parsed_lines.collect::<Result<Vec<_>, _>>()?;
-    Ok(nested.into_iter().flatten().collect())
+    let parse_state = |row_i, col_i, w| {
+        match w {
+            "#" => Ok(WorldState::Wall(col_i, row_i)),
+            _ => Err(Errors::UnknownWorldState(w.to_string())) 
+        }
+    };
+
+    let world_states = world_string.split('\n').enumerate().map(
+        |(row_i, l)| l.split(' ').filter(|s| *s != "").enumerate().map(
+            move |(col_i, w)| (row_i, col_i, w))
+    ).flatten();
+    world_states.map(|(row_i, col_i, w)| parse_state(row_i, col_i, w)).collect() 
 }
