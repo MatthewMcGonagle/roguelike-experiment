@@ -3,6 +3,7 @@ use sdl3::pixels::Color;
 
 #[derive(Debug)]
 pub enum Errors {
+    UnknownWorldState(String),
     CoordinateMissing,
     MissingExpectedEid,
     SpaceAlreadyNonempty,

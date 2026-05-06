@@ -4,6 +4,7 @@ mod components;
 mod data;
 mod entities;
 mod game_state;
+mod world_state;
 mod systems;
 
 use data::*;
@@ -27,6 +28,9 @@ pub fn safe_main() -> Result<(), Errors> {
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
+    for s in "a b  c".split(' ') {
+        if !s.is_empty() { println!("{s}"); }
+    }
     let world_state = fs::read_to_string("resources/world_state.txt")
         .expect("World state file not found.");
     let world_state_lines = world_state.split('\n');
