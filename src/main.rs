@@ -35,6 +35,8 @@ pub fn safe_main() -> Result<(), Errors> {
         println!("{s}");
     }
     println!("{world_state}");
+    let world_states = world_state::parse_world_state(&world_state)?;
+    println!("{:?}", world_states);
 
     let free_ids_allocation_size = 20;
     let coord_width: usize = 16;

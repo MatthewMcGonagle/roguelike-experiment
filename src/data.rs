@@ -34,7 +34,7 @@ pub struct Coordinates {
     pub y: usize 
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum WorldState {
     Wall(usize, usize)
 }

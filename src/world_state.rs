@@ -1,15 +1,5 @@
 use crate::data::*;
 
-fn parse_line(row_i: usize, l: &str) -> Result<Vec<WorldState>, Errors> {
-    let states = l.split(' ').filter(|s| *s != "").enumerate().map(|(col_i, w)|
-        match w {
-            "#" => Ok(WorldState::Wall(col_i, row_i)),
-            _ => Err(Errors::UnknownWorldState(w.to_string())) 
-        }
-    );
-    states.collect()
-}
-
 pub fn parse_world_state<'a>(world_string: &'a str) -> Result<Vec<WorldState>, Errors> {
     let parse_state = |row_i, col_i, w| {
         match w {
