@@ -329,3 +329,14 @@ pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, entities: 
     }
 }
 
+pub fn add_world_states(entities: &mut Entities, components: &mut Components, world_states: Vec<WorldState>) -> Result<(), Errors> {
+    let wall_color = Color::RGB(150, 150, 150);
+
+    for state in world_states {
+        match state {
+            WorldState::Wall(x, y) => { entities.add_wall_block(components, Coordinates {x: x, y: y}, Render {color: wall_color})?; }
+        }
+    }
+
+    Ok(())
+}
