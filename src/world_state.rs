@@ -3,6 +3,7 @@ use crate::data::*;
 pub fn parse_world_state<'a>(world_string: &'a str) -> Result<Vec<WorldState>, Errors> {
     let parse_state = |row_i, col_i, w| {
         match w {
+            "s" => Ok(Some(WorldState::Spawner(col_i, row_i, 50))),
             "#" => Ok(Some(WorldState::Wall(col_i, row_i))),
             "." => Ok(None),
             _ => Err(Errors::UnknownWorldState(w.to_string())) 

@@ -334,6 +334,9 @@ pub fn add_world_states(entities: &mut Entities, components: &mut Components, wo
 
     for state in world_states {
         match state {
+            WorldState::Spawner(x, y, time) => {
+                entities.add_timed_square_creator(components, Coordinates { x: x, y: y }, time)?;
+            },
             WorldState::Wall(x, y) => { entities.add_wall_block(components, Coordinates {x: x, y: y}, Render {color: wall_color})?; }
         }
     }

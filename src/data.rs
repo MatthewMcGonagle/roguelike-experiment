@@ -36,6 +36,7 @@ pub struct Coordinates {
 
 #[derive(Clone, Debug)]
 pub enum WorldState {
+    Spawner(usize, usize, u32),
     Wall(usize, usize)
 }
 
