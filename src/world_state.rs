@@ -1,9 +1,17 @@
 use crate::data::*;
 
+fn parse_spawner(w: &str, col_i: usize, row_i: usize) -> Result<WorldState, Errors> {
+    let tail = w.get(1..).ok_or(Errors::UnknownWorldState(w.to_string()))?;
+    let time = tail.parse().map_err(|_| Errors::UnknownWorldState(w.to_string()))?;
+    Ok(WorldState::Spawner(col_i, row_i, time))
+}
+
 pub fn parse_world_state<'a>(world_string: &'a str) -> Result<Vec<WorldState>, Errors> {
-    let parse_state = |row_i, col_i, w| {
-        match w {
-            "s" => Ok(Some(WorldState::Spawner(col_i, row_i, 50))),
+    let parse_state = |row_i, col_i, w: &str| {
+        let first_part = w.get(0..1).ok_or(Errors::UnknownWorldState(w.to_string()))?;
+
+        match first_part {
+            "s" => parse_spawner(w, col_i, row_i).map(|x| Some(x)),
             "#" => Ok(Some(WorldState::Wall(col_i, row_i))),
             "." => Ok(None),
             _ => Err(Errors::UnknownWorldState(w.to_string())) 
