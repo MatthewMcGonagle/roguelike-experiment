@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 sdl3 = { version = "0.17.3", features = [] }
+toml = "1.1.2"
