@@ -1,5 +1,6 @@
 use sdl3::Error;
 use sdl3::pixels::Color;
+use serde::Deserialize;
 
 #[derive(Debug)]
 pub enum Errors {
@@ -28,7 +29,7 @@ pub enum ComponentType {
     Health
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize)]
 pub struct Coordinates {
     pub x: usize,
     pub y: usize 
