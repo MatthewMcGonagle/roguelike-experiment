@@ -4,11 +4,13 @@ mod components;
 mod data;
 mod entities;
 mod game_state;
+mod state_storage;
 mod world_state;
 mod systems;
 
 use data::*;
 use game_state::*;
+use state_storage::*;
 use systems::*;
 
 use sdl3::event::Event;
@@ -28,15 +30,11 @@ pub fn safe_main() -> Result<(), Errors> {
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let world_state = fs::read_to_string("resources/world_state.txt")
-        .expect("World state file not found.");
-    let world_state_lines = world_state.split('\n');
-    for s in world_state_lines {
-        println!("{s}");
-    }
-    println!("{world_state}");
-    let world_states = world_state::parse_world_state(&world_state)?;
-    println!("{:?}", world_states);
+    let state_store_string = fs::read_to_string("resources/state_storage.toml")
+        .expect("State storage file not found.");
+    let state_store: state_storage::StateStorage = toml::from_str(&state_store_string).expect("Can't parse toml string.");
+
+    let world_states = world_state::parse_world_state(&state_store.map)?;
 
     let free_ids_allocation_size = 20;
     let coord_width: usize = 16;
