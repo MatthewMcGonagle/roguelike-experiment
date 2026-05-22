@@ -12,6 +12,7 @@ map = """
 
 [[entities]]
 sid = 0
+[entities.blocking.Movement]
 [entities.coords]
 x = 1
 y = 2

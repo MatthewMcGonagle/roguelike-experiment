@@ -10,5 +10,6 @@ pub struct StateStorage {
 #[derive(Deserialize, Serialize)]
 pub struct EntityStorage {
     pub sid: usize,
+    pub blocking: Option<BlockingType>,
     pub coords: Option<Coordinates>
 }

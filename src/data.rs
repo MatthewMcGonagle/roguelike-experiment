@@ -47,7 +47,7 @@ pub enum SpaceData {
     HasEid(usize)
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Deserialize, PartialEq, Serialize)]
 pub enum BlockingType {
     Movement
 }
