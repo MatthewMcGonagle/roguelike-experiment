@@ -52,7 +52,7 @@ pub enum BlockingType {
     Movement
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Timer { pub time: u32, pub reset: u32 }
 
 pub enum TimerResult {
@@ -71,7 +71,7 @@ impl Timer {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub enum Ai {
     AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
@@ -105,7 +105,7 @@ pub enum LoopState {
     User(usize)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub enum Direction {
     Down,
     Up,
