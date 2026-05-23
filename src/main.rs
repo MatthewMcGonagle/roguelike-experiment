@@ -57,6 +57,10 @@ pub fn safe_main() -> Result<(), Errors> {
     let mut game_state = GameState::initialize(free_ids_allocation_size, LoopState::RunTimers, display, coord_width, coord_height);
     let mut key_press: Option<Keycode> = None;
 
+    for e_store in state_store.entities {
+        game_state.entities.add_entity_storage(&mut game_state.components, e_store)?
+    }
+
     add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
     // let wall_color = Color::RGB(150, 150, 150);
     // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 2}, Render { color: wall_color })?;
