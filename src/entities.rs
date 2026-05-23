@@ -2,6 +2,7 @@ mod free_eids;
 
 use crate::components::*;
 use crate::data::*;
+use crate::state_storage::*;
 use free_eids::FreeEids;
 
 pub struct Entities {
@@ -20,6 +21,21 @@ impl Entities {
     fn free_most_recent_id(&mut self) -> Result<(), Errors> {
         let e_id = self.active_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
         self.free_ids.push(e_id);
+        Ok(())
+    }
+
+    pub fn add_entity_storage(&mut self, components: &mut Components, entity_storage: EntityStorage) -> Result<(), Errors> {
+        let e_id = self.free_ids.pop()?;
+        self.active_ids.push(e_id);
+
+        let components_added = Vec::from([
+            entity_storage.coords.map(|cs| components.coords.add(e_id, cs)),
+            entity_storage.decision_timer.map(|dt| components.decision_timers.add(e_id, dt)),
+            entity_storage.ai.map(|ai| components.ais.add(e_id, ai)),
+            entity_storage.state.map(|s| components.states.add(e_id, s))
+        ]).into_iter().flatten().collect();
+        components.component_types.add(e_id, components_added);
+
         Ok(())
     }
 
