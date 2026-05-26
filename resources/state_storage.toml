@@ -16,8 +16,8 @@ state = 0
 [entities.ai.AddAvailableSquare]
 [entities.blocking.Movement]
 [entities.coords]
-x = 1
-y = 2
+x = 0
+y = 1
 [entities.decision_timer]
-time = 3
-reset = 4
+time = 50
+reset = 50
