@@ -84,7 +84,7 @@ pub struct Render {
     pub color: Color
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub enum AlignmentType {
     User,
     Neutral,
