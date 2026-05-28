@@ -1,4 +1,5 @@
 use crate::data::*;
+use sdl3::pixels::Color;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -23,6 +24,14 @@ pub struct EntityStorage {
 #[derive(Deserialize, Serialize)]
 pub struct RenderStorage {
     pub color: ColorStorage
+}
+
+impl RenderStorage {
+    pub fn to_render(&self) -> Render {
+        Render {
+            color: Color { r: self.color.r, g: self.color.g, b: self.color.b, a: self.color.a }
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize)]

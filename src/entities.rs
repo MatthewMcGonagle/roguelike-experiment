@@ -29,9 +29,13 @@ impl Entities {
         self.active_ids.push(e_id);
 
         let components_added = Vec::from([
+            entity_storage.ai.map(|ai| components.ais.add(e_id, ai)),
+            entity_storage.alignment.map(|a| components.alignments.add(e_id, a)),
+            entity_storage.blocking.map(|b| components.blocking.add(e_id, b)),
             entity_storage.coords.map(|cs| components.coords.add(e_id, cs)),
             entity_storage.decision_timer.map(|dt| components.decision_timers.add(e_id, dt)),
-            entity_storage.ai.map(|ai| components.ais.add(e_id, ai)),
+            entity_storage.health.map(|h| components.healths.add(e_id, h)),
+            entity_storage.render.map(|r| components.renders.add(e_id, r.to_render())),
             entity_storage.state.map(|s| components.states.add(e_id, s))
         ]).into_iter().flatten().collect();
         components.component_types.add(e_id, components_added);
