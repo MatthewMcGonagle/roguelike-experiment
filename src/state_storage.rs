@@ -9,16 +9,15 @@ pub struct StateStorage {
 
 #[derive(Deserialize, Serialize)]
 pub struct EntityStorage {
-    // Fields in order to define in toml; flat fields and nonenums first.
-    pub sid: usize,
-    pub health: Option<u32>,
-    pub state: Option<u32>,
     pub ai: Option<Ai>,
     pub alignment: Option<AlignmentType>,
     pub blocking: Option<BlockingType>,
     pub coords: Option<Coordinates>,
     pub decision_timer: Option<Timer>,
-    pub render: Option<RenderStorage>
+    pub health: Option<i32>,
+    pub render: Option<RenderStorage>,
+    pub sid: usize,
+    pub state: Option<u32>
 }
 
 #[derive(Deserialize, Serialize)]
