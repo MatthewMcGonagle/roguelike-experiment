@@ -69,9 +69,9 @@ pub fn safe_main() -> Result<(), Errors> {
     // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 5}, Render { color: wall_color })?;
 
     //game_state.entities.add_timed_square_creator(&mut game_state.components, Coordinates { x: 0, y: 0 }, 50)?;
-    game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10,
-        Render { color: Color::RGB(100, 100, 100) })?;
+    // game_state.entities.add_timed_square(
+    //     &mut game_state.components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10,
+    //     Render { color: Color::RGB(100, 100, 100) })?;
     game_state.entities.add_timed_square(
         &mut game_state.components, Coordinates { x: 2, y: 2 }, 10, Ai::AlternateDirections(0, Direction::Left, Direction::Right),
         AlignmentType::Neutral, 2, Render { color: Color::RGB(0, 0, 0) })?;
