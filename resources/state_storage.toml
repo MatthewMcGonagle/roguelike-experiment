@@ -40,3 +40,23 @@ r = 100
 g = 100
 b = 100
 a = 255
+
+[[entities]]
+sid = 2
+health = 2
+state = 0
+[entities.ai]
+AlternateDirections = [0, "Left", "Right"]
+[entities.alignment.Neutral]
+[entities.blocking.Movement]
+[entities.coords]
+x = 2
+y = 2
+[entities.decision_timer]
+time = 10
+reset =10
+[entities.render.color]
+r = 0
+g = 0
+b = 0
+a = 255

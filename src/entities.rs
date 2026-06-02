@@ -24,15 +24,33 @@ impl Entities {
         Ok(())
     }
 
+    pub fn add_space_data_or_free_recent_eid(
+        &mut self, components: &mut Components, coords: &Coordinates, space_data: SpaceData) -> Result<ComponentType, Errors>
+    {
+        // Make sure we exit if we couldn't add the space data.
+        match components.coords_query.add(coords.x, coords.y, space_data) {
+            Err(e) => {
+                let _ = self.free_most_recent_id()?;
+                Err(e)
+            },
+            Ok(x) => Ok(x)
+        }
+    }
+
     pub fn add_entity_storage(&mut self, components: &mut Components, entity_storage: EntityStorage) -> Result<(), Errors> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
+
+        let maybe_space_component = entity_storage.coords.as_ref().map(|c|
+            self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
+            .transpose()?;
 
         let components_added = Vec::from([
             entity_storage.ai.map(|ai| components.ais.add(e_id, ai)),
             entity_storage.alignment.map(|a| components.alignments.add(e_id, a)),
             entity_storage.blocking.map(|b| components.blocking.add(e_id, b)),
             entity_storage.coords.map(|cs| components.coords.add(e_id, cs)),
+            maybe_space_component,
             entity_storage.decision_timer.map(|dt| components.decision_timers.add(e_id, dt)),
             entity_storage.health.map(|h| components.healths.add(e_id, h)),
             entity_storage.render.map(|r| components.renders.add(e_id, r.to_render())),
