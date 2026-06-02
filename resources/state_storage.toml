@@ -60,3 +60,63 @@ r = 0
 g = 0
 b = 0
 a = 255
+
+[[entities]]
+sid = 3
+health = 3
+state = 0
+[entities.ai]
+AlternateDirections = [0, "Down", "Up"]
+[entities.alignment.User]
+[entities.blocking.Movement]
+[entities.coords]
+x = 6
+y = 4
+[entities.decision_timer]
+time = 15
+reset =15
+[entities.render.color]
+r = 255 
+g = 0
+b = 0
+a = 255
+
+[[entities]]
+sid = 4
+health = 4
+state = 0
+[entities.ai]
+AlternateDirections = [0, "Left", "Right"]
+[entities.alignment.HostileToUser]
+[entities.blocking.Movement]
+[entities.coords]
+x = 8
+y = 6
+[entities.decision_timer]
+time = 25
+reset =25
+[entities.render.color]
+r = 0 
+g = 255 
+b = 0
+a = 255
+
+[[entities]]
+sid = 5
+health = 5
+state = 0
+[entities.ai]
+AlternateDirections = [0, "Down", "Up"]
+[entities.alignment.HostileToUser]
+[entities.blocking.Movement]
+[entities.coords]
+x = 2
+y = 8
+[entities.decision_timer]
+time = 35
+reset =35
+[entities.render.color]
+r = 0 
+g = 0 
+b = 255 
+a = 255
