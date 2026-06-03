@@ -34,6 +34,8 @@ pub fn safe_main() -> Result<(), Errors> {
         .expect("State storage file not found.");
     let state_store: state_storage::StateStorage = toml::from_str(&state_store_string).expect("Can't parse toml string.");
 
+    print!("{state_store:?}");
+
     let world_states = world_state::parse_world_state(&state_store.map)?;
 
     let free_ids_allocation_size = 20;
@@ -61,7 +63,7 @@ pub fn safe_main() -> Result<(), Errors> {
         game_state.entities.add_entity_storage(&mut game_state.components, e_store)?
     }
 
-    add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
+    //add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
     // let wall_color = Color::RGB(150, 150, 150);
     // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 2}, Render { color: wall_color })?;
     // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 3}, Render { color: wall_color })?;

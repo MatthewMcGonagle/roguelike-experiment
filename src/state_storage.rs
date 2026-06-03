@@ -2,13 +2,13 @@ use crate::data::*;
 use sdl3::pixels::Color;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct StateStorage {
     pub map: String,
     pub entities: Vec<EntityStorage>
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EntityStorage {
     pub ai: Option<Ai>,
     pub alignment: Option<AlignmentType>,
@@ -21,7 +21,7 @@ pub struct EntityStorage {
     pub state: Option<u32>
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RenderStorage {
     pub color: ColorStorage
 }
@@ -34,7 +34,7 @@ impl RenderStorage {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ColorStorage {
     pub r: u8,
     pub g: u8,
