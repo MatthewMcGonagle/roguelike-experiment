@@ -14,7 +14,6 @@ map = """
 sid = 0
 state = 0
 [entities.ai.AddAvailableSquare]
-[entities.blocking.Movement]
 [entities.coords]
 x = 0
 y = 1

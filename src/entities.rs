@@ -41,9 +41,13 @@ impl Entities {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        let maybe_space_component = entity_storage.coords.as_ref().map(|c|
-            self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
-            .transpose()?;
+        let maybe_space_component = match entity_storage.blocking {
+            Some(BlockingType::Movement) => entity_storage.coords.as_ref()
+                .map(|c|
+                    self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
+                .transpose()?,
+            None => None
+        };
 
         let components_added = Vec::from([
             entity_storage.ai.map(|ai| components.ais.add(e_id, ai)),
