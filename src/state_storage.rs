@@ -27,6 +27,12 @@ pub struct RenderStorage {
 }
 
 impl RenderStorage {
+    pub fn from_render(render: Render) -> RenderStorage {
+        RenderStorage {
+            color: ColorStorage { r: render.color.r, g: render.color.g, b: render.color.b, a: render.color.a }
+        }
+    }
+
     pub fn to_render(&self) -> Render {
         Render {
             color: Color { r: self.color.r, g: self.color.g, b: self.color.b, a: self.color.a }
