@@ -2,6 +2,18 @@ use sdl3::Error;
 use sdl3::pixels::Color;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct EntityBuffer {
+    pub ai: Option<Ai>,
+    pub alignment: Option<AlignmentType>,
+    pub blocking: Option<BlockingType>,
+    pub coords: Option<Coordinates>,
+    pub decision_timer: Option<Timer>,
+    pub health: Option<i32>,
+    pub render: Option<Render>,
+    pub state: Option<u32>
+}
+
 #[derive(Debug)]
 pub enum Errors {
     UnknownWorldState(String),
@@ -79,9 +91,27 @@ pub enum Ai {
     User
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Debug, Serialize)]
+pub struct ColorBuffer {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8
+}
+
+impl ColorBuffer {
+    pub fn RGB(r: u8, g: u8, b: u8) -> ColorBuffer {
+        ColorBuffer { r: r, g: g, b: b, a: 255 }
+    }
+
+    pub fn to_color(&self) -> Color {
+        Color { r: self.r, g: self.g, b: self.b, a: self.a }
+    }
+}
+
+#[derive(Clone, Deserialize, Debug, Serialize)]
 pub struct Render {
-    pub color: Color
+    pub color: ColorBuffer
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

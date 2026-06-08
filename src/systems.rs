@@ -12,7 +12,7 @@ use crate::entities::Entities;
 
 fn draw_square(coords: &Coordinates, coord_scale: usize, render: &Render, canvas: &mut Canvas<Window>) -> Result<(), Errors> {
     let square = Rect::new((coords.x * coord_scale) as i32, (coords.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
-    canvas.set_draw_color(render.color);
+    canvas.set_draw_color(render.color.to_color());
     canvas.fill_rect(square).map_err(|e| Errors::SDL3Error(e))
 }
 
@@ -106,7 +106,7 @@ fn spawn_square_in_empty_space(e_id: usize, components: &mut Components, entitie
         square_ai,
         AlignmentType::User,
         1,
-        Render { color: Color::RGB(255, 255, 255) }
+        Render { color: ColorBuffer::RGB(255, 255, 255) }
     )?;
     entities.add_kill_timer(components, 140, spawned_e_id)
 }
@@ -330,14 +330,14 @@ pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, entities: 
 }
 
 pub fn add_world_states(entities: &mut Entities, components: &mut Components, world_states: Vec<WorldState>) -> Result<(), Errors> {
-    let wall_color = Color::RGB(150, 150, 150);
+    let wall_color = ColorBuffer::RGB(150, 150, 150);
 
     for state in world_states {
         match state {
             WorldState::Spawner(x, y, time) => {
                 entities.add_timed_square_creator(components, Coordinates { x: x, y: y }, time)?;
             },
-            WorldState::Wall(x, y) => { entities.add_wall_block(components, Coordinates {x: x, y: y}, Render {color: wall_color})?; }
+            WorldState::Wall(x, y) => { entities.add_wall_block(components, Coordinates {x: x, y: y}, Render {color: wall_color.clone()})?; }
         }
     }
 

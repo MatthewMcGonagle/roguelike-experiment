@@ -57,7 +57,7 @@ impl Entities {
             maybe_space_component,
             entity_storage.decision_timer.map(|dt| components.decision_timers.add(e_id, dt)),
             entity_storage.health.map(|h| components.healths.add(e_id, h)),
-            entity_storage.render.map(|r| components.renders.add(e_id, r.to_render())),
+            entity_storage.render.map(|r| components.renders.add(e_id, r)),
             entity_storage.state.map(|s| components.states.add(e_id, s))
         ]).into_iter().flatten().collect();
         components.component_types.add(e_id, components_added);
@@ -97,7 +97,7 @@ impl Entities {
             coords: Some(coords),
             decision_timer: Some(Timer { time: time_size, reset: time_size }),
             health: Some(health),
-            render: Some(RenderStorage::from_render(render)),
+            render: Some(render),
             state: None
         };
 
