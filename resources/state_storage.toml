@@ -12,29 +12,31 @@ map = """
 
 [[entities]]
 sid = 0
+[entities.entity]
 state = 0
-[entities.ai.AddAvailableSquare]
-[entities.coords]
+[entities.entity.ai.AddAvailableSquare]
+[entities.entity.coords]
 x = 0
 y = 1
-[entities.decision_timer]
+[entities.entity.decision_timer]
 time = 50
 reset = 50
 
 [[entities]]
 sid = 1
+[entities.entity]
 health = 10
 state = 0
-[entities.ai.User]
-[entities.alignment.User]
-[entities.blocking.Movement]
-[entities.coords]
+[entities.entity.ai.User]
+[entities.entity.alignment.User]
+[entities.entity.blocking.Movement]
+[entities.entity.coords]
 x = 1
 y = 1
-[entities.decision_timer]
+[entities.entity.decision_timer]
 time = 10
 reset =10
-[entities.render.color]
+[entities.entity.render.color]
 r = 100
 g = 100
 b = 100
@@ -42,19 +44,20 @@ a = 255
 
 [[entities]]
 sid = 2
+[entities.entity]
 health = 2
 state = 0
-[entities.ai]
+[entities.entity.ai]
 AlternateDirections = [0, "Left", "Right"]
-[entities.alignment.Neutral]
-[entities.blocking.Movement]
-[entities.coords]
+[entities.entity.alignment.Neutral]
+[entities.entity.blocking.Movement]
+[entities.entity.coords]
 x = 2
 y = 2
-[entities.decision_timer]
+[entities.entity.decision_timer]
 time = 10
 reset =10
-[entities.render.color]
+[entities.entity.render.color]
 r = 0
 g = 0
 b = 0
@@ -62,19 +65,20 @@ a = 255
 
 [[entities]]
 sid = 3
+[entities.entity]
 health = 3
 state = 0
-[entities.ai]
+[entities.entity.ai]
 AlternateDirections = [0, "Down", "Up"]
-[entities.alignment.User]
-[entities.blocking.Movement]
-[entities.coords]
+[entities.entity.alignment.User]
+[entities.entity.blocking.Movement]
+[entities.entity.coords]
 x = 6
 y = 4
-[entities.decision_timer]
+[entities.entity.decision_timer]
 time = 15
 reset =15
-[entities.render.color]
+[entities.entity.render.color]
 r = 255 
 g = 0
 b = 0
@@ -82,19 +86,20 @@ a = 255
 
 [[entities]]
 sid = 4
+[entities.entity]
 health = 4
 state = 0
-[entities.ai]
+[entities.entity.ai]
 AlternateDirections = [0, "Left", "Right"]
-[entities.alignment.HostileToUser]
-[entities.blocking.Movement]
-[entities.coords]
+[entities.entity.alignment.HostileToUser]
+[entities.entity.blocking.Movement]
+[entities.entity.coords]
 x = 8
 y = 6
-[entities.decision_timer]
+[entities.entity.decision_timer]
 time = 25
 reset =25
-[entities.render.color]
+[entities.entity.render.color]
 r = 0 
 g = 255 
 b = 0
@@ -102,19 +107,20 @@ a = 255
 
 [[entities]]
 sid = 5
+[entities.entity]
 health = 5
 state = 0
-[entities.ai]
+[entities.entity.ai]
 AlternateDirections = [0, "Down", "Up"]
-[entities.alignment.HostileToUser]
-[entities.blocking.Movement]
-[entities.coords]
+[entities.entity.alignment.HostileToUser]
+[entities.entity.blocking.Movement]
+[entities.entity.coords]
 x = 2
 y = 8
-[entities.decision_timer]
+[entities.entity.decision_timer]
 time = 35
 reset =35
-[entities.render.color]
+[entities.entity.render.color]
 r = 0 
 g = 0 
 b = 255 
