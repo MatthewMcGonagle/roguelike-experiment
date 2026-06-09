@@ -37,12 +37,12 @@ impl Entities {
         }
     }
 
-    pub fn add_entity_storage(&mut self, components: &mut Components, entity_storage: EntityStorage) -> Result<usize, Errors> {
+    pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        let maybe_space_component = match entity_storage.blocking {
-            Some(BlockingType::Movement) => entity_storage.coords.as_ref()
+        let maybe_space_component = match entity.blocking {
+            Some(BlockingType::Movement) => entity.coords.as_ref()
                 .map(|c|
                     self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
                 .transpose()?,
@@ -50,15 +50,15 @@ impl Entities {
         };
 
         let components_added = Vec::from([
-            entity_storage.ai.map(|ai| components.ais.add(e_id, ai)),
-            entity_storage.alignment.map(|a| components.alignments.add(e_id, a)),
-            entity_storage.blocking.map(|b| components.blocking.add(e_id, b)),
-            entity_storage.coords.map(|cs| components.coords.add(e_id, cs)),
+            entity.ai.as_ref().map(|ai| components.ais.add(e_id, ai.clone())),
+            entity.alignment.as_ref().map(|a| components.alignments.add(e_id, a.clone())),
+            entity.blocking.as_ref().map(|b| components.blocking.add(e_id, b.clone())),
+            entity.coords.as_ref().map(|cs| components.coords.add(e_id, cs.clone())),
             maybe_space_component,
-            entity_storage.decision_timer.map(|dt| components.decision_timers.add(e_id, dt)),
-            entity_storage.health.map(|h| components.healths.add(e_id, h)),
-            entity_storage.render.map(|r| components.renders.add(e_id, r)),
-            entity_storage.state.map(|s| components.states.add(e_id, s))
+            entity.decision_timer.as_ref().map(|dt| components.decision_timers.add(e_id, dt.clone())),
+            entity.health.as_ref().map(|h| components.healths.add(e_id, h.clone())),
+            entity.render.as_ref().map(|r| components.renders.add(e_id, r.clone())),
+            entity.state.as_ref().map(|s| components.states.add(e_id, s.clone()))
         ]).into_iter().flatten().collect();
         components.component_types.add(e_id, components_added);
 
@@ -89,8 +89,7 @@ impl Entities {
     pub fn add_timed_square(
         &mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
     ) -> Result<usize, Errors> {
-        let entity_data = EntityStorage {
-            sid: 0,
+        let entity_data = EntityBuffer {
             ai: Some(ai),
             alignment: Some(alignment),
             blocking: Some(BlockingType::Movement),
@@ -101,7 +100,7 @@ impl Entities {
             state: None
         };
 
-        self.add_entity_storage(components, entity_data)
+        self.add_entity_buffer(components, &entity_data)
     } 
 
     pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Result<(), Errors> {

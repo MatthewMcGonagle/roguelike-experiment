@@ -60,7 +60,7 @@ pub fn safe_main() -> Result<(), Errors> {
     let mut key_press: Option<Keycode> = None;
 
     for e_store in state_store.entities {
-        let _ = game_state.entities.add_entity_storage(&mut game_state.components, e_store)?;
+        let _ = game_state.entities.add_entity_buffer(&mut game_state.components, &e_store.entity)?;
     }
 
     add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
