@@ -104,16 +104,18 @@ impl Entities {
     } 
 
     pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Result<(), Errors> {
-        let e_id = self.free_ids.pop()?;
-        self.active_ids.push(e_id);
+        let entity_data = EntityBuffer {
+            ai: Some(Ai::AddAvailableSquare),
+            alignment: None,
+            blocking: None,
+            coords: Some(coords),
+            decision_timer: Some(Timer { time: time_size, reset: time_size }),
+            health: None,
+            render: None,
+            state: Some(0)
+        };
 
-        let components_added = Vec::from([
-            components.coords.add(e_id, coords),
-            components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
-            components.ais.add(e_id, Ai::AddAvailableSquare),
-            components.states.add(e_id, 0)
-        ]);
-        components.component_types.add(e_id, components_added);
+        let _ = self.add_entity_buffer(components, &entity_data)?;
         Ok(())
     }
 
