@@ -30,14 +30,6 @@ pub fn safe_main() -> Result<(), Errors> {
     let sdl_context = sdl3::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let state_store_string = fs::read_to_string("resources/state_storage.toml")
-        .expect("State storage file not found.");
-    let state_store: state_storage::StateStorage = toml::from_str(&state_store_string).expect("Can't parse toml string.");
-
-    println!("{state_store:?}");
-
-    let world_states = world_state::parse_world_state(&state_store.map)?;
-
     let free_ids_allocation_size = 20;
     let coord_width: usize = 16;
     let coord_height: usize = 12;
@@ -59,33 +51,16 @@ pub fn safe_main() -> Result<(), Errors> {
     let mut game_state = GameState::initialize(free_ids_allocation_size, LoopState::RunTimers, display, coord_width, coord_height);
     let mut key_press: Option<Keycode> = None;
 
+    let state_store_string = fs::read_to_string("resources/state_storage.toml")
+        .expect("State storage file not found.");
+    let state_store: state_storage::StateStorage = toml::from_str(&state_store_string).expect("Can't parse toml string.");
+
     for e_store in state_store.entities {
         let _ = game_state.entities.add_entity_buffer(&mut game_state.components, &e_store.entity)?;
     }
 
+    let world_states = world_state::parse_world_state(&state_store.map)?;
     add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
-    // let wall_color = Color::RGB(150, 150, 150);
-    // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 2}, Render { color: wall_color })?;
-    // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 3}, Render { color: wall_color })?;
-    // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 4}, Render { color: wall_color })?;
-    // game_state.entities.add_wall_block(&mut game_state.components, Coordinates { x: 1, y: 5}, Render { color: wall_color })?;
-
-    //game_state.entities.add_timed_square_creator(&mut game_state.components, Coordinates { x: 0, y: 0 }, 50)?;
-    // game_state.entities.add_timed_square(
-    //     &mut game_state.components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10,
-    //     Render { color: Color::RGB(100, 100, 100) })?;
-    // game_state.entities.add_timed_square(
-    //     &mut game_state.components, Coordinates { x: 2, y: 2 }, 10, Ai::AlternateDirections(0, Direction::Left, Direction::Right),
-    //     AlignmentType::Neutral, 2, Render { color: Color::RGB(0, 0, 0) })?;
-    // game_state.entities.add_timed_square(
-    //     &mut game_state.components, Coordinates { x: 6, y: 4 }, 15, Ai::AlternateDirections(0, Direction::Down, Direction::Up),
-    //     AlignmentType::User, 3, Render { color: Color::RGB(255, 0, 0) })?;
-    // game_state.entities.add_timed_square(
-    //     &mut game_state.components, Coordinates { x: 8, y: 6 }, 25, Ai::AlternateDirections(0, Direction::Left, Direction::Right),
-    //     AlignmentType::HostileToUser, 4, Render { color: Color::RGB(0, 255, 0) })?;
-    // game_state.entities.add_timed_square(
-    //     &mut game_state.components, Coordinates { x: 2, y: 8 }, 35, Ai::AlternateDirections(0, Direction::Down, Direction::Up),
-    //     AlignmentType::HostileToUser, 5, Render { color: Color::RGB(0, 0, 255) })?;
 
     'running: loop {
         i = (i + 1) % 255;
