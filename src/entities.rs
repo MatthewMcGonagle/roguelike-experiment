@@ -66,24 +66,18 @@ impl Entities {
     }
 
     pub fn add_wall_block(&mut self, components: &mut Components, coords: Coordinates, render: Render) -> Result<usize, Errors> {
-        let e_id = self.free_ids.pop()?;
-        // Make sure we exit if we couldn't add the space data.
-        let space_data = match components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
-            Err(e) => {
-                let _ = self.free_most_recent_id()?;
-                Err(e) 
-            },
-            Ok(x) => Ok(x)
-        }?;
+        let entity_data = EntityBuffer {
+            ai: None,
+            alignment: None,
+            blocking: Some(BlockingType::Movement),
+            coords: Some(coords),
+            decision_timer: None,
+            health: None,
+            render: Some(render),
+            state: None
+        };
 
-        let components_added = Vec::from([
-            space_data,
-            components.coords.add(e_id, coords),
-            components.blocking.add(e_id, BlockingType::Movement),
-            components.renders.add(e_id, render)
-        ]);
-        components.component_types.add(e_id, components_added);
-        Ok(e_id)
+        self.add_entity_buffer(components, &entity_data)
     }
 
     pub fn add_timed_square(
