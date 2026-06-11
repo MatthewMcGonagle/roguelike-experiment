@@ -2,7 +2,6 @@ mod free_eids;
 
 use crate::components::*;
 use crate::data::*;
-use crate::state_storage::*;
 use free_eids::FreeEids;
 
 pub struct Entities {

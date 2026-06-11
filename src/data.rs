@@ -49,7 +49,6 @@ pub struct Coordinates {
 
 #[derive(Clone, Debug)]
 pub enum WorldState {
-    Spawner(usize, usize, u32),
     Wall(usize, usize)
 }
 
@@ -100,7 +99,7 @@ pub struct ColorBuffer {
 }
 
 impl ColorBuffer {
-    pub fn RGB(r: u8, g: u8, b: u8) -> ColorBuffer {
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> ColorBuffer {
         ColorBuffer { r: r, g: g, b: b, a: 255 }
     }
 

@@ -1,5 +1,4 @@
 use crate::data::*;
-use sdl3::pixels::Color;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]

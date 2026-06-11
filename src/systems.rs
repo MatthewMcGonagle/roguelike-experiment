@@ -1,5 +1,4 @@
 use sdl3::keyboard::Keycode;
-use sdl3::pixels::Color;
 use sdl3::rect::Rect;
 use sdl3::render::Canvas;
 use sdl3::video::Window;
@@ -106,7 +105,7 @@ fn spawn_square_in_empty_space(e_id: usize, components: &mut Components, entitie
         square_ai,
         AlignmentType::User,
         1,
-        Render { color: ColorBuffer::RGB(255, 255, 255) }
+        Render { color: ColorBuffer::from_rgb(255, 255, 255) }
     )?;
     entities.add_kill_timer(components, 140, spawned_e_id)
 }
@@ -330,13 +329,10 @@ pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, entities: 
 }
 
 pub fn add_world_states(entities: &mut Entities, components: &mut Components, world_states: Vec<WorldState>) -> Result<(), Errors> {
-    let wall_color = ColorBuffer::RGB(150, 150, 150);
+    let wall_color = ColorBuffer::from_rgb(150, 150, 150);
 
     for state in world_states {
         match state {
-            WorldState::Spawner(x, y, time) => {
-                entities.add_timed_square_creator(components, Coordinates { x: x, y: y }, time)?;
-            },
             WorldState::Wall(x, y) => { entities.add_wall_block(components, Coordinates {x: x, y: y}, Render {color: wall_color.clone()})?; }
         }
     }
