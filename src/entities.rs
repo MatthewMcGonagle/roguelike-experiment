@@ -23,44 +23,92 @@ impl Entities {
         Ok(())
     }
 
-    pub fn add_timed_square(
-        &mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
-    ) -> Result<usize, Errors> {
-        let e_id = self.free_ids.pop()?;
+    pub fn add_space_data_or_free_recent_eid(
+        &mut self, components: &mut Components, coords: &Coordinates, space_data: SpaceData) -> Result<ComponentType, Errors>
+    {
         // Make sure we exit if we couldn't add the space data.
-        let space_data = match components.coords_query.add(coords.x, coords.y, SpaceData::HasEid(e_id)) {
+        match components.coords_query.add(coords.x, coords.y, space_data) {
             Err(e) => {
                 let _ = self.free_most_recent_id()?;
-                Err(e) 
+                Err(e)
             },
             Ok(x) => Ok(x)
-        }?;
-
-        let components_added = Vec::from([
-            space_data,
-            components.coords.add(e_id, coords),
-            components.blocking.add(e_id, BlockingType::Movement),
-            components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
-            components.ais.add(e_id, ai),
-            components.alignments.add(e_id, alignment),
-            components.healths.add(e_id, health),
-            components.renders.add(e_id, render)
-        ]);
-        components.component_types.add(e_id, components_added);
-        Ok(e_id)
+        }
     }
 
-    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Result<(), Errors> {
+    pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
+        let maybe_space_component = match entity.blocking {
+            Some(BlockingType::Movement) => entity.coords.as_ref()
+                .map(|c|
+                    self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
+                .transpose()?,
+            None => None
+        };
+
         let components_added = Vec::from([
-            components.coords.add(e_id, coords),
-            components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
-            components.ais.add(e_id, Ai::AddAvailableSquare),
-            components.states.add(e_id, 0)
-        ]);
+            entity.ai.as_ref().map(|ai| components.ais.add(e_id, ai.clone())),
+            entity.alignment.as_ref().map(|a| components.alignments.add(e_id, a.clone())),
+            entity.blocking.as_ref().map(|b| components.blocking.add(e_id, b.clone())),
+            entity.coords.as_ref().map(|cs| components.coords.add(e_id, cs.clone())),
+            maybe_space_component,
+            entity.decision_timer.as_ref().map(|dt| components.decision_timers.add(e_id, dt.clone())),
+            entity.health.as_ref().map(|h| components.healths.add(e_id, h.clone())),
+            entity.render.as_ref().map(|r| components.renders.add(e_id, r.clone())),
+            entity.state.as_ref().map(|s| components.states.add(e_id, s.clone()))
+        ]).into_iter().flatten().collect();
         components.component_types.add(e_id, components_added);
+
+        Ok(e_id)
+    }
+
+    pub fn add_wall_block(&mut self, components: &mut Components, coords: Coordinates, render: Render) -> Result<usize, Errors> {
+        let entity_data = EntityBuffer {
+            ai: None,
+            alignment: None,
+            blocking: Some(BlockingType::Movement),
+            coords: Some(coords),
+            decision_timer: None,
+            health: None,
+            render: Some(render),
+            state: None
+        };
+
+        self.add_entity_buffer(components, &entity_data)
+    }
+
+    pub fn add_timed_square(
+        &mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
+    ) -> Result<usize, Errors> {
+        let entity_data = EntityBuffer {
+            ai: Some(ai),
+            alignment: Some(alignment),
+            blocking: Some(BlockingType::Movement),
+            coords: Some(coords),
+            decision_timer: Some(Timer { time: time_size, reset: time_size }),
+            health: Some(health),
+            render: Some(render),
+            state: None
+        };
+
+        self.add_entity_buffer(components, &entity_data)
+    } 
+
+    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Result<(), Errors> {
+        let entity_data = EntityBuffer {
+            ai: Some(Ai::AddAvailableSquare),
+            alignment: None,
+            blocking: None,
+            coords: Some(coords),
+            decision_timer: Some(Timer { time: time_size, reset: time_size }),
+            health: None,
+            render: None,
+            state: Some(0)
+        };
+
+        let _ = self.add_entity_buffer(components, &entity_data)?;
         Ok(())
     }
 

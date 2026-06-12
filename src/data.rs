@@ -1,7 +1,22 @@
 use sdl3::Error;
 use sdl3::pixels::Color;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct EntityBuffer {
+    pub ai: Option<Ai>,
+    pub alignment: Option<AlignmentType>,
+    pub blocking: Option<BlockingType>,
+    pub coords: Option<Coordinates>,
+    pub decision_timer: Option<Timer>,
+    pub health: Option<i32>,
+    pub render: Option<Render>,
+    pub state: Option<u32>
+}
+
+#[derive(Debug)]
 pub enum Errors {
+    UnknownWorldState(String),
     CoordinateMissing,
     MissingExpectedEid,
     SpaceAlreadyNonempty,
@@ -26,24 +41,29 @@ pub enum ComponentType {
     Health
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Coordinates {
     pub x: usize,
     pub y: usize 
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
+pub enum WorldState {
+    Wall(usize, usize)
+}
+
+#[derive(Clone, PartialEq)]
 pub enum SpaceData {
     Empty,
     HasEid(usize)
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum BlockingType {
     Movement
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Timer { pub time: u32, pub reset: u32 }
 
 pub enum TimerResult {
@@ -62,21 +82,38 @@ impl Timer {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Ai {
-    ShiftX,
-    ShiftY,
+    AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
     Kill,
     User
 }
 
-#[derive(Clone)]
-pub struct Render {
-    pub color: Color
+#[derive(Clone, Deserialize, Debug, Serialize)]
+pub struct ColorBuffer {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8
 }
 
-#[derive(Clone)]
+impl ColorBuffer {
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> ColorBuffer {
+        ColorBuffer { r: r, g: g, b: b, a: 255 }
+    }
+
+    pub fn to_color(&self) -> Color {
+        Color { r: self.r, g: self.g, b: self.b, a: self.a }
+    }
+}
+
+#[derive(Clone, Deserialize, Debug, Serialize)]
+pub struct Render {
+    pub color: ColorBuffer
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum AlignmentType {
     User,
     Neutral,
@@ -97,6 +134,7 @@ pub enum LoopState {
     User(usize)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Direction {
     Down,
     Up,

@@ -4,6 +4,8 @@ mod components;
 mod data;
 mod entities;
 mod game_state;
+mod state_storage;
+mod world_state;
 mod systems;
 
 use data::*;
@@ -13,10 +15,14 @@ use systems::*;
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
 use sdl3::pixels::Color;
+use std::fs;
 use std::time::Duration;
 
 pub fn main() {
-    let _ = safe_main();
+    match safe_main() {
+        Ok(()) => (),
+        Err(e) => println!("{:?}", e)
+    };
 }
 
 pub fn safe_main() -> Result<(), Errors> {
@@ -44,20 +50,16 @@ pub fn safe_main() -> Result<(), Errors> {
     let mut game_state = GameState::initialize(free_ids_allocation_size, LoopState::RunTimers, display, coord_width, coord_height);
     let mut key_press: Option<Keycode> = None;
 
-    game_state.entities.add_timed_square_creator(&mut game_state.components, Coordinates { x: 0, y: 0 }, 50)?;
-    game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 1, y: 1 }, 10, Ai::User, AlignmentType::User, 10, Render { color: Color::RGB(100, 100, 100) })?;
-    game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 2, y: 2 }, 10, Ai::ShiftX, AlignmentType::Neutral, 2, Render { color: Color::RGB(0, 0, 0) })?;
-    game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 6, y: 4 }, 15, Ai::ShiftY, AlignmentType::User, 3,
-        Render { color: Color::RGB(255, 0, 0) })?;
-    game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 8, y: 6 }, 25, Ai::ShiftX, AlignmentType::HostileToUser, 4,
-        Render { color: Color::RGB(0, 255, 0) })?;
-    game_state.entities.add_timed_square(
-        &mut game_state.components, Coordinates { x: 2, y: 8 }, 35, Ai::ShiftY, AlignmentType::HostileToUser, 5,
-        Render { color: Color::RGB(0, 0, 255) })?;
+    let state_store_string = fs::read_to_string("resources/state_storage.toml")
+        .expect("State storage file not found.");
+    let state_store: state_storage::StateStorage = toml::from_str(&state_store_string).expect("Can't parse toml string.");
+
+    for e_store in state_store.entities {
+        let _ = game_state.entities.add_entity_buffer(&mut game_state.components, &e_store.entity)?;
+    }
+
+    let world_states = world_state::parse_world_state(&state_store.map)?;
+    add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
 
     'running: loop {
         i = (i + 1) % 255;
@@ -85,7 +87,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
         if game_state.loop_state == LoopState::MakeDecisions {
             let maybe_loop_state = make_decisions(
-                &mut game_state.decisions_ready, & game_state.components, &mut game_state.planned_actions)?;
+                &mut game_state.decisions_ready, &mut game_state.components, &mut game_state.planned_actions)?;
             game_state.loop_state = match maybe_loop_state {
                 Some(LoopState::User(e_id)) => {
                     println!("Player turn for {e_id}");

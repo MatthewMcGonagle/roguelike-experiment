@@ -1,5 +1,4 @@
 use sdl3::keyboard::Keycode;
-use sdl3::pixels::Color;
 use sdl3::rect::Rect;
 use sdl3::render::Canvas;
 use sdl3::video::Window;
@@ -12,7 +11,7 @@ use crate::entities::Entities;
 
 fn draw_square(coords: &Coordinates, coord_scale: usize, render: &Render, canvas: &mut Canvas<Window>) -> Result<(), Errors> {
     let square = Rect::new((coords.x * coord_scale) as i32, (coords.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
-    canvas.set_draw_color(render.color);
+    canvas.set_draw_color(render.color.to_color());
     canvas.fill_rect(square).map_err(|e| Errors::SDL3Error(e))
 }
 
@@ -93,22 +92,30 @@ fn shift(
     move_coords(e_id, blocking, e_coords, c_query, target_coords)
 }
 
-fn add_available_square(e_id: usize, components: &mut Components, entities: &mut Entities) -> Result<(), Errors> {
+fn spawn_square_in_empty_space(e_id: usize, components: &mut Components, entities: &mut Entities, coords: Coordinates) -> Result<(), Errors> {
     let square_ai = match components.states.get(e_id).unwrap() {
-        0 => Ai::ShiftX,
-        _ => Ai::ShiftY
+        0 => Ai::AlternateDirections(0, Direction::Left, Direction::Right),
+        _ => Ai::AlternateDirections(0, Direction::Down, Direction::Up)
     };
     components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     let spawned_e_id = entities.add_timed_square(
         components,
-        components.coords.get(e_id).unwrap().clone(),
+        coords,
         10,
         square_ai,
         AlignmentType::User,
         1,
-        Render { color: Color::RGB(255, 255, 255) }
+        Render { color: ColorBuffer::from_rgb(255, 255, 255) }
     )?;
     entities.add_kill_timer(components, 140, spawned_e_id)
+}
+
+fn spawn_square(e_id: usize, components: &mut Components, entities: &mut Entities) -> Result<(), Errors> {
+    let coords = components.coords.get(e_id).ok_or(Errors::CoordinateMissing)?;
+    match components.coords_query.get(coords.x, coords.y)? {
+        SpaceData::Empty => spawn_square_in_empty_space(e_id, components, entities, coords.clone()),
+        SpaceData::HasEid(_) => Ok(())
+    }
 }
 
 fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
@@ -119,30 +126,53 @@ fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut
     entities.remove(e_id, components);
 }
 
-fn decide_move_or_attack(e_id: usize, direction: Direction, components: &Components) -> Result<Action, Errors> {
-    let (shift_x, shift_y) = shift_of(&direction);
+fn decide_alternate_directions(e_id: usize, state: &mut usize, dir0: &Direction, dir1: &Direction, components: &Components) -> Result<Action, Errors> {
     let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+    let mut decided = false;
+    let mut tries = 0;
+    let mut action = Action::Wait;
     let coord_width = components.coords_query.coord_width;
     let coord_height = components.coords_query.coord_height;
-    let target_coords = target_of_shift(coords, coord_width, coord_height, (shift_x, shift_y));
-    let space = components.coords_query.get(target_coords.x, target_coords.y)?;
-    let action = match space {
-        SpaceData::Empty => Action::Move(e_id, direction),
-        SpaceData::HasEid(target_id) => {
-            match (components.alignments.get(e_id), components.alignments.get(*target_id)) {
-                (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => Action::Attack(e_id, *target_id),
-                (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => Action::Attack(e_id, *target_id),
-                _ => Action::Wait
+
+    while !decided && tries < 2 {
+        tries += 1;
+        let direction = match state {
+            0 => dir0,
+            _ => dir1
+        };
+        let (shift_x, shift_y) = shift_of(&direction);
+        let target_coords = target_of_shift(coords, coord_width, coord_height, (shift_x, shift_y));
+        let space = components.coords_query.get(target_coords.x, target_coords.y)?;
+        action = match space {
+            SpaceData::Empty => {
+                decided = true;
+                Action::Move(e_id, direction.clone())
+            },
+            SpaceData::HasEid(target_id) => {
+                match (components.alignments.get(e_id), components.alignments.get(*target_id)) {
+                    (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => {
+                        decided = true;
+                        Action::Attack(e_id, *target_id)
+                    },
+                    (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => {
+                        decided = true;
+                        Action::Attack(e_id, *target_id)
+                    },
+                    _ => {
+                        *state = (*state + 1) % 2;
+                        Action::Wait
+                    }
+                }
             }
-        }
-    };
+        };
+    }
     Ok(action)
 }
 
-fn make_decision(e_id: usize, ai: &Ai, components: &Components) -> Result<Action, Errors> {
+
+fn make_decision(e_id: usize, ai: &mut Ai, components: &Components) -> Result<Action, Errors> {
     match ai {
-        Ai::ShiftX => decide_move_or_attack(e_id, Direction::Right, components),
-        Ai::ShiftY => decide_move_or_attack(e_id, Direction::Down, components),
+        Ai::AlternateDirections(s,dir0, dir1) => decide_alternate_directions(e_id, s, dir0, dir1, components),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::Kill => Ok(Action::Kill(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)
@@ -159,20 +189,22 @@ fn shift_of(direction: &Direction) -> (i32, i32) {
 }
 
 pub fn make_decisions( 
-    decisions_ready: &mut DecisionsReady, components: &Components, planned_actions: &mut PlannedActions
+    decisions_ready: &mut DecisionsReady, components: &mut Components, planned_actions: &mut PlannedActions
     ) -> Result<Option<LoopState>, Errors> {
     let mut e_id_needs_user_decision: Option<usize> = None;
 
     while !decisions_ready.values.is_empty() && e_id_needs_user_decision.is_none() {
         let e_id = decisions_ready.values.pop().unwrap();
-        let ai = components.ais.get(e_id).ok_or(Errors::MissingExpectedEid)?;
+        let mut ai = (components.ais.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?).clone();
         match ai {
             Ai::User => {
                 e_id_needs_user_decision = Some(e_id);
             },
             _ => {
-                let action = make_decision(e_id, &ai, components)?;
+                let action = make_decision(e_id, &mut ai, components)?;
+                let entity_ai = components.ais.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
                 planned_actions.values.push(action);
+                *entity_ai = ai;
             }
         }
     }
@@ -258,7 +290,7 @@ fn do_action(action: Action, to_kill: &mut ToKill, components: &mut Components, 
             shift(e_id, &mut components.blocking, &mut components.coords, &mut components.coords_query, w, h, shift_of(&direction));
             Ok(None)
         },
-        Action::Spawn(e_id) => { add_available_square(e_id, components, entities).map(|_x| None) },
+        Action::Spawn(e_id) => { spawn_square(e_id, components, entities).map(|_x| None) },
         Action::Kill(e_id) => { to_kill.values.push(e_id); Ok(None) },
         Action::Attack(e_id, target_id) => Ok(do_attack(e_id, target_id, components)),
         _ => Ok(None)
@@ -296,3 +328,14 @@ pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, entities: 
     }
 }
 
+pub fn add_world_states(entities: &mut Entities, components: &mut Components, world_states: Vec<WorldState>) -> Result<(), Errors> {
+    let wall_color = ColorBuffer::from_rgb(150, 150, 150);
+
+    for state in world_states {
+        match state {
+            WorldState::Wall(x, y) => { entities.add_wall_block(components, Coordinates {x: x, y: y}, Render {color: wall_color.clone()})?; }
+        }
+    }
+
+    Ok(())
+}
