@@ -175,6 +175,26 @@ impl UsesVecIndexedByEid<Render> for Renders {
     fn component_type() -> ComponentType { ComponentType::Render }
 }
 
+pub struct Owns {
+    values: VecIndexedByEid<Vec<usize>>
+}
+
+impl UsesVecIndexedByEid<Vec<usize>> for Owns {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Owns }
+}
+
+pub struct Owners {
+    values: VecIndexedByEid<Vec<usize>>
+}
+
+impl UsesVecIndexedByEid<Vec<usize>> for Owners {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Owners }
+}
+
 pub struct Targets {
     values: VecIndexedByEid<Vec<usize>>
 }

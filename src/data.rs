@@ -34,6 +34,8 @@ pub enum ComponentType {
     Ai,
     State,
     Render,
+    Owns,
+    Owners,
     Target,
     TargetedBy,
     Blocking,

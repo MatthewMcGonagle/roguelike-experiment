@@ -165,6 +165,8 @@ impl Entities {
                     ComponentType::Ai => components.ais.remove(e_id),
                     ComponentType::State => components.states.remove(e_id),
                     ComponentType::Render => components.renders.remove(e_id),
+                    ComponentType::Owns => (),
+                    ComponentType::Owners => (),
                     ComponentType::Target => components.targets.remove(e_id),
                     ComponentType::TargetedBy => components.targeted_by.remove(e_id),
                     ComponentType::Alignment => components.alignments.remove(e_id),
