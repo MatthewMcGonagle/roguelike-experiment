@@ -119,12 +119,12 @@ impl Entities {
         let components_added = Vec::from([
             components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             components.ais.add(e_id, Ai::Kill),
-            components.targets.add(e_id, Vec::from([target_e_id]))
+            components.owners.add(e_id, Vec::from([target_e_id]))
         ]);
         components.component_types.add(e_id, components_added);
 
         // Need to handle the target too.
-        let target_component = components.targeted_by.add(target_e_id, Vec::from([e_id]));
+        let target_component = components.owns.add(target_e_id, Vec::from([e_id]));
         components.component_types.push(target_e_id, target_component)
     }
 
@@ -144,10 +144,12 @@ impl Entities {
 
         // To avoid borrow checker difficulties, let us just collect a list. This will also help us
         // avoid any dropped linkage errors created by deletion process. 
-        let targeted_by: Vec<usize> = components.targeted_by.get(e_id).into_iter().flat_map(|targeted_by| targeted_by.clone()).collect();
-        for t_by in targeted_by {
-            self.remove(t_by, components);
+        let owns: Vec<usize> = components.owns.get(e_id).into_iter().flat_map(|x| x.clone()).collect();
+        for x in owns {
+            self.remove(x, components);
         }
+
+        // TODO: remove from owners.
 
         components.component_types.get(e_id).map(
             |c_types| for c_type in c_types { 
@@ -165,10 +167,8 @@ impl Entities {
                     ComponentType::Ai => components.ais.remove(e_id),
                     ComponentType::State => components.states.remove(e_id),
                     ComponentType::Render => components.renders.remove(e_id),
-                    ComponentType::Owns => (),
-                    ComponentType::Owners => (),
-                    ComponentType::Target => components.targets.remove(e_id),
-                    ComponentType::TargetedBy => components.targeted_by.remove(e_id),
+                    ComponentType::Owns => components.owns.remove(e_id),
+                    ComponentType::Owners => components.owners.remove(e_id),
                     ComponentType::Alignment => components.alignments.remove(e_id),
                     ComponentType::Health => components.healths.remove(e_id)
                 }

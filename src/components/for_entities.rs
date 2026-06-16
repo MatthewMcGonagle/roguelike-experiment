@@ -179,6 +179,12 @@ pub struct Owns {
     values: VecIndexedByEid<Vec<usize>>
 }
 
+impl Owns {
+    pub fn initialize(capacity: usize) -> Owns {
+        Owns { values: VecIndexedByEid::initialize(capacity) }
+    }
+}
+
 impl UsesVecIndexedByEid<Vec<usize>> for Owns {
     fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
@@ -189,43 +195,16 @@ pub struct Owners {
     values: VecIndexedByEid<Vec<usize>>
 }
 
+impl Owners {
+    pub fn initialize(capacity: usize) -> Owners {
+        Owners { values: VecIndexedByEid::initialize(capacity) }
+    }
+}
+
 impl UsesVecIndexedByEid<Vec<usize>> for Owners {
     fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
     fn component_type() -> ComponentType { ComponentType::Owners }
-}
-
-pub struct Targets {
-    values: VecIndexedByEid<Vec<usize>>
-}
-
-impl Targets {
-    pub fn initialize(capacity: usize) -> Targets {
-        Targets { values: VecIndexedByEid::initialize(capacity) }
-    }
-}
-
-impl UsesVecIndexedByEid<Vec<usize>> for Targets {
-    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Target }
-}
-
-// If we kill this e_id then we need to appropriately updates other entities that target this one.
-pub struct TargetedBy {
-    values: VecIndexedByEid<Vec<usize>>
-}
-
-impl TargetedBy {
-    pub fn initialize(capacity: usize) -> TargetedBy {
-        TargetedBy { values: VecIndexedByEid::initialize(capacity) } 
-    }
-}
-
-impl UsesVecIndexedByEid<Vec<usize>> for TargetedBy {
-    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::TargetedBy }
 }
 
 pub struct Alignments {

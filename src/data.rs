@@ -36,8 +36,6 @@ pub enum ComponentType {
     Render,
     Owns,
     Owners,
-    Target,
-    TargetedBy,
     Blocking,
     Alignment,
     Health

@@ -22,8 +22,8 @@ pub struct Components {
     pub ais: Ais,
     pub states: States,
     pub renders: Renders,
-    pub targets: Targets,
-    pub targeted_by: TargetedBy,
+    pub owns: Owns,
+    pub owners: Owners,
     pub alignments: Alignments,
     pub healths: Healths
 }
@@ -39,8 +39,8 @@ impl Components {
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),
             renders: Renders::initialize(capacity),
-            targets: Targets::initialize(capacity),
-            targeted_by: TargetedBy::initialize(capacity),
+            owns: Owns::initialize(capacity),
+            owners: Owners::initialize(capacity),
             alignments: Alignments::initialize(capacity),
             healths: Healths::initialize(capacity)
         }

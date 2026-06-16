@@ -118,11 +118,12 @@ fn spawn_square(e_id: usize, components: &mut Components, entities: &mut Entitie
     }
 }
 
-fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
-    let targets: Vec<usize> = components.targets.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
-    for target in targets {
-        entities.remove(target, components);
+fn kill_owners_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
+    let owners: Vec<usize> = components.owners.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
+    for owner in owners {
+        entities.remove(owner, components);
     }
+    // Shouldn't be necessary to kill self.
     entities.remove(e_id, components);
 }
 
@@ -324,7 +325,7 @@ pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill) 
 pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
     while !to_kill.values.is_empty() {
         let e_id = to_kill.values.pop().unwrap();
-        kill_others_and_self(e_id, components, entities);
+        kill_owners_and_self(e_id, components, entities);
     }
 }
 
