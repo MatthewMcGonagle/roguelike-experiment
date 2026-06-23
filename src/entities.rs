@@ -149,7 +149,25 @@ impl Entities {
             self.remove(x, components);
         }
 
-        // TODO: remove from owners.
+        let owners: Vec<usize> = components.owners.get(e_id).into_iter().flat_map(|x| x.clone()).collect();
+        for owner in owners {
+            let maybe_owner_entities = components.owns.get_mut(owner);
+            // map() will consume the value, but &mut is not copyable. So let's get an immutable
+            // copy, works better with map().
+            let maybe_imm_borrow: Option<& Vec<usize>> = match maybe_owner_entities {
+                Some(ref xs) => Some(xs),
+                None => None
+            };
+
+            let maybe_pos = maybe_imm_borrow
+                .map(|xs| xs.iter().position(|x| *x == e_id))
+                .flatten();
+
+            match maybe_pos {
+                Some(pos) => maybe_owner_entities.map(|owner_entities| owner_entities.swap_remove(pos)),
+                None => None
+            };
+        }
 
         components.component_types.get(e_id).map(
             |c_types| for c_type in c_types { 
