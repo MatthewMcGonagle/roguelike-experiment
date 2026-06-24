@@ -72,6 +72,7 @@ impl Entities {
             coords: Some(coords),
             decision_timer: None,
             health: None,
+            owners: None,
             render: Some(render),
             state: None
         };
@@ -89,6 +90,7 @@ impl Entities {
             coords: Some(coords),
             decision_timer: Some(Timer { time: time_size, reset: time_size }),
             health: Some(health),
+            owners: None,
             render: Some(render),
             state: None
         };
@@ -104,6 +106,7 @@ impl Entities {
             coords: Some(coords),
             decision_timer: Some(Timer { time: time_size, reset: time_size }),
             health: None,
+            owners: None,
             render: None,
             state: Some(0)
         };

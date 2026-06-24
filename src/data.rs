@@ -2,6 +2,9 @@ use sdl3::Error;
 use sdl3::pixels::Color;
 use serde::{Deserialize, Serialize};
 
+/** Entities own other entities, so buffers should be merged in entities in the opposite order.
+ * That is, entity buffers should instead have an owners field.
+ */
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EntityBuffer {
     pub ai: Option<Ai>,
@@ -10,6 +13,7 @@ pub struct EntityBuffer {
     pub coords: Option<Coordinates>,
     pub decision_timer: Option<Timer>,
     pub health: Option<i32>,
+    pub owners: Option<Vec<usize>>,
     pub render: Option<Render>,
     pub state: Option<u32>
 }
