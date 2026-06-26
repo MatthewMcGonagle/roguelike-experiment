@@ -191,20 +191,20 @@ impl UsesVecIndexedByEid<Vec<usize>> for Owns {
     fn component_type() -> ComponentType { ComponentType::Owns }
 }
 
-pub struct Owners {
-    values: VecIndexedByEid<Vec<usize>>
+pub struct Owner {
+    values: VecIndexedByEid<usize>
 }
 
-impl Owners {
-    pub fn initialize(capacity: usize) -> Owners {
-        Owners { values: VecIndexedByEid::initialize(capacity) }
+impl Owner {
+    pub fn initialize(capacity: usize) -> Owner {
+        Owner { values: VecIndexedByEid::initialize(capacity) }
     }
 }
 
-impl UsesVecIndexedByEid<Vec<usize>> for Owners {
-    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Owners }
+impl UsesVecIndexedByEid<usize> for Owner {
+    fn the_values(&self) -> &VecIndexedByEid<usize> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<usize> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Owner }
 }
 
 pub struct Alignments {

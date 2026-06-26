@@ -72,7 +72,7 @@ impl Entities {
             coords: Some(coords),
             decision_timer: None,
             health: None,
-            owners: None,
+            owner: None,
             render: Some(render),
             state: None
         };
@@ -90,7 +90,7 @@ impl Entities {
             coords: Some(coords),
             decision_timer: Some(Timer { time: time_size, reset: time_size }),
             health: Some(health),
-            owners: None,
+            owner: None,
             render: Some(render),
             state: None
         };
@@ -106,7 +106,7 @@ impl Entities {
             coords: Some(coords),
             decision_timer: Some(Timer { time: time_size, reset: time_size }),
             health: None,
-            owners: None,
+            owner: None,
             render: None,
             state: Some(0)
         };
@@ -122,7 +122,7 @@ impl Entities {
         let components_added = Vec::from([
             components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
             components.ais.add(e_id, Ai::Kill),
-            components.owners.add(e_id, Vec::from([target_e_id]))
+            components.owner.add(e_id, target_e_id)
         ]);
         components.component_types.add(e_id, components_added);
 
@@ -152,8 +152,7 @@ impl Entities {
             self.remove(x, components);
         }
 
-        let owners: Vec<usize> = components.owners.get(e_id).into_iter().flat_map(|x| x.clone()).collect();
-        for owner in owners {
+        if let Some(&owner) = components.owner.get(e_id) {
             let maybe_owner_entities = components.owns.get_mut(owner);
             // map() will consume the value, but &mut is not copyable. So let's get an immutable
             // copy, works better with map().
@@ -189,7 +188,7 @@ impl Entities {
                     ComponentType::State => components.states.remove(e_id),
                     ComponentType::Render => components.renders.remove(e_id),
                     ComponentType::Owns => components.owns.remove(e_id),
-                    ComponentType::Owners => components.owners.remove(e_id),
+                    ComponentType::Owner => components.owner.remove(e_id),
                     ComponentType::Alignment => components.alignments.remove(e_id),
                     ComponentType::Health => components.healths.remove(e_id)
                 }

@@ -2,8 +2,8 @@ use sdl3::Error;
 use sdl3::pixels::Color;
 use serde::{Deserialize, Serialize};
 
-/** Entities own other entities, so buffers should be merged in entities in the opposite order.
- * That is, entity buffers should instead have an owners field.
+/** Buffer only tracks owner, we can add the new eid to the owner. Correct representation of state
+ * should demand that the owner already exists before we try to make this entity.
  */
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EntityBuffer {
@@ -13,7 +13,7 @@ pub struct EntityBuffer {
     pub coords: Option<Coordinates>,
     pub decision_timer: Option<Timer>,
     pub health: Option<i32>,
-    pub owners: Option<Vec<usize>>,
+    pub owner: Option<usize>,
     pub render: Option<Render>,
     pub state: Option<u32>
 }
@@ -39,7 +39,7 @@ pub enum ComponentType {
     State,
     Render,
     Owns,
-    Owners,
+    Owner,
     Blocking,
     Alignment,
     Health

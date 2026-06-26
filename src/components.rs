@@ -23,7 +23,7 @@ pub struct Components {
     pub states: States,
     pub renders: Renders,
     pub owns: Owns,
-    pub owners: Owners,
+    pub owner: Owner,
     pub alignments: Alignments,
     pub healths: Healths
 }
@@ -40,7 +40,7 @@ impl Components {
             states: States::initialize(capacity),
             renders: Renders::initialize(capacity),
             owns: Owns::initialize(capacity),
-            owners: Owners::initialize(capacity),
+            owner: Owner::initialize(capacity),
             alignments: Alignments::initialize(capacity),
             healths: Healths::initialize(capacity)
         }
