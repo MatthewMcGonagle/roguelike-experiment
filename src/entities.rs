@@ -64,8 +64,13 @@ impl Entities {
         //         .transpose()?,
         //     None => None
         // };
-        let maybe_space_component = entity.coords.as_ref().map(|c|
-            components.coords_query.add(c.x, c.y, SpaceData::HasEid(e_id))).transpose()?;
+        let maybe_space_component = match entity.blocking {
+            Some(BlockingType::Movement) => entity.coords.as_ref()
+                .map(|c|
+                    components.coords_query.add(c.x, c.y, SpaceData::HasEid(e_id)))
+                .transpose()?,
+            None => None
+        };
 
 
         let components_added = Vec::from([
