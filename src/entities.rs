@@ -36,17 +36,37 @@ impl Entities {
         }
     }
 
+    fn ensure_coords_free_when_needed(components: &Components, entity: &EntityBuffer) -> Result<(), Errors> {
+        match entity.blocking {
+            Some(BlockingType::Movement) => match entity.coords.as_ref() {
+                Some(c) => {
+                    let space_data = components.coords_query.get(c.x, c.y)?;
+                    if let SpaceData::Empty = space_data {
+                        Ok(())
+                    } else { Err(Errors::SpaceAlreadyNonempty) }
+                },
+                None => Ok(())
+            },
+            None => Ok(())
+        }
+    }
+
     pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
+        Entities::ensure_coords_free_when_needed(components, entity);
+
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        let maybe_space_component = match entity.blocking {
-            Some(BlockingType::Movement) => entity.coords.as_ref()
-                .map(|c|
-                    self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
-                .transpose()?,
-            None => None
-        };
+        // let maybe_space_component = match entity.blocking {
+        //     Some(BlockingType::Movement) => entity.coords.as_ref()
+        //         .map(|c|
+        //             self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
+        //         .transpose()?,
+        //     None => None
+        // };
+        let maybe_space_component = entity.coords.as_ref().map(|c|
+            components.coords_query.add(c.x, c.y, SpaceData::HasEid(e_id))).transpose()?;
+
 
         let components_added = Vec::from([
             entity.ai.as_ref().map(|ai| components.ais.add(e_id, ai.clone())),
