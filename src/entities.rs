@@ -57,13 +57,6 @@ impl Entities {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        // let maybe_space_component = match entity.blocking {
-        //     Some(BlockingType::Movement) => entity.coords.as_ref()
-        //         .map(|c|
-        //             self.add_space_data_or_free_recent_eid(components, c, SpaceData::HasEid(e_id)))
-        //         .transpose()?,
-        //     None => None
-        // };
         let maybe_space_component = match entity.blocking {
             Some(BlockingType::Movement) => entity.coords.as_ref()
                 .map(|c|
