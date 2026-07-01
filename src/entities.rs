@@ -23,19 +23,6 @@ impl Entities {
         Ok(())
     }
 
-    pub fn add_space_data_or_free_recent_eid(
-        &mut self, components: &mut Components, coords: &Coordinates, space_data: SpaceData) -> Result<ComponentType, Errors>
-    {
-        // Make sure we exit if we couldn't add the space data.
-        match components.coords_query.add(coords.x, coords.y, space_data) {
-            Err(e) => {
-                let _ = self.free_most_recent_id()?;
-                Err(e)
-            },
-            Ok(x) => Ok(x)
-        }
-    }
-
     fn ensure_coords_free_when_needed(components: &Components, entity: &EntityBuffer) -> Result<(), Errors> {
         match entity.blocking {
             Some(BlockingType::Movement) => match entity.coords.as_ref() {
