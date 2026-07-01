@@ -51,20 +51,24 @@ impl Entities {
         }
     }
 
-    pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
-        Entities::ensure_coords_free_when_needed(components, entity);
-
-        let e_id = self.free_ids.pop()?;
-        self.active_ids.push(e_id);
-
-        let maybe_space_component = match entity.blocking {
+    pub fn add_to_coords_query_when_needed(components: &mut Components, entity: &EntityBuffer, e_id: usize) -> Result<Option<ComponentType>, Errors> {
+        let maybe_space_data = match entity.blocking {
             Some(BlockingType::Movement) => entity.coords.as_ref()
                 .map(|c|
                     components.coords_query.add(c.x, c.y, SpaceData::HasEid(e_id)))
                 .transpose()?,
             None => None
         };
+        Ok(maybe_space_data)
+    }
 
+    pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
+        Entities::ensure_coords_free_when_needed(components, entity)?;
+
+        let e_id = self.free_ids.pop()?;
+        self.active_ids.push(e_id);
+
+        let maybe_space_component = Entities::add_to_coords_query_when_needed(components, entity, e_id)?;
 
         let components_added = Vec::from([
             entity.ai.as_ref().map(|ai| components.ais.add(e_id, ai.clone())),
