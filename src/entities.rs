@@ -77,6 +77,7 @@ impl Entities {
             maybe_space_component,
             entity.decision_timer.as_ref().map(|dt| components.decision_timers.add(e_id, dt.clone())),
             entity.health.as_ref().map(|h| components.healths.add(e_id, h.clone())),
+            entity.owner.map(|o| components.owner.add(e_id, o)),
             entity.render.as_ref().map(|r| components.renders.add(e_id, r.clone())),
             entity.state.as_ref().map(|s| components.states.add(e_id, s.clone()))
         ]).into_iter().flatten().collect();
