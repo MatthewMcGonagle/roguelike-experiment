@@ -38,6 +38,17 @@ impl Entities {
         }
     }
 
+    pub fn ensure_owner_exists(components: &mut Components, entity: &EntityBuffer) -> Result<(), Errors> {
+        match entity.owner {
+            Some(x) => {
+                if components.component_types.get(x).is_some() {
+                    Ok(())
+                } else { Err(Errors::MissingExpectedEid) }
+            },
+            None => Ok(())
+        }
+    }
+
     pub fn add_to_coords_query_when_needed(components: &mut Components, entity: &EntityBuffer, e_id: usize) -> Result<Option<ComponentType>, Errors> {
         let maybe_space_data = match entity.blocking {
             Some(BlockingType::Movement) => entity.coords.as_ref()
@@ -51,6 +62,7 @@ impl Entities {
 
     pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
         Entities::ensure_coords_free_when_needed(components, entity)?;
+        Entities::ensure_owner_exists(components, entity)?;
 
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
