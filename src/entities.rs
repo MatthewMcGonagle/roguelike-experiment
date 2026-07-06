@@ -60,6 +60,16 @@ impl Entities {
         Ok(maybe_space_data)
     }
 
+    pub fn add_to_owner(components: &mut Components, owner_id: usize, e_id: usize) -> () {
+        match components.owns.get_mut(owner_id) {
+            Some(xs) => xs.push(e_id),
+            None => {
+                components.owns.add(e_id, Vec::from([e_id]));
+                let _ = components.component_types.get_mut(e_id).map(|ts| ts.push(ComponentType::Owns));
+            }
+        }
+    }
+
     pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
         Entities::ensure_coords_free_when_needed(components, entity)?;
         Entities::ensure_owner_exists(components, entity)?;
@@ -67,6 +77,7 @@ impl Entities {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
+        entity.owner.map(|o| Entities::add_to_owner(components, o, e_id));
         let maybe_space_component = Entities::add_to_coords_query_when_needed(components, entity, e_id)?;
 
         let components_added = Vec::from([
