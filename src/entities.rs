@@ -99,13 +99,13 @@ impl Entities {
         Ok(e_id)
     }
 
-    pub fn add_state_storage(&mut self, state_store: &StateStorage) -> Result<(), Errors> {
+    pub fn add_state_storage(&mut self, components: &mut Components, state_store: &StateStorage) -> Result<(), Errors> {
         let mut sid_to_eid: HashMap<usize, usize> = HashMap::new();
         let mut updated_owner = EntityBuffer::empty();
 
         for entity in &state_store.entities {
             // first change the owner id to correct eid when necessary.
-            let eid_version =
+            let with_updated_owner=
                 if let Some(owner_sid) = entity.entity.owner {
                     let owner_eid = sid_to_eid.get(&owner_sid).ok_or(Errors::MissingExpectedEid)?;
                     updated_owner = entity.entity.clone();
@@ -114,7 +114,10 @@ impl Entities {
                 } else {
                     &entity.entity
                 };
+            let e_id = self.add_entity_buffer(components, with_updated_owner)?;
+            sid_to_eid.insert(entity.sid, e_id);
         }
+
         Ok(())
     }
 
