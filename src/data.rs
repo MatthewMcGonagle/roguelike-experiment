@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /** Buffer only tracks owner, we can add the new eid to the owner. Correct representation of state
  * should demand that the owner already exists before we try to make this entity.
  */
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EntityBuffer {
     pub ai: Option<Ai>,
     pub alignment: Option<AlignmentType>,
@@ -16,6 +16,22 @@ pub struct EntityBuffer {
     pub owner: Option<usize>,
     pub render: Option<Render>,
     pub state: Option<u32>
+}
+
+impl EntityBuffer {
+    pub fn empty() -> EntityBuffer {
+        EntityBuffer {
+            ai: None,
+            alignment: None,
+            blocking: None,
+            coords: None,
+            decision_timer: None,
+            health: None,
+            owner: None,
+            render: None,
+            state: None
+        }
+    }
 }
 
 #[derive(Debug)]

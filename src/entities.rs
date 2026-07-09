@@ -2,7 +2,9 @@ mod free_eids;
 
 use crate::components::*;
 use crate::data::*;
+use crate::state_storage::*;
 use free_eids::FreeEids;
+use std::collections::HashMap;
 
 pub struct Entities {
     free_ids: FreeEids,
@@ -95,6 +97,25 @@ impl Entities {
         components.component_types.add(e_id, components_added);
 
         Ok(e_id)
+    }
+
+    pub fn add_state_storage(&mut self, state_store: &StateStorage) -> Result<(), Errors> {
+        let mut sid_to_eid: HashMap<usize, usize> = HashMap::new();
+        let mut updated_owner = EntityBuffer::empty();
+
+        for entity in &state_store.entities {
+            // first change the owner id to correct eid when necessary.
+            let eid_version =
+                if let Some(owner_sid) = entity.entity.owner {
+                    let owner_eid = sid_to_eid.get(&owner_sid).ok_or(Errors::MissingExpectedEid)?;
+                    updated_owner = entity.entity.clone();
+                    updated_owner.owner = Some(*owner_eid);
+                    &updated_owner
+                } else {
+                    &entity.entity
+                };
+        }
+        Ok(())
     }
 
     pub fn add_wall_block(&mut self, components: &mut Components, coords: Coordinates, render: Render) -> Result<usize, Errors> {
