@@ -125,3 +125,12 @@ r = 0
 g = 0 
 b = 255 
 a = 255
+
+[[entities]]
+sid = 6
+[entities.entity]
+owner = 5
+[entities.entity.ai.Kill]
+[entities.entity.decision_timer]
+time = 100
+reset = 100
