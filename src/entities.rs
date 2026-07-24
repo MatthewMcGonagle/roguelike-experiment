@@ -173,19 +173,20 @@ impl Entities {
     }
 
     pub fn add_kill_timer(&mut self, components: &mut Components, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
-        let e_id = self.free_ids.pop()?;
-        self.active_ids.push(e_id);
+        let entity_data = EntityBuffer {
+            ai: Some(Ai::Kill),
+            alignment: None,
+            blocking: None,
+            coords: None,
+            decision_timer: Some(Timer { time: time_size, reset: time_size }),
+            health: None,
+            owner: Some(target_e_id),
+            render: None,
+            state: None
+        };
 
-        let components_added = Vec::from([
-            components.decision_timers.add(e_id, Timer { time: time_size, reset: time_size }),
-            components.ais.add(e_id, Ai::Kill),
-            components.owner.add(e_id, target_e_id)
-        ]);
-        components.component_types.add(e_id, components_added);
-
-        // Need to handle the target too.
-        let target_component = components.owns.add(target_e_id, Vec::from([e_id]));
-        components.component_types.push(target_e_id, target_component)
+        let _ = self.add_entity_buffer(components, &entity_data)?;
+        Ok(())
     }
 
     pub fn remove(&mut self, e_id: usize, components: &mut Components) {
