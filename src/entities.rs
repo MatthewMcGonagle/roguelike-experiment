@@ -66,8 +66,8 @@ impl Entities {
         match components.owns.get_mut(owner_id) {
             Some(xs) => xs.push(e_id),
             None => {
-                components.owns.add(e_id, Vec::from([e_id]));
-                let _ = components.component_types.get_mut(e_id).map(|ts| ts.push(ComponentType::Owns));
+                components.owns.add(owner_id, Vec::from([e_id]));
+                let _ = components.component_types.get_mut(owner_id).map(|ts| ts.push(ComponentType::Owns));
             }
         }
     }
