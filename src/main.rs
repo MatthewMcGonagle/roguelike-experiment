@@ -1,13 +1,6 @@
 extern crate sdl3;
 
-mod components;
-mod data;
-mod entities;
-mod game_state;
-mod state_storage;
-mod world_state;
-mod systems;
-
+use roguelike_experiment::*;
 use data::*;
 use game_state::*;
 use systems::*;

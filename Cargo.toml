@@ -1,5 +1,5 @@
 [package]
-name = "roguelike-experiment"
+name = "roguelike_experiment"
 version = "0.1.0"
 edition = "2024"
 
