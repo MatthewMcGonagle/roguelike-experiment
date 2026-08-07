@@ -19,12 +19,6 @@ impl Entities {
         }
     }
 
-    fn free_most_recent_id(&mut self) -> Result<(), Errors> {
-        let e_id = self.active_ids.pop().ok_or(Errors::UnexpectedlyEmpty)?;
-        self.free_ids.push(e_id);
-        Ok(())
-    }
-
     fn ensure_coords_free_when_needed(components: &Components, entity: &EntityBuffer) -> Result<(), Errors> {
         match entity.blocking {
             Some(BlockingType::Movement) => match entity.coords.as_ref() {
@@ -101,7 +95,7 @@ impl Entities {
 
     pub fn add_state_storage(&mut self, components: &mut Components, state_store: &StateStorage) -> Result<(), Errors> {
         let mut sid_to_eid: HashMap<usize, usize> = HashMap::new();
-        let mut updated_owner = EntityBuffer::empty();
+        let mut updated_owner;
 
         for entity in &state_store.entities {
             // first change the owner id to correct eid when necessary.
