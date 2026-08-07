@@ -35,7 +35,10 @@ fn remove_works_on_owner() {
 
     entities.remove(owner, &mut components);
 
-    assert_eq!(4, 4);
+    assert_eq!(components.owner.get(owner), None);
+    assert_eq!(components.owner.get(owned), None);
+    assert_eq!(components.owns.get(owner), None);
+    assert_eq!(components.owns.get(owned), None)
 }
 
 #[test]
@@ -71,5 +74,8 @@ fn remove_works_on_owned() {
 
     entities.remove(owned, &mut components);
 
-    assert_eq!(4, 4);
+    assert_eq!(components.owner.get(owner), None);
+    assert_eq!(components.owner.get(owned), None);
+    assert_eq!(components.owns.get(owner), Some(Vec::from([])).as_ref());
+    assert_eq!(components.owns.get(owned), None);
 }
