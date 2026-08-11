@@ -9,29 +9,13 @@ fn remove_works_on_owner() {
 
     let owner = entities.add_entity_buffer(
         &mut components,
-        &EntityBuffer {
-            ai: None,
-            alignment: None,
-            blocking: None,
-            coords: None,
-            decision_timer: None,
-            health: None,
-            owner: None,
-            render: None,
-            state: None}).unwrap();
+        &EntityBuffer::empty()).unwrap();
 
     let owned = entities.add_entity_buffer(
         &mut components,
         &EntityBuffer {
-            ai: None,
-            alignment: None,
-            blocking: None,
-            coords: None,
-            decision_timer: None,
-            health: None,
             owner: Some(owner),
-            render: None,
-            state: None}).unwrap();
+            ..EntityBuffer::empty()}).unwrap();
 
     entities.remove(owner, &mut components);
 
