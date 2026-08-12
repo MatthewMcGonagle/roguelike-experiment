@@ -45,7 +45,7 @@ pub enum Errors {
     SDL3Error(Error)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ComponentType {
     ComponentTypeList,
     Coordinates,
