@@ -1,3 +1,4 @@
+use std::fmt;
 use std::iter::Enumerate;
 use std::slice::Iter;
 use std::slice::IterMut;
@@ -29,6 +30,18 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn iter_mut_w_eid(&mut self) -> Enumerate<IterMut<'_, Option<T>>> { self.values.iter_mut().enumerate() }
 
     pub fn remove(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
+}
+
+impl<T: PartialEq> PartialEq for VecIndexedByEid<T> {
+    fn eq(&self, other: &Self) -> bool { self.values == other.values }
+}
+
+impl<T: fmt::Debug> fmt::Debug for VecIndexedByEid<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("VecIndexedByEid")
+            .field("values", &self.values)
+            .finish()
+    }
 }
 
 pub trait UsesVecIndexedByEid<T> {

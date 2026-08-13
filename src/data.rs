@@ -61,7 +61,7 @@ pub enum ComponentType {
     Health
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Coordinates {
     pub x: usize,
     pub y: usize 
@@ -72,7 +72,7 @@ pub enum WorldState {
     Wall(usize, usize)
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum SpaceData {
     Empty,
     HasEid(usize)
@@ -83,7 +83,7 @@ pub enum BlockingType {
     Movement
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Timer { pub time: u32, pub reset: u32 }
 
 pub enum TimerResult {
@@ -102,7 +102,7 @@ impl Timer {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Ai {
     AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
@@ -110,7 +110,7 @@ pub enum Ai {
     User
 }
 
-#[derive(Clone, Deserialize, Debug, Serialize)]
+#[derive(Clone, Deserialize, Debug, PartialEq, Serialize)]
 pub struct ColorBuffer {
     pub r: u8,
     pub g: u8,
@@ -128,12 +128,12 @@ impl ColorBuffer {
     }
 }
 
-#[derive(Clone, Deserialize, Debug, Serialize)]
+#[derive(Clone, Deserialize, Debug, PartialEq, Serialize)]
 pub struct Render {
     pub color: ColorBuffer
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum AlignmentType {
     User,
     Neutral,
@@ -154,7 +154,7 @@ pub enum LoopState {
     User(usize)
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Direction {
     Down,
     Up,

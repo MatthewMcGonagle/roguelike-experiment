@@ -13,6 +13,7 @@ pub trait Component<'a, T> where T: 'a {
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Components {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,

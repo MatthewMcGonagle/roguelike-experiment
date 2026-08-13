@@ -1,6 +1,7 @@
 use super::*;
 use super::containers::*;
 
+#[derive(Debug, PartialEq)]
 pub struct ComponentTypes {
     values: VecIndexedByEid<Vec<ComponentType>>
 }
@@ -23,6 +24,7 @@ impl UsesVecIndexedByEid<Vec<ComponentType>> for ComponentTypes {
     fn component_type() -> ComponentType { ComponentType::ComponentTypeList }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct CoordinateComponents {
     values: VecIndexedByEid<Coordinates>,
 }
@@ -41,6 +43,7 @@ impl UsesVecIndexedByEid<Coordinates> for CoordinateComponents {
     fn component_type() -> ComponentType { ComponentType::Coordinates}
 }
 
+#[derive(Debug, PartialEq)]
 pub struct CoordinatesQuery {
     pub coord_width: usize,
     pub coord_height: usize,
@@ -79,6 +82,7 @@ impl CoordinatesQuery {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Blocking {
     values: VecIndexedByEid<BlockingType>
 }
@@ -97,6 +101,7 @@ impl UsesVecIndexedByEid<BlockingType> for Blocking {
     fn component_type() -> ComponentType { ComponentType::Blocking }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct DecisionTimers {
     values: VecIndexedByEid<Timer>
 }
@@ -115,6 +120,7 @@ impl UsesVecIndexedByEid<Timer> for DecisionTimers {
     fn component_type() -> ComponentType { ComponentType::DecisionTimer }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Ais {
     values: VecIndexedByEid<Ai>
 }
@@ -131,6 +137,7 @@ impl UsesVecIndexedByEid<Ai> for Ais {
     fn component_type() -> ComponentType { ComponentType::Ai }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct States {
     values: VecIndexedByEid<u32>
 }
@@ -147,6 +154,7 @@ impl UsesVecIndexedByEid<u32> for States {
     fn component_type() -> ComponentType { ComponentType::State }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct DecisionsReady {
     pub values: Vec<usize>
 }
@@ -159,6 +167,7 @@ impl DecisionsReady {
     pub fn add(&mut self, e_id: usize) { self.values.push(e_id) }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Renders {
     values: VecIndexedByEid<Render>
 }
@@ -175,6 +184,7 @@ impl UsesVecIndexedByEid<Render> for Renders {
     fn component_type() -> ComponentType { ComponentType::Render }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Owns {
     values: VecIndexedByEid<Vec<usize>>
 }
@@ -191,6 +201,7 @@ impl UsesVecIndexedByEid<Vec<usize>> for Owns {
     fn component_type() -> ComponentType { ComponentType::Owns }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Owner {
     values: VecIndexedByEid<usize>
 }
@@ -207,6 +218,7 @@ impl UsesVecIndexedByEid<usize> for Owner {
     fn component_type() -> ComponentType { ComponentType::Owner }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Alignments {
     values: VecIndexedByEid<AlignmentType>
 }
@@ -223,6 +235,7 @@ impl UsesVecIndexedByEid<AlignmentType> for Alignments {
     fn component_type() -> ComponentType { ComponentType::Alignment }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Healths {
     values: VecIndexedByEid<i32>
 }

@@ -25,6 +25,7 @@ fn remove_works_on_owner() {
     assert_eq!(components.owner.get(owned), None);
     assert_eq!(components.owns.get(owner), None);
     assert_eq!(components.owns.get(owned), None);
+    assert_eq!(components, Components::initialize(2, 0, 0));
 }
 
 #[test]
