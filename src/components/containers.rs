@@ -2,6 +2,7 @@ use std::fmt;
 use std::iter::Enumerate;
 use std::slice::Iter;
 use std::slice::IterMut;
+use std::collections::HashMap;
 use super::{Component, ComponentType};
 
 pub struct VecIndexedByEid<T> {
@@ -64,4 +65,11 @@ where
     fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)> { self.the_values().iter_w_eid() }
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)> { self.mut_values().iter_mut_w_eid() }
+    fn to_map(&self) -> HashMap<usize, T> {
+        HashMap::from_iter(
+            self.the_values().values.clone().into_iter()
+                .enumerate()
+                .flat_map(|(eid, maybeT)| Some((eid, maybeT?)))
+                .collect::<Vec<(usize, T)>>())
+    }
 }

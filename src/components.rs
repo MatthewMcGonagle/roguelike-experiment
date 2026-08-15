@@ -3,6 +3,7 @@ pub mod for_entities;
 
 use crate::data::*;
 use for_entities::*;
+use std::collections::HashMap;
 
 pub trait Component<'a, T> where T: 'a {
     fn get(&self, e_id: usize) -> Option<&T>;
@@ -11,6 +12,7 @@ pub trait Component<'a, T> where T: 'a {
     fn remove(&mut self, e_id: usize);
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)>;
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
+    fn to_map(&self) -> HashMap<usize, T>;
 }
 
 #[derive(Debug, PartialEq)]
