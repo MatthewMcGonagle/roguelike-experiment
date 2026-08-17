@@ -69,7 +69,7 @@ where
         HashMap::from_iter(
             self.the_values().values.clone().into_iter()
                 .enumerate()
-                .flat_map(|(eid, maybeT)| Some((eid, maybeT?)))
+                .flat_map(|(eid, maybe_t)| Some((eid, maybe_t?)))
                 .collect::<Vec<(usize, T)>>())
     }
 }

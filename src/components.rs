@@ -15,6 +15,20 @@ pub trait Component<'a, T> where T: 'a {
     fn to_map(&self) -> HashMap<usize, T>;
 }
 
+pub struct ComponentMaps {
+    pub component_types: HashMap<usize, Vec<ComponentType>>,
+    pub coords: HashMap<usize, Coordinates>,
+    pub blocking: HashMap<usize, BlockingType>,
+    pub decision_timers: HashMap<usize, Timer>,
+    pub ais: HashMap<usize, Ai>,
+    pub states: HashMap<usize, u32>,
+    pub renders: HashMap<usize, Render>,
+    pub owns: HashMap<usize, Vec<usize>>,
+    pub owner: HashMap<usize, usize>,
+    pub alignments: HashMap<usize, AlignmentType>,
+    pub healths: HashMap<usize, i32>
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Components {
     pub component_types: ComponentTypes,
@@ -48,4 +62,20 @@ impl Components {
             healths: Healths::initialize(capacity)
         }
     }
+
+    pub fn to_maps(&self) -> ComponentMaps {
+        ComponentMaps {
+            component_types: self.component_types.to_map(),
+            coords: self.coords.to_map(),
+            blocking: self.blocking.to_map(),
+            decision_timers: self.decision_timers.to_map(),
+            ais: self.ais.to_map(),
+            states: self.states.to_map(),
+            renders: self.renders.to_map(),
+            owns: self.owns.to_map(),
+            owner: self.owner.to_map(),
+            alignments: self.alignments.to_map(),
+            healths: self.healths.to_map()
+        }
+    } 
 }
