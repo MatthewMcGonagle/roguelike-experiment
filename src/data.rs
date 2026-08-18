@@ -2,7 +2,10 @@ use sdl3::Error;
 use sdl3::pixels::Color;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+/** Buffer only tracks owner, we can add the new eid to the owner. Correct representation of state
+ * should demand that the owner already exists before we try to make this entity.
+ */
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EntityBuffer {
     pub ai: Option<Ai>,
     pub alignment: Option<AlignmentType>,
@@ -10,8 +13,25 @@ pub struct EntityBuffer {
     pub coords: Option<Coordinates>,
     pub decision_timer: Option<Timer>,
     pub health: Option<i32>,
+    pub owner: Option<usize>,
     pub render: Option<Render>,
     pub state: Option<u32>
+}
+
+impl EntityBuffer {
+    pub fn empty() -> EntityBuffer {
+        EntityBuffer {
+            ai: None,
+            alignment: None,
+            blocking: None,
+            coords: None,
+            decision_timer: None,
+            health: None,
+            owner: None,
+            render: None,
+            state: None
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -25,7 +45,7 @@ pub enum Errors {
     SDL3Error(Error)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ComponentType {
     ComponentTypeList,
     Coordinates,
@@ -34,14 +54,14 @@ pub enum ComponentType {
     Ai,
     State,
     Render,
-    Target,
-    TargetedBy,
+    Owns,
+    Owner,
     Blocking,
     Alignment,
     Health
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Coordinates {
     pub x: usize,
     pub y: usize 
@@ -52,7 +72,7 @@ pub enum WorldState {
     Wall(usize, usize)
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum SpaceData {
     Empty,
     HasEid(usize)
@@ -63,7 +83,7 @@ pub enum BlockingType {
     Movement
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Timer { pub time: u32, pub reset: u32 }
 
 pub enum TimerResult {
@@ -82,7 +102,7 @@ impl Timer {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Ai {
     AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
@@ -90,7 +110,7 @@ pub enum Ai {
     User
 }
 
-#[derive(Clone, Deserialize, Debug, Serialize)]
+#[derive(Clone, Deserialize, Debug, PartialEq, Serialize)]
 pub struct ColorBuffer {
     pub r: u8,
     pub g: u8,
@@ -108,12 +128,12 @@ impl ColorBuffer {
     }
 }
 
-#[derive(Clone, Deserialize, Debug, Serialize)]
+#[derive(Clone, Deserialize, Debug, PartialEq, Serialize)]
 pub struct Render {
     pub color: ColorBuffer
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum AlignmentType {
     User,
     Neutral,
@@ -134,7 +154,7 @@ pub enum LoopState {
     User(usize)
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Direction {
     Down,
     Up,

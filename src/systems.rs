@@ -118,12 +118,11 @@ fn spawn_square(e_id: usize, components: &mut Components, entities: &mut Entitie
     }
 }
 
-fn kill_others_and_self(e_id: usize, components: &mut Components, entities: &mut Entities) {
-    let targets: Vec<usize> = components.targets.get(e_id).into_iter().flat_map(|ts| ts.clone()).collect();
-    for target in targets {
-        entities.remove(target, components);
+fn kill_owner(e_id: usize, components: &mut Components, entities: &mut Entities) {
+    let maybe_owner = components.owner.get(e_id).clone().map(|&x| x.clone()); 
+    if let Some(owner) = maybe_owner {
+        entities.remove(owner, components);
     }
-    entities.remove(e_id, components);
 }
 
 fn decide_alternate_directions(e_id: usize, state: &mut usize, dir0: &Direction, dir1: &Direction, components: &Components) -> Result<Action, Errors> {
@@ -324,7 +323,7 @@ pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill) 
 pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, entities: &mut Entities) {
     while !to_kill.values.is_empty() {
         let e_id = to_kill.values.pop().unwrap();
-        kill_others_and_self(e_id, components, entities);
+        kill_owner(e_id, components, entities);
     }
 }
 

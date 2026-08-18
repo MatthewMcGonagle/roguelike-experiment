@@ -1,13 +1,6 @@
 extern crate sdl3;
 
-mod components;
-mod data;
-mod entities;
-mod game_state;
-mod state_storage;
-mod world_state;
-mod systems;
-
+use roguelike_experiment::*;
 use data::*;
 use game_state::*;
 use systems::*;
@@ -54,9 +47,7 @@ pub fn safe_main() -> Result<(), Errors> {
         .expect("State storage file not found.");
     let state_store: state_storage::StateStorage = toml::from_str(&state_store_string).expect("Can't parse toml string.");
 
-    for e_store in state_store.entities {
-        let _ = game_state.entities.add_entity_buffer(&mut game_state.components, &e_store.entity)?;
-    }
+    game_state.entities.add_state_storage(&mut game_state.components, &state_store)?;
 
     let world_states = world_state::parse_world_state(&state_store.map)?;
     add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
