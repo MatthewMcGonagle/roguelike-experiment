@@ -29,6 +29,24 @@ pub struct ComponentMaps {
     pub healths: HashMap<usize, i32>
 }
 
+impl ComponentMaps {
+    pub fn make_new() -> ComponentMaps {
+        ComponentMaps {
+            component_types: HashMap::new(),
+            coords: HashMap::new(),
+            blocking: HashMap::new(),
+            decision_timers: HashMap::new(),
+            ais: HashMap::new(),
+            states: HashMap::new(),
+            renders: HashMap::new(),
+            owns: HashMap::new(),
+            owner: HashMap::new(),
+            alignments: HashMap::new(),
+            healths: HashMap::new()
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Components {
     pub component_types: ComponentTypes,
