@@ -2,6 +2,7 @@ use roguelike_experiment::components::*;
 use roguelike_experiment::components::for_entities::*;
 use roguelike_experiment::data::*;
 use roguelike_experiment::entities::*;
+use std::collections::HashMap;
 
 #[test]
 fn remove_works_on_owner() {
@@ -20,12 +21,6 @@ fn remove_works_on_owner() {
 
     entities.remove(owner, &mut components);
 
-    assert_eq!(components.component_types.get(owner), None);
-    assert_eq!(components.component_types.get(owned), None);
-    assert_eq!(components.owner.get(owner), None);
-    assert_eq!(components.owner.get(owned), None);
-    assert_eq!(components.owns.get(owner), None);
-    assert_eq!(components.owns.get(owned), None);
     assert_eq!(
         components.to_maps(),
         ComponentMaps::new())
@@ -48,10 +43,15 @@ fn remove_works_on_owned() {
 
     entities.remove(owned, &mut components);
 
-    assert_eq!(components.component_types.get(owner), Some(Vec::from([ComponentType::Owns])).as_ref());
-    assert_eq!(components.component_types.get(owned), None);
-    assert_eq!(components.owner.get(owner), None);
-    assert_eq!(components.owner.get(owned), None);
-    assert_eq!(components.owns.get(owner), Some(Vec::from([])).as_ref());
-    assert_eq!(components.owns.get(owned), None);
+    assert_eq!(
+        components.to_maps(),
+        ComponentMaps {
+            component_types: HashMap::from([
+                (0, Vec::from([ComponentType::Owns]))
+            ]),
+            owns: HashMap::from([
+                (0, Vec::from([]))
+            ]),
+            ..ComponentMaps::new()
+        });
 }
