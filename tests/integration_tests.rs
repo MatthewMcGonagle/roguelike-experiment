@@ -1,4 +1,5 @@
 use roguelike_experiment::components::*;
+use roguelike_experiment::components::for_entities::*;
 use roguelike_experiment::data::*;
 use roguelike_experiment::entities::*;
 
@@ -25,7 +26,9 @@ fn remove_works_on_owner() {
     assert_eq!(components.owner.get(owned), None);
     assert_eq!(components.owns.get(owner), None);
     assert_eq!(components.owns.get(owned), None);
-    assert_eq!(components, Components::initialize(2, 0, 0));
+    assert_eq!(
+        components.to_maps(),
+        ComponentMaps::new())
 }
 
 #[test]

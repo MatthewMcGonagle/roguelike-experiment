@@ -15,6 +15,7 @@ pub trait Component<'a, T> where T: 'a {
     fn to_map(&self) -> HashMap<usize, T>;
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ComponentMaps {
     pub component_types: HashMap<usize, Vec<ComponentType>>,
     pub coords: HashMap<usize, Coordinates>,
@@ -30,7 +31,7 @@ pub struct ComponentMaps {
 }
 
 impl ComponentMaps {
-    pub fn make_new() -> ComponentMaps {
+    pub fn new() -> ComponentMaps {
         ComponentMaps {
             component_types: HashMap::new(),
             coords: HashMap::new(),
