@@ -1,5 +1,4 @@
 use roguelike_experiment::components::*;
-use roguelike_experiment::components::for_entities::*;
 use roguelike_experiment::data::*;
 use roguelike_experiment::entities::*;
 use std::collections::HashMap;
@@ -13,7 +12,7 @@ fn remove_works_on_owner() {
         &mut components,
         &EntityBuffer::empty()).unwrap();
 
-    let owned = entities.add_entity_buffer(
+    let _ = entities.add_entity_buffer(
         &mut components,
         &EntityBuffer {
             owner: Some(owner),
