@@ -8,7 +8,7 @@ use crate::components::for_entities::*;
 use crate::data::*;
 use crate::game_state::*;
 use crate::entities::Entities;
-use crate::queries::Queries;
+use crate::queries::*;
 
 fn draw_square(coords: &Coordinates, coord_scale: usize, render: &Render, canvas: &mut Canvas<Window>) -> Result<(), Errors> {
     let square = Rect::new((coords.x * coord_scale) as i32, (coords.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
@@ -152,14 +152,14 @@ fn decide_alternate_directions(
                 Action::Move(e_id, direction.clone())
             },
             SpaceData::HasEid(target_id) => {
-                match (components.alignments.get(e_id), components.alignments.get(target_id)) {
+                match (components.alignments.get(e_id), components.alignments.get(*target_id)) {
                     (Some(AlignmentType::HostileToUser), Some(AlignmentType::User)) => {
                         decided = true;
-                        Action::Attack(e_id, target_id)
+                        Action::Attack(e_id, *target_id)
                     },
                     (Some(AlignmentType::User), Some(AlignmentType::HostileToUser)) => {
                         decided = true;
-                        Action::Attack(e_id, target_id)
+                        Action::Attack(e_id, *target_id)
                     },
                     _ => {
                         *state = (*state + 1) % 2;
@@ -225,8 +225,8 @@ fn decide_user_direction_action(e_id: usize, direction: Direction, components: &
     let target_coords = target_of_shift(user_coords, queries.coords_query.coord_width, queries.coords_query.coord_height, shift);
     match queries.coords_query.get(target_coords.x, target_coords.y)? {
         SpaceData::Empty => Ok(Action::Move(e_id, direction)),
-        SpaceData::HasEid(target_eid) => match components.alignments.get(target_eid) {
-            Some(AlignmentType::HostileToUser) => Ok(Action::Attack(e_id, target_eid)),
+        SpaceData::HasEid(target_eid) => match components.alignments.get(*target_eid) {
+            Some(AlignmentType::HostileToUser) => Ok(Action::Attack(e_id, *target_eid)),
             _ => Ok(Action::Wait)
         }
     }
