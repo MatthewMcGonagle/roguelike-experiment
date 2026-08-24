@@ -52,7 +52,6 @@ impl ComponentMaps {
 pub struct Components {
     pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
-    pub coords_query: CoordinatesQuery,
     pub blocking: Blocking,
     pub decision_timers: DecisionTimers,
     pub ais: Ais,
@@ -65,11 +64,10 @@ pub struct Components {
 }
 
 impl Components {
-    pub fn initialize(capacity: usize, coord_width: usize, coord_height: usize) -> Components {
+    pub fn initialize(capacity: usize) -> Components {
         Components {
             component_types: ComponentTypes::initialize(capacity),
             coords: CoordinateComponents::initialize(capacity),
-            coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
             blocking: Blocking::initialize(capacity),
             decision_timers: DecisionTimers::initialize(capacity),
             ais: Ais::initialize(capacity),

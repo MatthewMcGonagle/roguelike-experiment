@@ -1,4 +1,5 @@
 use crate::components::*;
+use crate::queries::*;
 use crate::components::for_entities::*;
 use crate::data::*;
 use crate::entities::*;
@@ -43,6 +44,7 @@ pub struct GameState {
     pub reactions_ready: ReactionsReady,
     pub to_kill: ToKill,
     pub components: Components,
+    pub queries: Queries,
     pub entities: Entities
 }
 
@@ -55,7 +57,8 @@ impl GameState {
             planned_actions: PlannedActions::initialize(CAPACITY),
             reactions_ready: ReactionsReady::initialize(CAPACITY),
             to_kill: ToKill::initialize(CAPACITY),
-            components: Components::initialize(CAPACITY, coord_width, coord_height),
+            components: Components::initialize(CAPACITY),
+            queries: Queries::initialize(coord_width, coord_height),
             entities: Entities::initialize(initial_max_eid)
         }
     }
