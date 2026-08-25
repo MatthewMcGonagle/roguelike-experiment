@@ -5,6 +5,16 @@ use std::slice::IterMut;
 use std::collections::HashMap;
 use super::{Component, ComponentType};
 
+pub trait ByEid<'a, T> where T: 'a {
+    fn get(&self, e_id: usize) -> Option<&T>;
+    fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
+    fn add(&mut self, e_id: usize, value: T) -> ComponentType;
+    fn remove(&mut self, e_id: usize);
+    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)>;
+    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
+    fn to_map(&self) -> HashMap<usize, T>;
+}
+
 pub struct VecIndexedByEid<T> {
     values: Vec<Option<T>>
 }
@@ -51,7 +61,7 @@ pub trait UsesVecIndexedByEid<T> {
     fn component_type() -> ComponentType;
 }
 
-impl<'a, T, U> Component<'a, T> for U
+impl<'a, T, U> ByEid<'a, T> for U
 where
     T: 'a + Clone,
     U: UsesVecIndexedByEid<T>
