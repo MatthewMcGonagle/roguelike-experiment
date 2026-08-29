@@ -3,12 +3,10 @@ use std::iter::Enumerate;
 use std::slice::Iter;
 use std::slice::IterMut;
 use std::collections::HashMap;
-use super::{Component, ComponentType};
 
 pub trait ByEid<'a, T> where T: 'a {
     fn get(&self, e_id: usize) -> Option<&T>;
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
-    fn add(&mut self, e_id: usize, value: T) -> ComponentType;
     fn remove(&mut self, e_id: usize);
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)>;
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
@@ -58,7 +56,6 @@ impl<T: fmt::Debug> fmt::Debug for VecIndexedByEid<T> {
 pub trait UsesVecIndexedByEid<T> {
     fn the_values(&self) -> &VecIndexedByEid<T>;
     fn mut_values(&mut self) -> &mut VecIndexedByEid<T>;
-    fn component_type() -> ComponentType;
 }
 
 impl<'a, T, U> ByEid<'a, T> for U
@@ -68,10 +65,6 @@ where
 {
     fn get(&self, e_id: usize) -> Option<&T> { self.the_values().get(e_id) }
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T> { self.mut_values().get_mut(e_id) }
-    fn add(&mut self, e_id: usize, value: T) -> ComponentType {
-        self.mut_values().add(e_id, value);
-        U::component_type()
-    }
     fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)> { self.the_values().iter_w_eid() }
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)> { self.mut_values().iter_mut_w_eid() }

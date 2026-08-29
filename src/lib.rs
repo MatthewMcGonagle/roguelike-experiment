@@ -1,4 +1,5 @@
 pub mod components;
+pub mod containers;
 pub mod data;
 pub mod entities;
 pub mod game_state;

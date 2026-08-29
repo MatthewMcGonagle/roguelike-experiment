@@ -1,18 +1,33 @@
-mod containers;
 pub mod for_entities;
 
+use crate::containers::*;
 use crate::data::*;
 use for_entities::*;
 use std::collections::HashMap;
 
-pub trait Component<'a, T> where T: 'a {
-    fn get(&self, e_id: usize) -> Option<&T>;
-    fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
-    fn add(&mut self, e_id: usize, value: T) -> ComponentType;
-    fn remove(&mut self, e_id: usize);
-    fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)>;
-    fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
-    fn to_map(&self) -> HashMap<usize, T>;
+pub trait ComponentData<'a, T, U> where T: 'a, U: ByEid<'a, T> {
+    fn by_eid(&self) -> &U;
+    fn component_type() -> ComponentType;
+
+    fn add(&mut self, e_id: usize, value: T) -> ComponentType {
+        for x in self.by_eid().get_mut(e_id) {
+            *x = value;
+        }
+        Self::component_type()
+    }
+}
+
+pub trait AssociatedComponentType {
+    fn associated() -> ComponentType;
+}
+
+impl<'a, T, U> ComponentData<'a, T, U> for U
+where
+    T: 'a,
+    U: ByEid<'a, T> + AssociatedComponentType
+{
+    fn by_eid(&self) -> &U { &self }
+    fn component_type() -> ComponentType { U::associated() }
 }
 
 #[derive(Debug, PartialEq)]
@@ -24,7 +39,6 @@ pub struct ComponentMaps {
     pub ais: HashMap<usize, Ai>,
     pub states: HashMap<usize, u32>,
     pub renders: HashMap<usize, Render>,
-    pub owns: HashMap<usize, Vec<usize>>,
     pub owner: HashMap<usize, usize>,
     pub alignments: HashMap<usize, AlignmentType>,
     pub healths: HashMap<usize, i32>
@@ -40,7 +54,6 @@ impl ComponentMaps {
             ais: HashMap::new(),
             states: HashMap::new(),
             renders: HashMap::new(),
-            owns: HashMap::new(),
             owner: HashMap::new(),
             alignments: HashMap::new(),
             healths: HashMap::new()
@@ -57,7 +70,6 @@ pub struct Components {
     pub ais: Ais,
     pub states: States,
     pub renders: Renders,
-    pub owns: Owns,
     pub owner: Owner,
     pub alignments: Alignments,
     pub healths: Healths
@@ -73,7 +85,6 @@ impl Components {
             ais: Ais::initialize(capacity),
             states: States::initialize(capacity),
             renders: Renders::initialize(capacity),
-            owns: Owns::initialize(capacity),
             owner: Owner::initialize(capacity),
             alignments: Alignments::initialize(capacity),
             healths: Healths::initialize(capacity)
@@ -89,7 +100,6 @@ impl Components {
             ais: self.ais.to_map(),
             states: self.states.to_map(),
             renders: self.renders.to_map(),
-            owns: self.owns.to_map(),
             owner: self.owner.to_map(),
             alignments: self.alignments.to_map(),
             healths: self.healths.to_map()

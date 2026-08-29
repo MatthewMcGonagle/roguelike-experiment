@@ -1,5 +1,5 @@
 use super::*;
-use super::containers::*;
+use crate::containers::*;
 
 #[derive(Debug, PartialEq)]
 pub struct ComponentTypes {
@@ -21,7 +21,10 @@ impl ComponentTypes {
 impl UsesVecIndexedByEid<Vec<ComponentType>> for ComponentTypes {
     fn the_values(&self) -> &VecIndexedByEid<Vec<ComponentType>> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<ComponentType>> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::ComponentTypeList }
+}
+
+impl AssociatedComponentType for ComponentTypes {
+    fn associated() -> ComponentType { ComponentType::ComponentTypeList }
 }
 
 #[derive(Debug, PartialEq)]
@@ -40,7 +43,10 @@ impl CoordinateComponents {
 impl UsesVecIndexedByEid<Coordinates> for CoordinateComponents {
     fn the_values(&self) -> &VecIndexedByEid<Coordinates> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Coordinates> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Coordinates}
+}
+
+impl AssociatedComponentType for CoordinateComponents {
+    fn associated() -> ComponentType { ComponentType::Coordinates}
 }
 
 #[derive(Debug, PartialEq)]
@@ -59,7 +65,10 @@ impl Blocking {
 impl UsesVecIndexedByEid<BlockingType> for Blocking {
     fn the_values(&self) -> &VecIndexedByEid<BlockingType> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<BlockingType> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Blocking }
+}
+
+impl AssociatedComponentType for Blocking {
+    fn associated() -> ComponentType { ComponentType::Blocking }
 }
 
 #[derive(Debug, PartialEq)]
@@ -78,7 +87,10 @@ impl DecisionTimers {
 impl UsesVecIndexedByEid<Timer> for DecisionTimers {
     fn the_values(&self) -> &VecIndexedByEid<Timer> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Timer> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::DecisionTimer }
+}
+
+impl AssociatedComponentType for DecisionTimers {
+    fn associated() -> ComponentType { ComponentType::DecisionTimer }
 }
 
 #[derive(Debug, PartialEq)]
@@ -95,7 +107,10 @@ impl Ais {
 impl UsesVecIndexedByEid<Ai> for Ais {
     fn the_values(&self) -> &VecIndexedByEid<Ai> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Ai> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Ai }
+}
+
+impl AssociatedComponentType for Ais {
+    fn associated() -> ComponentType { ComponentType::Ai }
 }
 
 #[derive(Debug, PartialEq)]
@@ -112,7 +127,10 @@ impl States {
 impl UsesVecIndexedByEid<u32> for States {
     fn the_values(&self) -> &VecIndexedByEid<u32> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<u32> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::State }
+}
+
+impl AssociatedComponentType for States {
+    fn associated() -> ComponentType { ComponentType::State }
 }
 
 #[derive(Debug, PartialEq)]
@@ -142,24 +160,10 @@ impl Renders {
 impl UsesVecIndexedByEid<Render> for Renders {
     fn the_values(&self) -> &VecIndexedByEid<Render> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Render> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Render }
 }
 
-#[derive(Debug, PartialEq)]
-pub struct Owns {
-    values: VecIndexedByEid<Vec<usize>>
-}
-
-impl Owns {
-    pub fn initialize(capacity: usize) -> Owns {
-        Owns { values: VecIndexedByEid::initialize(capacity) }
-    }
-}
-
-impl UsesVecIndexedByEid<Vec<usize>> for Owns {
-    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Owns }
+impl AssociatedComponentType for Renders {
+    fn associated() -> ComponentType { ComponentType::Render }
 }
 
 #[derive(Debug, PartialEq)]
@@ -176,7 +180,10 @@ impl Owner {
 impl UsesVecIndexedByEid<usize> for Owner {
     fn the_values(&self) -> &VecIndexedByEid<usize> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<usize> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Owner }
+}
+
+impl AssociatedComponentType for Owner {
+    fn associated() -> ComponentType { ComponentType::Owner }
 }
 
 #[derive(Debug, PartialEq)]
@@ -193,7 +200,10 @@ impl Alignments {
 impl UsesVecIndexedByEid<AlignmentType> for Alignments {
     fn the_values(&self) -> &VecIndexedByEid<AlignmentType> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<AlignmentType> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Alignment }
+}
+
+impl AssociatedComponentType for Alignments {
+    fn associated() -> ComponentType { ComponentType::Alignment }
 }
 
 #[derive(Debug, PartialEq)]
@@ -210,5 +220,8 @@ impl Healths {
 impl UsesVecIndexedByEid<i32> for Healths {
     fn the_values(&self) -> &VecIndexedByEid<i32> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<i32> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Health }
+}
+
+impl AssociatedComponentType for Healths {
+    fn associated() -> ComponentType { ComponentType::Health }
 }

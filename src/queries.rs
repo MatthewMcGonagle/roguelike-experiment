@@ -1,9 +1,11 @@
 use crate::components::*;
+use crate::containers::*;
 use crate::data::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Queries {
-    pub coords_query: CoordinatesQuery
+    pub coords_query: CoordinatesQuery,
+    pub owns: Owns
 }
 
 impl Queries {
@@ -51,4 +53,21 @@ impl CoordinatesQuery {
             _ => Err(Errors::SpaceAlreadyNonempty) 
         }
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Owns {
+    values: VecIndexedByEid<Vec<usize>>
+}
+
+impl Owns {
+    pub fn initialize(capacity: usize) -> Owns {
+        Owns { values: VecIndexedByEid::initialize(capacity) }
+    }
+}
+
+impl UsesVecIndexedByEid<Vec<usize>> for Owns {
+    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
+    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
+    fn component_type() -> ComponentType { ComponentType::Owns }
 }
