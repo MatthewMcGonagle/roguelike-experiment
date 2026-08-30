@@ -37,7 +37,6 @@ where
 
 #[derive(Debug, PartialEq)]
 pub struct ComponentMaps {
-    pub component_types: HashMap<usize, Vec<ComponentType>>,
     pub coords: HashMap<usize, Coordinates>,
     pub blocking: HashMap<usize, BlockingType>,
     pub decision_timers: HashMap<usize, Timer>,
@@ -52,7 +51,6 @@ pub struct ComponentMaps {
 impl ComponentMaps {
     pub fn new() -> ComponentMaps {
         ComponentMaps {
-            component_types: HashMap::new(),
             coords: HashMap::new(),
             blocking: HashMap::new(),
             decision_timers: HashMap::new(),
@@ -68,7 +66,6 @@ impl ComponentMaps {
 
 #[derive(Debug, PartialEq)]
 pub struct Components {
-    pub component_types: ComponentTypes,
     pub coords: CoordinateComponents,
     pub blocking: Blocking,
     pub decision_timers: DecisionTimers,
@@ -83,7 +80,6 @@ pub struct Components {
 impl Components {
     pub fn initialize(capacity: usize) -> Components {
         Components {
-            component_types: ComponentTypes::initialize(capacity),
             coords: CoordinateComponents::initialize(capacity),
             blocking: Blocking::initialize(capacity),
             decision_timers: DecisionTimers::initialize(capacity),
@@ -98,7 +94,6 @@ impl Components {
 
     pub fn to_maps(&self) -> ComponentMaps {
         ComponentMaps {
-            component_types: self.component_types.to_map(),
             coords: self.coords.to_map(),
             blocking: self.blocking.to_map(),
             decision_timers: self.decision_timers.to_map(),

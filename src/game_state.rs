@@ -58,7 +58,7 @@ impl GameState {
             reactions_ready: ReactionsReady::initialize(CAPACITY),
             to_kill: ToKill::initialize(CAPACITY),
             components: Components::initialize(CAPACITY),
-            queries: Queries::initialize(coord_width, coord_height),
+            queries: Queries::initialize(CAPACITY, coord_width, coord_height),
             entities: Entities::initialize(initial_max_eid)
         }
     }

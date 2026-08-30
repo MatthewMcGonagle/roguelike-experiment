@@ -2,32 +2,6 @@ use super::*;
 use crate::containers::*;
 
 #[derive(Debug, PartialEq)]
-pub struct ComponentTypes {
-    values: VecIndexedByEid<Vec<ComponentType>>
-}
-
-impl ComponentTypes {
-    pub fn initialize(e_id_capacity: usize) -> ComponentTypes {
-        ComponentTypes { values: VecIndexedByEid::initialize(e_id_capacity) }
-    }
-
-    pub fn push(&mut self, e_id: usize, c_type: ComponentType) -> Result<(), Errors> {
-        let current = self.values.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
-        current.push(c_type);
-        Ok(())
-    }
-}
-
-impl UsesVecIndexedByEid<Vec<ComponentType>> for ComponentTypes {
-    fn the_values(&self) -> &VecIndexedByEid<Vec<ComponentType>> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<ComponentType>> { &mut self.values }
-}
-
-impl AssociatedComponentType for ComponentTypes {
-    fn associated() -> ComponentType { ComponentType::ComponentTypeList }
-}
-
-#[derive(Debug, PartialEq)]
 pub struct CoordinateComponents {
     values: VecIndexedByEid<Coordinates>,
 }
