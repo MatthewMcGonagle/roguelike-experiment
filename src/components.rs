@@ -5,12 +5,16 @@ use crate::data::*;
 use for_entities::*;
 use std::collections::HashMap;
 
-pub trait ComponentData<'a, T, U> where T: 'a, U: ByEid<'a, T> {
+pub trait ComponentData<'a, T, U> where
+    T: 'a + Copy,
+    U: ByEid<'a, T>
+{
     fn by_eid(&self) -> &U;
+    fn mut_by_eid(&mut self) -> &mut U;
     fn component_type() -> ComponentType;
 
     fn add(&mut self, e_id: usize, value: T) -> ComponentType {
-        for x in self.by_eid().get_mut(e_id) {
+        for x in self.mut_by_eid().get_mut(e_id) {
             *x = value;
         }
         Self::component_type()
@@ -23,10 +27,11 @@ pub trait AssociatedComponentType {
 
 impl<'a, T, U> ComponentData<'a, T, U> for U
 where
-    T: 'a,
+    T: 'a + Copy,
     U: ByEid<'a, T> + AssociatedComponentType
 {
     fn by_eid(&self) -> &U { &self }
+    fn mut_by_eid(&mut self) -> &mut U { self }
     fn component_type() -> ComponentType { U::associated() }
 }
 

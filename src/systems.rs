@@ -5,6 +5,7 @@ use sdl3::video::Window;
 
 use crate::components::*;
 use crate::components::for_entities::*;
+use crate::containers::ByEid;
 use crate::data::*;
 use crate::game_state::*;
 use crate::entities::Entities;

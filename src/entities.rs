@@ -1,6 +1,7 @@
 mod free_eids;
 
 use crate::components::*;
+use crate::containers::ByEid;
 use crate::data::*;
 use crate::queries::*;
 use crate::state_storage::*;
@@ -20,7 +21,7 @@ impl Entities {
         }
     }
 
-    fn ensure_coords_free_when_needed(components: &Components, queries: &Queries, entity: &EntityBuffer) -> Result<(), Errors> {
+    fn ensure_coords_free_when_needed(queries: &Queries, entity: &EntityBuffer) -> Result<(), Errors> {
         match entity.blocking {
             Some(BlockingType::Movement) => match entity.coords.as_ref() {
                 Some(c) => {
@@ -38,7 +39,7 @@ impl Entities {
     pub fn ensure_owner_exists(components: &mut Components, entity: &EntityBuffer) -> Result<(), Errors> {
         match entity.owner {
             Some(x) => {
-                if components.component_types.get(x).is_some() {
+                if components.component_types.by_eid().get(x).is_some() {
                     Ok(())
                 } else { Err(Errors::MissingExpectedEid) }
             },
@@ -57,18 +58,18 @@ impl Entities {
         Ok(maybe_space_data)
     }
 
-    pub fn add_to_owner(components: &mut Components, owner_id: usize, e_id: usize) -> () {
-        match components.owns.get_mut(owner_id) {
+    pub fn add_to_owner(queries: &mut Queries, owner_id: usize, e_id: usize) -> () {
+        let result = queries.owns.get_mut(owner_id);
+        match result {
             Some(xs) => xs.push(e_id),
             None => {
-                components.owns.add(owner_id, Vec::from([e_id]));
-                let _ = components.component_types.get_mut(owner_id).map(|ts| ts.push(ComponentType::Owns));
+                result.map(|x| *x =Vec::from([e_id]));
             }
         }
     }
 
     pub fn add_entity_buffer(&mut self, components: &mut Components, queries: &mut Queries, entity: &EntityBuffer) -> Result<usize, Errors> {
-        Entities::ensure_coords_free_when_needed(components, queries, entity)?;
+        Entities::ensure_coords_free_when_needed(queries, entity)?;
         Entities::ensure_owner_exists(components, entity)?;
 
         let e_id = self.free_ids.pop()?;
