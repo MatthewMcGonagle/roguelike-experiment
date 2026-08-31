@@ -6,7 +6,7 @@ use for_entities::*;
 use std::collections::HashMap;
 
 pub trait ComponentData<'a, T, U> where
-    T: 'a + Copy,
+    T: 'a + Clone,
     U: ByEid<'a, T>
 {
     fn by_eid(&self) -> &U;
@@ -15,7 +15,7 @@ pub trait ComponentData<'a, T, U> where
 
     fn add(&mut self, e_id: usize, value: T) -> ComponentType {
         for x in self.mut_by_eid().get_mut(e_id) {
-            *x = value;
+            *x = value.clone();
         }
         Self::component_type()
     }
@@ -27,7 +27,7 @@ pub trait AssociatedComponentType {
 
 impl<'a, T, U> ComponentData<'a, T, U> for U
 where
-    T: 'a + Copy,
+    T: 'a + Clone,
     U: ByEid<'a, T> + AssociatedComponentType
 {
     fn by_eid(&self) -> &U { &self }

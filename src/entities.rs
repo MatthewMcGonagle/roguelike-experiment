@@ -90,7 +90,7 @@ impl Entities {
             entity.render.as_ref().map(|r| components.renders.add(e_id, r.clone())),
             entity.state.as_ref().map(|s| components.states.add(e_id, s.clone()))
         ]).into_iter().flatten().collect();
-        components.component_types.add(e_id, components_added);
+        queries.component_types.add(e_id, components_added);
 
         Ok(e_id)
     }
@@ -211,13 +211,13 @@ impl Entities {
 
         // To avoid borrow checker difficulties, let us just collect a list. This will also help us
         // avoid any dropped linkage errors created by deletion process. 
-        let owns: Vec<usize> = components.owns.get(e_id).into_iter().flat_map(|x| x.clone()).collect();
+        let owns: Vec<usize> = queries.owns.get(e_id).into_iter().flat_map(|x| x.clone()).collect();
         for x in owns {
             self.remove(x, components, queries);
         }
 
         if let Some(&owner) = components.owner.get(e_id) {
-            let maybe_owner_entities = components.owns.get_mut(owner);
+            let maybe_owner_entities = queries.owns.get_mut(owner);
             // map() will consume the value, but &mut is not copyable. So let's get an immutable
             // copy, works better with map().
             let maybe_imm_borrow: Option<& Vec<usize>> = match maybe_owner_entities {
@@ -235,7 +235,7 @@ impl Entities {
             };
         }
 
-        components.component_types.get(e_id).map(
+        queries.component_types.get(e_id).map(
             |c_types| for c_type in c_types { 
                 match c_type {
                     ComponentType::ComponentTypeList => (),
@@ -251,7 +251,7 @@ impl Entities {
                     ComponentType::Ai => components.ais.remove(e_id),
                     ComponentType::State => components.states.remove(e_id),
                     ComponentType::Render => components.renders.remove(e_id),
-                    ComponentType::Owns => components.owns.remove(e_id),
+                    ComponentType::Owns => queries.owns.remove(e_id),
                     ComponentType::Owner => components.owner.remove(e_id),
                     ComponentType::Alignment => components.alignments.remove(e_id),
                     ComponentType::Health => components.healths.remove(e_id)
@@ -259,6 +259,6 @@ impl Entities {
             }
         );
 
-        components.component_types.remove(e_id);
+        queries.component_types.remove(e_id);
     }
 }
