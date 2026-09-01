@@ -36,10 +36,10 @@ impl Entities {
         }
     }
 
-    pub fn ensure_owner_exists(components: &mut Components, entity: &EntityBuffer) -> Result<(), Errors> {
+    pub fn ensure_owner_exists(queries: &mut Queries, entity: &EntityBuffer) -> Result<(), Errors> {
         match entity.owner {
             Some(x) => {
-                if components.component_types.by_eid().get(x).is_some() {
+                if queries.component_types.get(x).is_some() {
                     Ok(())
                 } else { Err(Errors::MissingExpectedEid) }
             },
@@ -70,12 +70,12 @@ impl Entities {
 
     pub fn add_entity_buffer(&mut self, components: &mut Components, queries: &mut Queries, entity: &EntityBuffer) -> Result<usize, Errors> {
         Entities::ensure_coords_free_when_needed(queries, entity)?;
-        Entities::ensure_owner_exists(components, entity)?;
+        Entities::ensure_owner_exists(queries, entity)?;
 
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        entity.owner.map(|o| Entities::add_to_owner(components, o, e_id));
+        entity.owner.map(|o| Entities::add_to_owner(queries, o, e_id));
         let maybe_space_component = Entities::add_to_coords_query_when_needed(queries, entity, e_id)?;
 
         let components_added = Vec::from([
@@ -90,7 +90,7 @@ impl Entities {
             entity.render.as_ref().map(|r| components.renders.add(e_id, r.clone())),
             entity.state.as_ref().map(|s| components.states.add(e_id, s.clone()))
         ]).into_iter().flatten().collect();
-        queries.component_types.add(e_id, components_added);
+        queries.component_types.add_or_replace(e_id, components_added);
 
         Ok(e_id)
     }

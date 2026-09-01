@@ -72,7 +72,6 @@ impl Owns {
 impl UsesVecIndexedByEid<Vec<usize>> for Owns {
     fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
-    fn component_type() -> ComponentType { ComponentType::Owns }
 }
 
 #[derive(Debug, PartialEq)]

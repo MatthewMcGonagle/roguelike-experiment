@@ -14,9 +14,7 @@ pub trait ComponentData<'a, T, U> where
     fn component_type() -> ComponentType;
 
     fn add(&mut self, e_id: usize, value: T) -> ComponentType {
-        for x in self.mut_by_eid().get_mut(e_id) {
-            *x = value.clone();
-        }
+        self.mut_by_eid().add_or_replace(e_id, value);
         Self::component_type()
     }
 }
