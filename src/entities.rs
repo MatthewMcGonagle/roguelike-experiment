@@ -58,7 +58,7 @@ impl Entities {
         Ok(maybe_space_data)
     }
 
-    pub fn add_to_owner(queries: &mut Queries, owner_id: usize, e_id: usize) -> () {
+    pub fn add_to_owns_query(queries: &mut Queries, owner_id: usize, e_id: usize) -> () {
         let result = queries.owns.get_mut(owner_id);
         match result {
             Some(xs) => xs.push(e_id),
@@ -75,7 +75,7 @@ impl Entities {
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        entity.owner.map(|o| Entities::add_to_owner(queries, o, e_id));
+        entity.owner.map(|o| Entities::add_to_owns_query(queries, o, e_id));
         let maybe_space_component = Entities::add_to_coords_query_when_needed(queries, entity, e_id)?;
 
         let components_added = Vec::from([
