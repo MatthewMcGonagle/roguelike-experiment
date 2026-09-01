@@ -8,6 +8,7 @@ pub trait ByEid<'a, T> where T: 'a {
     fn get(&self, e_id: usize) -> Option<&T>;
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
     fn remove(&mut self, e_id: usize);
+    fn add_or_replace(&mut self, e_id: usize, value: T);
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)>;
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)>;
     fn to_map(&self) -> HashMap<usize, T>;
@@ -22,7 +23,7 @@ impl<T: Clone> VecIndexedByEid<T> {
         VecIndexedByEid { values: Vec::with_capacity(capacity) }
     }
 
-    pub fn add(&mut self, e_id: usize, t: T) {
+    pub fn add_or_replace(&mut self, e_id: usize, t: T) {
         let len_needed_for_new = e_id + 1;
         if len_needed_for_new > self.values.len() {
             self.values.resize(len_needed_for_new, None);
@@ -66,6 +67,9 @@ where
     fn get(&self, e_id: usize) -> Option<&T> { self.the_values().get(e_id) }
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T> { self.mut_values().get_mut(e_id) }
     fn remove(&mut self, e_id: usize) { self.mut_values().remove(e_id) }
+    fn add_or_replace(&mut self, e_id: usize, value: T) {
+        self.mut_values().add_or_replace(e_id, value);
+    }
     fn iter_w_eid(&'a self) -> impl Iterator<Item = (usize, &'a Option<T>)> { self.the_values().iter_w_eid() }
     fn iter_mut_w_eid(&'a mut self) -> impl Iterator<Item = (usize, &'a mut Option<T>)> { self.mut_values().iter_mut_w_eid() }
     fn to_map(&self) -> HashMap<usize, T> {
