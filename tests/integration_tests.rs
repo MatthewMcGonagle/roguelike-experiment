@@ -1,6 +1,8 @@
 use roguelike_experiment::components::*;
 use roguelike_experiment::data::*;
 use roguelike_experiment::entities::*;
+use roguelike_experiment::game_state::*;
+use roguelike_experiment::systems::*;
 use std::collections::HashMap;
 
 #[test]
@@ -51,6 +53,43 @@ fn remove_works_on_owned() {
             owns: HashMap::from([
                 (0, Vec::from([]))
             ]),
+            ..ComponentMaps::new()
+        });
+}
+
+#[test]
+fn do_killings_works() {
+    let mut components = Components::initialize(3, 0, 0);
+    let mut entities = Entities::initialize(3);
+
+    let first = entities.add_entity_buffer(
+        &mut components,
+        &EntityBuffer {
+            health: Some(10),
+            ..EntityBuffer::empty()}).unwrap();
+
+    let second = entities.add_entity_buffer(
+        &mut components,
+        &EntityBuffer {
+            health: Some(20),
+            ..EntityBuffer::empty()}).unwrap();
+
+    let second = entities.add_entity_buffer(
+        &mut components,
+        &EntityBuffer {
+            health: Some(30),
+            ..EntityBuffer::empty()}).unwrap();
+
+    let mut to_kill = ToKill { values : Vec::from([second]) };
+
+    do_killings(&mut to_kill, &mut components, &mut entities);
+
+    assert_eq!(
+        components.to_maps(),
+        ComponentMaps {
+            healths: HashMap::from([
+                (0, 10),
+                (2, 30)]),
             ..ComponentMaps::new()
         });
 }
