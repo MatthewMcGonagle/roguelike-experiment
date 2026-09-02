@@ -74,7 +74,7 @@ fn do_killings_works() {
             health: Some(20),
             ..EntityBuffer::empty()}).unwrap();
 
-    let second = entities.add_entity_buffer(
+    let third = entities.add_entity_buffer(
         &mut components,
         &EntityBuffer {
             health: Some(30),
@@ -87,9 +87,12 @@ fn do_killings_works() {
     assert_eq!(
         components.to_maps(),
         ComponentMaps {
+            component_types: HashMap::from([
+                (first, Vec::from([ComponentType::Health])),
+                (third, Vec::from([ComponentType::Health]))]),
             healths: HashMap::from([
-                (0, 10),
-                (2, 30)]),
+                (first, 10),
+                (third, 30)]),
             ..ComponentMaps::new()
         });
 }
