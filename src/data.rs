@@ -49,12 +49,10 @@ pub enum Errors {
 pub enum ComponentType {
     ComponentTypeList,
     Coordinates,
-    CoordinatesQuery,
     DecisionTimer,
     Ai,
     State,
     Render,
-    Owns,
     Owner,
     Blocking,
     Alignment,

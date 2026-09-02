@@ -46,12 +46,12 @@ impl CoordinatesQuery {
         self.values.get_mut(y * self.coord_width + x).ok_or(Errors::CoordinateMissing)
     }
 
-    pub fn add(&mut self, x: usize, y: usize, space_data: SpaceData) -> Result<ComponentType, Errors> {
+    pub fn add(&mut self, x: usize, y: usize, space_data: SpaceData) -> Result<(), Errors> {
         let space = self.get_mut(x, y)?;
         match space {
             SpaceData::Empty => {
                 *space = space_data;
-                Ok(ComponentType::CoordinatesQuery)
+                Ok(())
             },
             _ => Err(Errors::SpaceAlreadyNonempty) 
         }

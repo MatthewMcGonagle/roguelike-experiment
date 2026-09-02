@@ -47,7 +47,7 @@ impl Entities {
         }
     }
 
-    pub fn add_to_coords_query_when_needed(queries: &mut Queries, entity: &EntityBuffer, e_id: usize) -> Result<Option<ComponentType>, Errors> {
+    pub fn add_to_coords_query_when_needed(queries: &mut Queries, entity: &EntityBuffer, e_id: usize) -> Result<(), Errors> {
         let maybe_space_data = match entity.blocking {
             Some(BlockingType::Movement) => entity.coords.as_ref()
                 .map(|c|
@@ -55,7 +55,7 @@ impl Entities {
                 .transpose()?,
             None => None
         };
-        Ok(maybe_space_data)
+        Ok(())
     }
 
     pub fn add_to_owns_query(queries: &mut Queries, owner_id: usize, e_id: usize) -> () {
@@ -76,14 +76,13 @@ impl Entities {
         self.active_ids.push(e_id);
 
         entity.owner.map(|o| Entities::add_to_owns_query(queries, o, e_id));
-        let maybe_space_component = Entities::add_to_coords_query_when_needed(queries, entity, e_id)?;
+        Entities::add_to_coords_query_when_needed(queries, entity, e_id)?;
 
         let components_added = Vec::from([
             entity.ai.as_ref().map(|ai| components.ais.add(e_id, ai.clone())),
             entity.alignment.as_ref().map(|a| components.alignments.add(e_id, a.clone())),
             entity.blocking.as_ref().map(|b| components.blocking.add(e_id, b.clone())),
             entity.coords.as_ref().map(|cs| components.coords.add(e_id, cs.clone())),
-            maybe_space_component,
             entity.decision_timer.as_ref().map(|dt| components.decision_timers.add(e_id, dt.clone())),
             entity.health.as_ref().map(|h| components.healths.add(e_id, h.clone())),
             entity.owner.map(|o| components.owner.add(e_id, o)),
@@ -245,13 +244,11 @@ impl Entities {
                         );
                         components.coords.remove(e_id);
                     },
-                    ComponentType::CoordinatesQuery => (),
                     ComponentType::Blocking => components.blocking.remove(e_id),
                     ComponentType::DecisionTimer => components.decision_timers.remove(e_id),
                     ComponentType::Ai => components.ais.remove(e_id),
                     ComponentType::State => components.states.remove(e_id),
                     ComponentType::Render => components.renders.remove(e_id),
-                    ComponentType::Owns => queries.owns.remove(e_id),
                     ComponentType::Owner => components.owner.remove(e_id),
                     ComponentType::Alignment => components.alignments.remove(e_id),
                     ComponentType::Health => components.healths.remove(e_id)
