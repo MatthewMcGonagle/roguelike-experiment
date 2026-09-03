@@ -23,6 +23,15 @@ impl<T: Clone> VecIndexedByEid<T> {
         VecIndexedByEid { values: Vec::with_capacity(capacity) }
     }
 
+    pub fn from(values: &HashMap<usize, T>) -> VecIndexedByEid<T> {
+        let mut by_eid = VecIndexedByEid::initialize(0);
+        for (eid, t) in values {
+            by_eid.add_or_replace(*eid, t.clone())
+        }
+
+        by_eid
+    }
+
     pub fn add_or_replace(&mut self, e_id: usize, t: T) {
         let len_needed_for_new = e_id + 1;
         if len_needed_for_new > self.values.len() {
