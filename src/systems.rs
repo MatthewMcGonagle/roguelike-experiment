@@ -330,7 +330,7 @@ pub fn do_reactions(reactions_ready: &mut ReactionsReady, to_kill: &mut ToKill) 
 pub fn do_killings(to_kill: &mut ToKill, components: &mut Components, queries: &mut Queries, entities: &mut Entities) {
     while !to_kill.values.is_empty() {
         let e_id = to_kill.values.pop().unwrap();
-        kill_owner(e_id, components, queries, entities);
+        entities.remove(e_id, components);
     }
 }
 
