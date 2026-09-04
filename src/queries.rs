@@ -5,7 +5,7 @@ use crate::data::*;
 #[derive(Debug, PartialEq)]
 pub struct Queries {
     pub coords_query: CoordinatesQuery,
-    pub owns: Owns,
+    pub owns: VecIndexedByEid<Vec<usize>>,
     pub component_types: VecIndexedByEid<Vec<ComponentType>> 
 }
 
@@ -13,7 +13,7 @@ impl Queries {
     pub fn initialize(capacity: usize, coord_width: usize, coord_height: usize) -> Queries {
         Queries {
             coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
-            owns: Owns::initialize(capacity),
+            owns: VecIndexedByEid::initialize(capacity),
             component_types: VecIndexedByEid::initialize(capacity)
         }
     }
@@ -56,20 +56,4 @@ impl CoordinatesQuery {
             _ => Err(Errors::SpaceAlreadyNonempty) 
         }
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Owns {
-    values: VecIndexedByEid<Vec<usize>>
-}
-
-impl Owns {
-    pub fn initialize(capacity: usize) -> Owns {
-        Owns { values: VecIndexedByEid::initialize(capacity) }
-    }
-}
-
-impl UsesVecIndexedByEid<Vec<usize>> for Owns {
-    fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
 }
