@@ -34,6 +34,10 @@ impl<T: Clone> VecIndexedByEid<T> {
         by_eid
     }
 
+    pub fn from_exactly(maybe_values: &Vec<Option<T>>) -> VecIndexedByEid<T> {
+        VecIndexedByEid { values: maybe_values.clone() }
+    }
+
     pub fn add_or_replace(&mut self, e_id: usize, t: T) {
         let len_needed_for_new = e_id + 1;
         if len_needed_for_new > self.values.len() {
