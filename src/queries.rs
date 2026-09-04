@@ -6,7 +6,7 @@ use crate::data::*;
 pub struct Queries {
     pub coords_query: CoordinatesQuery,
     pub owns: Owns,
-    pub component_types: ComponentTypes
+    pub component_types: VecIndexedByEid<Vec<ComponentType>> 
 }
 
 impl Queries {
@@ -14,7 +14,7 @@ impl Queries {
         Queries {
             coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
             owns: Owns::initialize(capacity),
-            component_types: ComponentTypes::initialize(capacity)
+            component_types: VecIndexedByEid::initialize(capacity)
         }
     }
 }
@@ -72,26 +72,4 @@ impl Owns {
 impl UsesVecIndexedByEid<Vec<usize>> for Owns {
     fn the_values(&self) -> &VecIndexedByEid<Vec<usize>> { & self.values }
     fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<usize>> { &mut self.values }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct ComponentTypes {
-    values: VecIndexedByEid<Vec<ComponentType>>
-}
-
-impl ComponentTypes {
-    pub fn initialize(e_id_capacity: usize) -> ComponentTypes {
-        ComponentTypes { values: VecIndexedByEid::initialize(e_id_capacity) }
-    }
-
-    pub fn push(&mut self, e_id: usize, c_type: ComponentType) -> Result<(), Errors> {
-        let current = self.values.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
-        current.push(c_type);
-        Ok(())
-    }
-}
-
-impl UsesVecIndexedByEid<Vec<ComponentType>> for ComponentTypes {
-    fn the_values(&self) -> &VecIndexedByEid<Vec<ComponentType>> { & self.values }
-    fn mut_values(&mut self) -> &mut VecIndexedByEid<Vec<ComponentType>> { &mut self.values }
 }
