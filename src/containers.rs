@@ -4,6 +4,8 @@ use std::slice::Iter;
 use std::slice::IterMut;
 use std::collections::HashMap;
 
+use crate::data::Errors;
+
 pub trait ByEid<'a, T> where T: 'a {
     fn get(&self, e_id: usize) -> Option<&T>;
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
@@ -53,6 +55,16 @@ impl<T: Clone> VecIndexedByEid<T> {
 
 impl<T: PartialEq> PartialEq for VecIndexedByEid<T> {
     fn eq(&self, other: &Self) -> bool { self.values == other.values }
+}
+
+impl<T> VecIndexedByEid<Vec<T>> {
+    pub fn push(&mut self, e_id: usize, t: T) -> Result<(), Errors> {
+        let maybe_current = self.values.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
+        match maybe_current {
+            Some(xs) => Ok(xs.push(t)),
+            None => Err(Errors::MissingExpectedEid) 
+        }
+    }
 }
 
 impl<T: fmt::Debug> fmt::Debug for VecIndexedByEid<T> {
