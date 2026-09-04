@@ -1,4 +1,5 @@
 use roguelike_experiment::components::*;
+use roguelike_experiment::containers::*;
 use roguelike_experiment::data::*;
 use roguelike_experiment::entities::*;
 use roguelike_experiment::game_state::*;
@@ -32,7 +33,7 @@ fn remove_works_on_owner() {
 
     assert_eq!(
         queries,
-        Queries::initialize(0, 0, 0))
+        Queries::initialize(0, 0, 0));
 }
 
 #[test]
@@ -68,7 +69,11 @@ fn remove_works_on_owned() {
         });
     assert_eq!(
         queries,
-        Queries::initialize(2, 0, 0));
+        Queries {
+            component_types: VecIndexedByEid::from_exactly(
+                &Vec::from([Some(Vec::from([])), None])),
+            ..Queries::initialize(0, 0, 0)
+        });
 }
 
 #[test]
@@ -113,4 +118,15 @@ fn do_killings_works() {
                 (third, 30)]),
             ..ComponentMaps::new()
         });
+
+    assert_eq!(
+        queries,
+        Queries {
+            component_types: VecIndexedByEid::from_exactly(
+                &Vec::from([
+                    Some(Vec::from([ComponentType::Health])),
+                    None,
+                    Some(Vec::from([ComponentType::Health]))
+                    ])),
+            ..Queries::initialize(0, 0, 0)});
 }
