@@ -109,7 +109,7 @@ fn remove_works_on_owned() {
         queries,
         Queries {
             component_types: VecIndexedByEid::from_exactly(
-                &Vec::from([Some(Vec::from([])), None])),
+                &vec![Some(vec![]), None]),
             ..Queries::initialize(0, 0, 0)
         });
 }
@@ -141,7 +141,7 @@ fn do_killings_works() {
             health: Some(30),
             ..EntityBuffer::empty()}).unwrap();
 
-    let mut to_kill = ToKill { values : Vec::from([second]) };
+    let mut to_kill = ToKill { values : vec![second] };
 
     do_killings(&mut to_kill, &mut components, &mut queries, &mut entities);
 
@@ -161,10 +161,10 @@ fn do_killings_works() {
         queries,
         Queries {
             component_types: VecIndexedByEid::from_exactly(
-                &Vec::from([
-                    Some(Vec::from([ComponentType::Health])),
+                &vec![
+                    Some(vec![ComponentType::Health]),
                     None,
-                    Some(Vec::from([ComponentType::Health]))
-                    ])),
+                    Some(vec![ComponentType::Health])
+                    ]),
             ..Queries::initialize(0, 0, 0)});
 }
