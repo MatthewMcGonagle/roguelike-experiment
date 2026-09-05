@@ -8,6 +8,44 @@ use roguelike_experiment::systems::*;
 use std::collections::HashMap;
 
 #[test]
+fn add_entity_buffer_works_for_owned() {
+    let mut components = Components::initialize(2);
+    let mut entities = Entities::initialize(2);
+    let mut queries = Queries::initialize(2, 0, 0);
+
+    let owner = entities.add_entity_buffer(
+        &mut components,
+        &mut queries,
+        &EntityBuffer::empty()).unwrap();
+
+    let owned = entities.add_entity_buffer(
+        &mut components,
+        &mut queries,
+        &EntityBuffer {
+            owner: Some(owner),
+            ..EntityBuffer::empty()}).unwrap();
+
+    assert_eq!(
+        components.to_maps(),
+        ComponentMaps {
+            owner: HashMap::from([
+                (owned, owner)]),
+            ..ComponentMaps::new()});
+
+    assert_eq!(
+        queries,
+        Queries {
+            component_types: [
+                (owner, vec![]),
+                (owned, vec![ComponentType::Owner])
+                ].into(),
+            owns: [
+                (owner, vec![owned])
+                ].into(),
+            ..Queries::initialize(2, 0, 0)});
+}
+
+#[test]
 fn remove_works_on_owner() {
     let mut components = Components::initialize(2);
     let mut entities = Entities::initialize(2);

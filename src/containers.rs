@@ -25,15 +25,6 @@ impl<T: Clone> VecIndexedByEid<T> {
         VecIndexedByEid { values: Vec::with_capacity(capacity) }
     }
 
-    pub fn from(values: &HashMap<usize, T>) -> VecIndexedByEid<T> {
-        let mut by_eid = VecIndexedByEid::initialize(0);
-        for (eid, t) in values {
-            by_eid.add_or_replace(*eid, t.clone())
-        }
-
-        by_eid
-    }
-
     pub fn from_exactly(maybe_values: &Vec<Option<T>>) -> VecIndexedByEid<T> {
         VecIndexedByEid { values: maybe_values.clone() }
     }
@@ -55,6 +46,17 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn iter_mut_w_eid(&mut self) -> Enumerate<IterMut<'_, Option<T>>> { self.values.iter_mut().enumerate() }
 
     pub fn remove(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
+}
+
+impl<T: Clone, const N: usize> From<[(usize, T); N]> for VecIndexedByEid<T> {
+    fn from(values: [(usize, T); N]) -> Self {
+        let mut by_eid = VecIndexedByEid::initialize(0);
+        for (eid, t) in values {
+            by_eid.add_or_replace(eid, t)
+        }
+
+        by_eid
+    }
 }
 
 impl<T: PartialEq> PartialEq for VecIndexedByEid<T> {
