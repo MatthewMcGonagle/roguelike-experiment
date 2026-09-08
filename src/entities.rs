@@ -63,7 +63,7 @@ impl Entities {
         match result {
             Some(xs) => xs.push(e_id),
             None => {
-                result.map(|x| *x =Vec::from([e_id]));
+                result.map(|x| *x = vec![e_id]);
             }
         }
     }

@@ -20,21 +20,9 @@ pub struct VecIndexedByEid<T> {
     values: Vec<Option<T>>
 }
 
-impl<T: Clone> VecIndexedByEid<T> {
+impl<T> VecIndexedByEid<T> {
     pub fn initialize(capacity: usize) -> VecIndexedByEid<T> {
         VecIndexedByEid { values: Vec::with_capacity(capacity) }
-    }
-
-    pub fn from_exactly(maybe_values: &Vec<Option<T>>) -> VecIndexedByEid<T> {
-        VecIndexedByEid { values: maybe_values.clone() }
-    }
-
-    pub fn add_or_replace(&mut self, e_id: usize, t: T) {
-        let len_needed_for_new = e_id + 1;
-        if len_needed_for_new > self.values.len() {
-            self.values.resize(len_needed_for_new, None);
-        }
-        self.values[e_id] = Some(t);
     }
 
     pub fn get(&self, e_id: usize) -> Option<&T> { self.values.get(e_id).map(|x| x.as_ref()).flatten() }
@@ -46,6 +34,20 @@ impl<T: Clone> VecIndexedByEid<T> {
     pub fn iter_mut_w_eid(&mut self) -> Enumerate<IterMut<'_, Option<T>>> { self.values.iter_mut().enumerate() }
 
     pub fn remove(&mut self, e_id: usize) { self.values.get_mut(e_id).map(|maybe_x| *maybe_x = None); } 
+}
+
+impl<T: Clone> VecIndexedByEid<T> {
+    pub fn from_exactly(maybe_values: &Vec<Option<T>>) -> VecIndexedByEid<T> {
+        VecIndexedByEid { values: maybe_values.clone() }
+    }
+
+    pub fn add_or_replace(&mut self, e_id: usize, t: T) {
+        let len_needed_for_new = e_id + 1;
+        if len_needed_for_new > self.values.len() {
+            self.values.resize(len_needed_for_new, None);
+        }
+        self.values[e_id] = Some(t);
+    }
 }
 
 impl<T: Clone, const N: usize> From<[(usize, T); N]> for VecIndexedByEid<T> {
@@ -63,13 +65,13 @@ impl<T: PartialEq> PartialEq for VecIndexedByEid<T> {
     fn eq(&self, other: &Self) -> bool { self.values == other.values }
 }
 
-impl<T> VecIndexedByEid<Vec<T>> {
-    pub fn push(&mut self, e_id: usize, t: T) -> Result<(), Errors> {
-        let maybe_current = self.values.get_mut(e_id).ok_or(Errors::MissingExpectedEid)?;
+impl<T: Clone> VecIndexedByEid<Vec<T>> {
+    pub fn create_or_push(&mut self, e_id: usize, t: T) {
+        let maybe_current = self.get_mut(e_id);
         match maybe_current {
-            Some(xs) => Ok(xs.push(t)),
-            None => Err(Errors::MissingExpectedEid) 
-        }
+            Some(xs) => xs.push(t),
+            None => self.add_or_replace(e_id, vec![t])
+        };
     }
 }
 
