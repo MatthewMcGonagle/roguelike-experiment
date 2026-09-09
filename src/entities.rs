@@ -59,13 +59,7 @@ impl Entities {
     }
 
     pub fn add_to_owns_query(queries: &mut Queries, owner_id: usize, e_id: usize) -> () {
-        let result = queries.owns.get_mut(owner_id);
-        match result {
-            Some(xs) => xs.push(e_id),
-            None => {
-                result.map(|x| *x = vec![e_id]);
-            }
-        }
+        queries.owns.create_or_push(owner_id, e_id);
     }
 
     pub fn add_entity_buffer(&mut self, components: &mut Components, queries: &mut Queries, entity: &EntityBuffer) -> Result<usize, Errors> {
