@@ -210,22 +210,7 @@ impl Entities {
         }
 
         if let Some(&owner) = components.owner.get(e_id) {
-            let maybe_owner_entities = queries.owns.get_mut(owner);
-            // map() will consume the value, but &mut is not copyable. So let's get an immutable
-            // copy, works better with map().
-            let maybe_imm_borrow: Option<& Vec<usize>> = match maybe_owner_entities {
-                Some(ref xs) => Some(xs),
-                None => None
-            };
-
-            let maybe_pos = maybe_imm_borrow
-                .map(|xs| xs.iter().position(|x| *x == e_id))
-                .flatten();
-
-            match maybe_pos {
-                Some(pos) => maybe_owner_entities.map(|owner_entities| owner_entities.swap_remove(pos)),
-                None => None
-            };
+            queries.owns.remove_item_or_destroy(owner, e_id);
         }
 
         queries.component_types.get(e_id).map(

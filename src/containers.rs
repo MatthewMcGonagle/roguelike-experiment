@@ -75,6 +75,24 @@ impl<T: Clone> VecIndexedByEid<Vec<T>> {
     }
 }
 
+impl<T: PartialEq> VecIndexedByEid<Vec<T>> {
+    pub fn remove_item_or_destroy(&mut self, e_id: usize, t: T) {
+        let mut maybe_values = self.get_mut(e_id);
+        let maybe_pos: Option<usize> = maybe_values.as_ref().map(|ts| ts.iter().position(|x| *x == t)).flatten();
+
+        maybe_pos.map(
+            |pos|
+            maybe_values.as_mut().map(
+                |t_values|
+                t_values.swap_remove(pos)));
+
+        let is_empty = maybe_values.map(|t_vals| t_vals.len() == 0).unwrap_or_else(|| false);
+        if is_empty {
+            self.remove(e_id);
+        }
+    }
+}
+
 impl<T: fmt::Debug> fmt::Debug for VecIndexedByEid<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("VecIndexedByEid")
