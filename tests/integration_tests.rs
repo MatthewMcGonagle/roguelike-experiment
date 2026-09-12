@@ -112,6 +112,7 @@ fn remove_works_on_owned() {
     assert_eq!(
         queries,
         Queries {
+            owns: VecIndexedByEid::from_exactly(&vec![None]),
             component_types: VecIndexedByEid::from_exactly(
                 &vec![Some(vec![]), None]),
             ..Queries::initialize(0, 0, 0)
