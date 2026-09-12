@@ -39,6 +39,7 @@ pub enum Errors {
     UnknownWorldState(String),
     CoordinateMissing,
     MissingExpectedEid,
+    MissingOwner(usize),
     SpaceAlreadyNonempty,
     UnexpectedlyEmpty,
     NotExpectingAiForUser,
@@ -104,7 +105,7 @@ impl Timer {
 pub enum Ai {
     AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
-    Kill,
+    KillOwner,
     User
 }
 

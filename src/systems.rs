@@ -123,7 +123,7 @@ fn spawn_square(e_id: usize, components: &mut Components, queries: &mut Queries,
 }
 
 fn kill_owner(e_id: usize, components: &mut Components, queries: &mut Queries, entities: &mut Entities) {
-    let maybe_owner = components.owner.get(e_id).clone().map(|&x| x.clone()); 
+    let maybe_owner = components.owner.get(e_id).clone().map(|x| x.clone()); 
     if let Some(owner) = maybe_owner {
         entities.remove(owner, components, queries);
     }
@@ -178,7 +178,7 @@ fn make_decision(e_id: usize, ai: &mut Ai, components: &Components, queries: &Qu
     match ai {
         Ai::AlternateDirections(s,dir0, dir1) => decide_alternate_directions(e_id, s, dir0, dir1, components, queries),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
-        Ai::Kill => Ok(Action::Kill(e_id)),
+        Ai::KillOwner => components.owner.get(e_id).map(|&o| Action::Kill(o)).ok_or_else(|| Errors::MissingOwner(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser)
     }
 }

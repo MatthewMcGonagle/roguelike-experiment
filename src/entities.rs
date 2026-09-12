@@ -172,7 +172,7 @@ impl Entities {
 
     pub fn add_kill_timer(&mut self, components: &mut Components, queries: &mut Queries, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
         let entity_data = EntityBuffer {
-            ai: Some(Ai::Kill),
+            ai: Some(Ai::KillOwner),
             alignment: None,
             blocking: None,
             coords: None,
