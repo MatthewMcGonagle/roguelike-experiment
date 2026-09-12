@@ -71,7 +71,11 @@ fn remove_works_on_owner() {
 
     assert_eq!(
         queries,
-        Queries::initialize(0, 0, 0));
+        Queries {
+            component_types: VecIndexedByEid::from_exactly(&vec![None, None]),
+            owns: VecIndexedByEid::from_exactly(&vec![None]),
+            ..Queries::initialize(0, 0, 0)
+        });
 }
 
 #[test]
