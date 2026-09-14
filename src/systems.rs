@@ -122,13 +122,6 @@ fn spawn_square(e_id: usize, components: &mut Components, queries: &mut Queries,
     }
 }
 
-fn kill_owner(e_id: usize, components: &mut Components, queries: &mut Queries, entities: &mut Entities) {
-    let maybe_owner = components.owner.get(e_id).clone().map(|x| x.clone()); 
-    if let Some(owner) = maybe_owner {
-        entities.remove(owner, components, queries);
-    }
-}
-
 fn decide_alternate_directions(
     e_id: usize, state: &mut usize, dir0: &Direction, dir1: &Direction, components: &Components, queries: &Queries) -> Result<Action, Errors> {
     let coords = components.coords.get(e_id).ok_or(Errors::MissingExpectedEid)?;
