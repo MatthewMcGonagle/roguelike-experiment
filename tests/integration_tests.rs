@@ -173,3 +173,31 @@ fn do_killings_works() {
                     ]),
             ..Queries::initialize(0, 0, 0)});
 }
+
+#[test]
+fn ai_kill_owner_decision_works() {
+    let mut game_state = GameState::initialize(2, LoopState::MakeDecisions, Display::empty(), 0, 0);
+    let owner = game_state.entities.add_entity_buffer(
+        &mut game_state.components,
+        &mut game_state.queries,
+        &EntityBuffer::empty()).unwrap();
+    let kill_timer = game_state.entities.add_kill_timer(&mut game_state.components, &mut game_state.queries, 1, owner).unwrap();
+
+    update_timers(&mut game_state.components.decision_timers, &mut game_state.decisions_ready);
+    let _ =
+        make_decisions(&mut game_state.decisions_ready, &mut game_state.components, &mut game_state.queries, &mut game_state.planned_actions).unwrap();
+    do_actions(&mut game_state).unwrap();
+    do_killings(&mut game_state.to_kill, &mut game_state.components, &mut game_state.queries, &mut game_state.entities);
+
+    assert_eq!(
+        game_state.components.to_maps(),
+        ComponentMaps::new());
+
+    assert_eq!(
+        game_state.queries,
+        Queries {
+            component_types: VecIndexedByEid::from_exactly(&vec![None, None]),
+            owns: VecIndexedByEid::from_exactly(&vec![None]),
+            ..Queries::initialize(0, 0, 0)
+        });
+}
