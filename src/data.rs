@@ -145,6 +145,12 @@ pub struct Display {
     pub coord_scale: usize
 }
 
+impl Display {
+    pub fn empty() -> Display {
+        Display { width: 0, height: 0, coord_scale: 0}
+    }
+}
+
 #[derive(PartialEq)]
 pub enum LoopState {
     RunTimers,
