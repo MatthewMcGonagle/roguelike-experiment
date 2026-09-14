@@ -48,7 +48,7 @@ impl Entities {
     }
 
     pub fn add_to_coords_query_when_needed(queries: &mut Queries, entity: &EntityBuffer, e_id: usize) -> Result<(), Errors> {
-        let maybe_space_data = match entity.blocking {
+        let _ = match entity.blocking {
             Some(BlockingType::Movement) => entity.coords.as_ref()
                 .map(|c|
                     queries.coords_query.add(c.x, c.y, SpaceData::HasEid(e_id)))

@@ -4,8 +4,6 @@ use std::slice::Iter;
 use std::slice::IterMut;
 use std::collections::HashMap;
 
-use crate::data::Errors;
-
 pub trait ByEid<'a, T> where T: 'a {
     fn get(&self, e_id: usize) -> Option<&T>;
     fn get_mut(&mut self, e_id: usize) -> Option<&mut T>;
