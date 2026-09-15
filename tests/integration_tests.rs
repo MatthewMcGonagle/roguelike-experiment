@@ -101,12 +101,6 @@ fn remove_works_on_owned() {
     assert_eq!(
         components.to_maps(),
         ComponentMaps {
-            // component_types: HashMap::from([
-            //     (0, Vec::from([ComponentType::Owns]))
-            // ]),
-            // owns: HashMap::from([
-            //     (0, Vec::from([]))
-            // ]),
             ..ComponentMaps::new()
         });
     assert_eq!(
@@ -153,9 +147,6 @@ fn do_killings_works() {
     assert_eq!(
         components.to_maps(),
         ComponentMaps {
-            // component_types: HashMap::from([
-            //     (first, Vec::from([ComponentType::Health])),
-            //     (third, Vec::from([ComponentType::Health]))]),
             healths: HashMap::from([
                 (first, 10),
                 (third, 30)]),
@@ -181,7 +172,7 @@ fn ai_kill_owner_decision_works() {
         &mut game_state.components,
         &mut game_state.queries,
         &EntityBuffer::empty()).unwrap();
-    let kill_timer = game_state.entities.add_kill_timer(&mut game_state.components, &mut game_state.queries, 1, owner).unwrap();
+    let _ = game_state.entities.add_kill_timer(&mut game_state.components, &mut game_state.queries, 1, owner).unwrap();
 
     update_timers(&mut game_state.components.decision_timers, &mut game_state.decisions_ready);
     let _ =
