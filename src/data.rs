@@ -39,6 +39,7 @@ pub enum Errors {
     UnknownWorldState(String),
     CoordinateMissing,
     MissingExpectedEid,
+    MissingOwner(usize),
     SpaceAlreadyNonempty,
     UnexpectedlyEmpty,
     NotExpectingAiForUser,
@@ -49,12 +50,10 @@ pub enum Errors {
 pub enum ComponentType {
     ComponentTypeList,
     Coordinates,
-    CoordinatesQuery,
     DecisionTimer,
     Ai,
     State,
     Render,
-    Owns,
     Owner,
     Blocking,
     Alignment,
@@ -106,7 +105,7 @@ impl Timer {
 pub enum Ai {
     AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
-    Kill,
+    KillOwner,
     User
 }
 
@@ -144,6 +143,12 @@ pub struct Display {
     pub width: u32,
     pub height: u32,
     pub coord_scale: usize
+}
+
+impl Display {
+    pub fn empty() -> Display {
+        Display { width: 0, height: 0, coord_scale: 0}
+    }
 }
 
 #[derive(PartialEq)]

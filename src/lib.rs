@@ -1,7 +1,9 @@
 pub mod components;
+pub mod containers;
 pub mod data;
 pub mod entities;
 pub mod game_state;
+pub mod queries;
 pub mod state_storage;
 pub mod world_state;
 pub mod systems;

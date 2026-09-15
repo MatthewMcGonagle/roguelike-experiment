@@ -47,10 +47,10 @@ pub fn safe_main() -> Result<(), Errors> {
         .expect("State storage file not found.");
     let state_store: state_storage::StateStorage = toml::from_str(&state_store_string).expect("Can't parse toml string.");
 
-    game_state.entities.add_state_storage(&mut game_state.components, &state_store)?;
+    game_state.entities.add_state_storage(&mut game_state.components, &mut game_state.queries, &state_store)?;
 
     let world_states = world_state::parse_world_state(&state_store.map)?;
-    add_world_states(&mut game_state.entities, &mut game_state.components, world_states)?;
+    add_world_states(&mut game_state.entities, &mut game_state.components, &mut game_state.queries, world_states)?;
 
     'running: loop {
         i = (i + 1) % 255;
@@ -78,7 +78,7 @@ pub fn safe_main() -> Result<(), Errors> {
 
         if game_state.loop_state == LoopState::MakeDecisions {
             let maybe_loop_state = make_decisions(
-                &mut game_state.decisions_ready, &mut game_state.components, &mut game_state.planned_actions)?;
+                &mut game_state.decisions_ready, &mut game_state.components, &mut game_state.queries, &mut game_state.planned_actions)?;
             game_state.loop_state = match maybe_loop_state {
                 Some(LoopState::User(e_id)) => {
                     println!("Player turn for {e_id}");
@@ -94,7 +94,7 @@ pub fn safe_main() -> Result<(), Errors> {
             LoopState::User(e_id) => match key_press {
                 Some(k) => {
                     match make_user_decision(
-                        e_id, &k, &mut game_state.planned_actions, &game_state.components)? {
+                        e_id, &k, &mut game_state.planned_actions, &game_state.components, &game_state.queries)? {
                         Some(l) => game_state.loop_state = l,
                         _ => {}
                     }
@@ -107,7 +107,7 @@ pub fn safe_main() -> Result<(), Errors> {
         if game_state.loop_state == LoopState::DoActions {
             do_actions(&mut game_state)?;
             do_reactions(&mut game_state.reactions_ready, &mut game_state.to_kill);
-            do_killings(&mut game_state.to_kill, &mut game_state.components, &mut game_state.entities);
+            do_killings(&mut game_state.to_kill, &mut game_state.components, &mut game_state.queries, &mut game_state.entities);
             game_state.loop_state = LoopState::RunTimers;
         }
 

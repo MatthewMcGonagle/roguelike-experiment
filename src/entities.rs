@@ -1,7 +1,9 @@
 mod free_eids;
 
 use crate::components::*;
+use crate::containers::ByEid;
 use crate::data::*;
+use crate::queries::*;
 use crate::state_storage::*;
 use free_eids::FreeEids;
 use std::collections::HashMap;
@@ -19,11 +21,11 @@ impl Entities {
         }
     }
 
-    fn ensure_coords_free_when_needed(components: &Components, entity: &EntityBuffer) -> Result<(), Errors> {
+    fn ensure_coords_free_when_needed(queries: &Queries, entity: &EntityBuffer) -> Result<(), Errors> {
         match entity.blocking {
             Some(BlockingType::Movement) => match entity.coords.as_ref() {
                 Some(c) => {
-                    let space_data = components.coords_query.get(c.x, c.y)?;
+                    let space_data = queries.coords_query.get(c.x, c.y)?;
                     if let SpaceData::Empty = space_data {
                         Ok(())
                     } else { Err(Errors::SpaceAlreadyNonempty) }
@@ -34,10 +36,10 @@ impl Entities {
         }
     }
 
-    pub fn ensure_owner_exists(components: &mut Components, entity: &EntityBuffer) -> Result<(), Errors> {
+    pub fn ensure_owner_exists(queries: &mut Queries, entity: &EntityBuffer) -> Result<(), Errors> {
         match entity.owner {
             Some(x) => {
-                if components.component_types.get(x).is_some() {
+                if queries.component_types.get(x).is_some() {
                     Ok(())
                 } else { Err(Errors::MissingExpectedEid) }
             },
@@ -45,55 +47,48 @@ impl Entities {
         }
     }
 
-    pub fn add_to_coords_query_when_needed(components: &mut Components, entity: &EntityBuffer, e_id: usize) -> Result<Option<ComponentType>, Errors> {
-        let maybe_space_data = match entity.blocking {
+    pub fn add_to_coords_query_when_needed(queries: &mut Queries, entity: &EntityBuffer, e_id: usize) -> Result<(), Errors> {
+        let _ = match entity.blocking {
             Some(BlockingType::Movement) => entity.coords.as_ref()
                 .map(|c|
-                    components.coords_query.add(c.x, c.y, SpaceData::HasEid(e_id)))
+                    queries.coords_query.add(c.x, c.y, SpaceData::HasEid(e_id)))
                 .transpose()?,
             None => None
         };
-        Ok(maybe_space_data)
+        Ok(())
     }
 
-    pub fn add_to_owner(components: &mut Components, owner_id: usize, e_id: usize) -> () {
-        match components.owns.get_mut(owner_id) {
-            Some(xs) => xs.push(e_id),
-            None => {
-                components.owns.add(owner_id, Vec::from([e_id]));
-                let _ = components.component_types.get_mut(owner_id).map(|ts| ts.push(ComponentType::Owns));
-            }
-        }
+    pub fn add_to_owns_query(queries: &mut Queries, owner_id: usize, e_id: usize) -> () {
+        queries.owns.create_or_push(owner_id, e_id);
     }
 
-    pub fn add_entity_buffer(&mut self, components: &mut Components, entity: &EntityBuffer) -> Result<usize, Errors> {
-        Entities::ensure_coords_free_when_needed(components, entity)?;
-        Entities::ensure_owner_exists(components, entity)?;
+    pub fn add_entity_buffer(&mut self, components: &mut Components, queries: &mut Queries, entity: &EntityBuffer) -> Result<usize, Errors> {
+        Entities::ensure_coords_free_when_needed(queries, entity)?;
+        Entities::ensure_owner_exists(queries, entity)?;
 
         let e_id = self.free_ids.pop()?;
         self.active_ids.push(e_id);
 
-        entity.owner.map(|o| Entities::add_to_owner(components, o, e_id));
-        let maybe_space_component = Entities::add_to_coords_query_when_needed(components, entity, e_id)?;
+        entity.owner.map(|o| Entities::add_to_owns_query(queries, o, e_id));
+        Entities::add_to_coords_query_when_needed(queries, entity, e_id)?;
 
         let components_added = Vec::from([
             entity.ai.as_ref().map(|ai| components.ais.add(e_id, ai.clone())),
             entity.alignment.as_ref().map(|a| components.alignments.add(e_id, a.clone())),
             entity.blocking.as_ref().map(|b| components.blocking.add(e_id, b.clone())),
             entity.coords.as_ref().map(|cs| components.coords.add(e_id, cs.clone())),
-            maybe_space_component,
             entity.decision_timer.as_ref().map(|dt| components.decision_timers.add(e_id, dt.clone())),
             entity.health.as_ref().map(|h| components.healths.add(e_id, h.clone())),
             entity.owner.map(|o| components.owner.add(e_id, o)),
             entity.render.as_ref().map(|r| components.renders.add(e_id, r.clone())),
             entity.state.as_ref().map(|s| components.states.add(e_id, s.clone()))
         ]).into_iter().flatten().collect();
-        components.component_types.add(e_id, components_added);
+        queries.component_types.add_or_replace(e_id, components_added);
 
         Ok(e_id)
     }
 
-    pub fn add_state_storage(&mut self, components: &mut Components, state_store: &StateStorage) -> Result<(), Errors> {
+    pub fn add_state_storage(&mut self, components: &mut Components, queries: &mut Queries, state_store: &StateStorage) -> Result<(), Errors> {
         let mut sid_to_eid: HashMap<usize, usize> = HashMap::new();
         let mut updated_owner;
 
@@ -108,14 +103,14 @@ impl Entities {
                 } else {
                     &entity.entity
                 };
-            let e_id = self.add_entity_buffer(components, with_updated_owner)?;
+            let e_id = self.add_entity_buffer(components, queries, with_updated_owner)?;
             sid_to_eid.insert(entity.sid, e_id);
         }
 
         Ok(())
     }
 
-    pub fn add_wall_block(&mut self, components: &mut Components, coords: Coordinates, render: Render) -> Result<usize, Errors> {
+    pub fn add_wall_block(&mut self, components: &mut Components, queries: &mut Queries, coords: Coordinates, render: Render) -> Result<usize, Errors> {
         let entity_data = EntityBuffer {
             ai: None,
             alignment: None,
@@ -128,11 +123,19 @@ impl Entities {
             state: None
         };
 
-        self.add_entity_buffer(components, &entity_data)
+        self.add_entity_buffer(components, queries, &entity_data)
     }
 
     pub fn add_timed_square(
-        &mut self, components: &mut Components, coords: Coordinates, time_size: u32, ai: Ai, alignment: AlignmentType, health: i32, render: Render
+        &mut self,
+        components: &mut Components,
+        queries: &mut Queries,
+        coords: Coordinates,
+        time_size: u32,
+        ai: Ai,
+        alignment: AlignmentType,
+        health: i32,
+        render: Render
     ) -> Result<usize, Errors> {
         let entity_data = EntityBuffer {
             ai: Some(ai),
@@ -146,10 +149,11 @@ impl Entities {
             state: None
         };
 
-        self.add_entity_buffer(components, &entity_data)
+        self.add_entity_buffer(components, queries, &entity_data)
     } 
 
-    pub fn add_timed_square_creator(&mut self, components: &mut Components, coords: Coordinates, time_size: u32) -> Result<(), Errors> {
+    pub fn add_timed_square_creator(
+        &mut self, components: &mut Components, queries: &mut Queries, coords: Coordinates, time_size: u32) -> Result<(), Errors> {
         let entity_data = EntityBuffer {
             ai: Some(Ai::AddAvailableSquare),
             alignment: None,
@@ -162,13 +166,13 @@ impl Entities {
             state: Some(0)
         };
 
-        let _ = self.add_entity_buffer(components, &entity_data)?;
+        let _ = self.add_entity_buffer(components, queries, &entity_data)?;
         Ok(())
     }
 
-    pub fn add_kill_timer(&mut self, components: &mut Components, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
+    pub fn add_kill_timer(&mut self, components: &mut Components, queries: &mut Queries, time_size: u32, target_e_id: usize) -> Result<(), Errors> {
         let entity_data = EntityBuffer {
-            ai: Some(Ai::Kill),
+            ai: Some(Ai::KillOwner),
             alignment: None,
             blocking: None,
             coords: None,
@@ -179,11 +183,11 @@ impl Entities {
             state: None
         };
 
-        let _ = self.add_entity_buffer(components, &entity_data)?;
+        let _ = self.add_entity_buffer(components, queries, &entity_data)?;
         Ok(())
     }
 
-    pub fn remove(&mut self, e_id: usize, components: &mut Components) {
+    pub fn remove(&mut self, e_id: usize, components: &mut Components, queries: &mut Queries) {
         // Should only be one element.
         let inds: Vec<usize> =
             self.active_ids.iter().enumerate()
@@ -200,47 +204,30 @@ impl Entities {
 
         // To avoid borrow checker difficulties, let us just collect a list. This will also help us
         // avoid any dropped linkage errors created by deletion process. 
-        let owns: Vec<usize> = components.owns.get(e_id).into_iter().flat_map(|x| x.clone()).collect();
+        let owns: Vec<usize> = queries.owns.get(e_id).into_iter().flat_map(|x| x.clone()).collect();
         for x in owns {
-            self.remove(x, components);
+            self.remove(x, components, queries);
         }
 
         if let Some(&owner) = components.owner.get(e_id) {
-            let maybe_owner_entities = components.owns.get_mut(owner);
-            // map() will consume the value, but &mut is not copyable. So let's get an immutable
-            // copy, works better with map().
-            let maybe_imm_borrow: Option<& Vec<usize>> = match maybe_owner_entities {
-                Some(ref xs) => Some(xs),
-                None => None
-            };
-
-            let maybe_pos = maybe_imm_borrow
-                .map(|xs| xs.iter().position(|x| *x == e_id))
-                .flatten();
-
-            match maybe_pos {
-                Some(pos) => maybe_owner_entities.map(|owner_entities| owner_entities.swap_remove(pos)),
-                None => None
-            };
+            queries.owns.remove_item_or_destroy(owner, e_id);
         }
 
-        components.component_types.get(e_id).map(
+        queries.component_types.get(e_id).map(
             |c_types| for c_type in c_types { 
                 match c_type {
                     ComponentType::ComponentTypeList => (),
                     ComponentType::Coordinates => {
                         components.coords.get(e_id).map(|c|
-                            components.coords_query.get_mut(c.x, c.y).map(|s| *s = SpaceData::Empty)
+                            queries.coords_query.get_mut(c.x, c.y).map(|s| *s = SpaceData::Empty)
                         );
                         components.coords.remove(e_id);
                     },
-                    ComponentType::CoordinatesQuery => (),
                     ComponentType::Blocking => components.blocking.remove(e_id),
                     ComponentType::DecisionTimer => components.decision_timers.remove(e_id),
                     ComponentType::Ai => components.ais.remove(e_id),
                     ComponentType::State => components.states.remove(e_id),
                     ComponentType::Render => components.renders.remove(e_id),
-                    ComponentType::Owns => components.owns.remove(e_id),
                     ComponentType::Owner => components.owner.remove(e_id),
                     ComponentType::Alignment => components.alignments.remove(e_id),
                     ComponentType::Health => components.healths.remove(e_id)
@@ -248,6 +235,6 @@ impl Entities {
             }
         );
 
-        components.component_types.remove(e_id);
+        queries.component_types.remove(e_id);
     }
 }
