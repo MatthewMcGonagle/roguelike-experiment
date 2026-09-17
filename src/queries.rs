@@ -1,11 +1,13 @@
 use crate::containers::*;
 use crate::data::*;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct Queries {
     pub coords_query: CoordinatesQuery,
     pub owns: VecIndexedByEid<Vec<usize>>,
-    pub component_types: VecIndexedByEid<Vec<ComponentType>> 
+    pub component_types: VecIndexedByEid<Vec<ComponentType>>,
+    pub alignments: HashMap<AlignmentType, u32>
 }
 
 impl Queries {
@@ -13,7 +15,8 @@ impl Queries {
         Queries {
             coords_query: CoordinatesQuery::initialize(coord_width, coord_height),
             owns: VecIndexedByEid::initialize(capacity),
-            component_types: VecIndexedByEid::initialize(capacity)
+            component_types: VecIndexedByEid::initialize(capacity),
+            alignments: HashMap::with_capacity(capacity)
         }
     }
 }
