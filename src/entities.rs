@@ -229,7 +229,11 @@ impl Entities {
                     ComponentType::State => components.states.remove(e_id),
                     ComponentType::Render => components.renders.remove(e_id),
                     ComponentType::Owner => components.owner.remove(e_id),
-                    ComponentType::Alignment => components.alignments.remove(e_id),
+                    ComponentType::Alignment => {
+                        components.alignments.get(e_id).clone().map(|a|
+                            queries.alignments.get_mut(a).as_mut().map(|es| es.remove(&e_id)));
+                        components.alignments.remove(e_id)
+                    },
                     ComponentType::Health => components.healths.remove(e_id)
                 }
             }

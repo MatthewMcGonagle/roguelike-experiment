@@ -7,7 +7,7 @@ pub struct Queries {
     pub coords_query: CoordinatesQuery,
     pub owns: VecIndexedByEid<Vec<usize>>,
     pub component_types: VecIndexedByEid<Vec<ComponentType>>,
-    pub alignments: HashMap<AlignmentType, HashSet<u32>>
+    pub alignments: HashMap<AlignmentType, HashSet<usize>>
 }
 
 impl Queries {
