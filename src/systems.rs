@@ -192,11 +192,18 @@ fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Re
         .collect::<Vec<_>>();
 
     let target = targets.get(0);
+    let direction = target.map(|t| 
+        (
+            ((t.x as i32) - (coords.x as i32)).signum(),
+            ((t.x as i32) - (coords.x as i32)).signum())
+        );
+
     let move_target = target.map(|t|
-        Coordinates {
-            x: ((coords.x as i32) + ((t.x as i32) - (coords.x as i32)).signum()) as usize,
-            y: ((coords.y as i32) + ((t.y as i32) - (coords.y as i32)).signum()) as usize
-        });
+        direction.map(|(dx, dy)|
+            Coordinates {
+                x: ((coords.x as i32) + dx) as usize,
+                y: ((coords.y as i32) + dy) as usize
+                }));
 
     Ok(Action::Wait)
 }
