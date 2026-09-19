@@ -191,6 +191,13 @@ fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Re
         .filter(|target_c| distance_squared(coords, target_c) <= i32::pow(max_line_distance, 2))
         .collect::<Vec<_>>();
 
+    let target = targets.get(0);
+    let move_target = target.map(|t|
+        Coordinates {
+            x: ((coords.x as i32) + ((t.x as i32) - (coords.x as i32)).signum()) as usize,
+            y: ((coords.y as i32) + ((t.y as i32) - (coords.y as i32)).signum()) as usize
+        });
+
     Ok(Action::Wait)
 }
 
