@@ -106,7 +106,8 @@ pub enum Ai {
     AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
     KillOwner,
-    User
+    User,
+    Hunter
 }
 
 #[derive(Clone, Deserialize, Debug, PartialEq, Serialize)]

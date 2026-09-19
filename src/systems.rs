@@ -166,13 +166,41 @@ fn decide_alternate_directions(
     Ok(action)
 }
 
+fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
+    i32::pow((c.x as i32) - (d.x as i32), 2) +
+        i32::pow((c.y as i32)- (d.y as i32), 2)
+}
+
+fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Result<Action, Errors> {
+    let coords = components.coords.get(e_id).expect("Hunter should have coords");
+    let alignment = components.alignments.get(e_id);
+    let target_alignment = match alignment {
+        Some(AlignmentType::User) => Some(AlignmentType::HostileToUser),
+        Some(AlignmentType::HostileToUser) => Some(AlignmentType::User),
+        _ => None
+    };
+    let max_line_distance = 5;
+    let opposite_alignments = target_alignment.as_ref()
+        .into_iter()
+        .flat_map(|a| queries.alignments.get(a))
+        .flatten()
+        .collect::<Vec<_>>();
+    let targets = opposite_alignments
+        .into_iter()
+        .flat_map(|x| components.coords.get(*x))
+        .filter(|target_c| distance_squared(coords, target_c) <= i32::pow(max_line_distance, 2))
+        .collect::<Vec<_>>();
+
+    Ok(Action::Wait)
+}
 
 fn make_decision(e_id: usize, ai: &mut Ai, components: &Components, queries: &Queries) -> Result<Action, Errors> {
     match ai {
         Ai::AlternateDirections(s,dir0, dir1) => decide_alternate_directions(e_id, s, dir0, dir1, components, queries),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::KillOwner => components.owner.get(e_id).map(|&o| Action::Kill(o)).ok_or_else(|| Errors::MissingOwner(e_id)),
-        Ai::User => Err(Errors::NotExpectingAiForUser)
+        Ai::User => Err(Errors::NotExpectingAiForUser),
+        Ai::Hunter => decide_hunting(e_id, components, queries)
     }
 }
 
