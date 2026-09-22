@@ -267,13 +267,13 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
     Result<Option<LoopState>, Errors> {
     let loop_state = match key_press {
         Keycode::J => {
-            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Negative}, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Positive}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
         },
         Keycode::K => {
-            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Positive}, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Negative}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed K");
             Some(LoopState::MakeDecisions)
