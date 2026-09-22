@@ -97,8 +97,8 @@ fn shift(
 fn spawn_square_in_empty_space(
     e_id: usize, components: &mut Components, queries: &mut Queries, entities: &mut Entities, coords: Coordinates) -> Result<(), Errors> {
     let square_ai = match components.states.get(e_id).unwrap() {
-        0 => Ai::AlternateDirections(0, Direction::Left, Direction::Right),
-        _ => Ai::AlternateDirections(0, Direction::Down, Direction::Up)
+        0 => Ai::AlternateDirections(0, Direction {x: Sign::Negative, y: Sign::Zero}, Direction {x: Sign::Positive, y: Sign::Zero}),
+        _ => Ai::AlternateDirections(0, Direction {x: Sign::Zero, y: Sign::Negative }, Direction {x: Sign::Zero, y: Sign::Positive})
     };
     components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     let spawned_e_id = entities.add_timed_square(
@@ -219,12 +219,7 @@ fn make_decision(e_id: usize, ai: &mut Ai, components: &Components, queries: &Qu
 }
 
 fn shift_of(direction: &Direction) -> (i32, i32) {
-    match direction {
-        Direction::Left => (-1, 0),
-        Direction::Right => (1, 0),
-        Direction::Down => (0, 1),
-        Direction::Up => (0, -1)
-    }
+    (Sign::as_i32(&direction.x), Sign::as_i32(&direction.y))
 }
 
 pub fn make_decisions( 
@@ -272,25 +267,25 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
     Result<Option<LoopState>, Errors> {
     let loop_state = match key_press {
         Keycode::J => {
-            let action = decide_user_direction_action(e_id, Direction::Down, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Negative}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
         },
         Keycode::K => {
-            let action = decide_user_direction_action(e_id, Direction::Up, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Positive}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed K");
             Some(LoopState::MakeDecisions)
         },
         Keycode::L => {
-            let action = decide_user_direction_action(e_id, Direction::Right, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Positive, y: Sign::Zero}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed L");
             Some(LoopState::MakeDecisions)
         },
         Keycode::H => {
-            let action = decide_user_direction_action(e_id, Direction::Left, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Negative, y: Sign::Zero}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed H");
             Some(LoopState::MakeDecisions)

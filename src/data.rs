@@ -161,11 +161,26 @@ pub enum LoopState {
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub enum Direction {
-    Down,
-    Up,
-    Right,
-    Left
+pub enum Sign {
+    Positive,
+    Zero,
+    Negative
+}
+
+impl Sign {
+    pub fn as_i32(x: &Sign) -> i32 {
+        match x {
+            Sign::Positive => 1,
+            Sign::Zero => 0,
+            Sign::Negative => -1
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct Direction {
+    pub x: Sign,
+    pub y: Sign
 }
 
 pub enum Action {
