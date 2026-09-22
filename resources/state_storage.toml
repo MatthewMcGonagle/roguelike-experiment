@@ -134,3 +134,25 @@ owner = 5
 [entities.entity.decision_timer]
 time = 100
 reset = 100
+
+[[entities]]
+sid = 7
+[entities.entity]
+health = 5
+state = 0
+[entities.entity.ai.Hunter]
+[entities.entity.alignment.HostileToUser]
+[entities.entity.blocking.Movement]
+[entities.entity.coords]
+x = 8
+y = 8
+[entities.entity.decision_timer]
+time = 35
+reset =35
+[entities.entity.render.color]
+r = 0 
+g = 0 
+b = 255 
+a = 255
+
+
