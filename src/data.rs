@@ -175,6 +175,12 @@ impl Sign {
             Sign::Negative => -1
         }
     }
+
+    pub fn from_i32(x: i32) -> Sign {
+        if x < 0 { Sign::Negative }
+        else if x > 0 { Sign::Positive }
+        else { Sign::Zero }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
