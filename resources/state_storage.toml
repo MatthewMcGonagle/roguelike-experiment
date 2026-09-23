@@ -147,8 +147,8 @@ state = 0
 x = 8
 y = 8
 [entities.entity.decision_timer]
-time = 35
-reset =35
+time = 15
+reset =15
 [entities.entity.render.color]
 r = 0 
 g = 0 
