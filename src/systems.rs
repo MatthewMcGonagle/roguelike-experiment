@@ -173,33 +173,55 @@ fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
 
 fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Result<Action, Errors> {
     let coords = components.coords.get(e_id).expect("Hunter should have coords");
-    let alignment = components.alignments.get(e_id);
+    let alignment = components.alignments.get(e_id).expect("Hunter should have alignment");
     let target_alignment = match alignment {
-        Some(AlignmentType::User) => Some(AlignmentType::HostileToUser),
-        Some(AlignmentType::HostileToUser) => Some(AlignmentType::User),
-        _ => None
-    };
+        AlignmentType::User => Some(AlignmentType::HostileToUser),
+        AlignmentType::HostileToUser => Some(AlignmentType::User),
+        AlignmentType::Neutral => None
+    }.expect("Hunter should have user or hostile to user alignment");
     let max_line_distance = 5;
-    let opposite_alignments = target_alignment.as_ref()
+    let target_alignment_ids = queries.alignments.get(&target_alignment)
         .into_iter()
-        .flat_map(|a| queries.alignments.get(a))
-        .flatten()
-        .collect::<Vec<_>>();
-    let targets = opposite_alignments
-        .into_iter()
-        .flat_map(|x| components.coords.get(*x))
-        .filter(|target_c| distance_squared(coords, target_c) <= i32::pow(max_line_distance, 2))
+        .flatten();
+    let targets = target_alignment_ids 
+        .flat_map(|x| components.coords.get(*x).map(|c| (*x, c)))
+        .filter(|(_, target_c)| distance_squared(coords, target_c) <= i32::pow(max_line_distance, 2))
         .collect::<Vec<_>>();
 
-    let target = targets.get(0);
-    let direction = target.map(|t| Direction {
+    let target: Option<(usize, &Coordinates)> = targets.get(0).map(|x| *x);
+    let shift = target.as_ref().map(|(_, t)|
+        ((t.x as i32) - (coords.x as i32),
+         (t.y as i32) - (coords.y as i32)));
+
+    let shift_target = shift.map(|(sx, sy)|
+        Coordinates {
+            x: ((coords.x as i32) + sx.signum()) as usize,
+            y: ((coords.y as i32) + sy.signum()) as usize
+        });
+
+    let space_data = shift_target.map(|t| queries.coords_query.get(t.x, t.y).expect("Valid coordinates for coords query."));
+
+    let space_alignment = match space_data {
+        Some(SpaceData::HasEid(se)) => components.alignments.get(*se),
+        _ => None
+    };
+
+    let direction = target.map(|(_, t)| Direction {
         x: Sign::from_i32((t.x as i32) - (coords.x as i32)),
         y: Sign::from_i32((t.y as i32) - (coords.y as i32))
     });
 
-    match direction {
-        Some(d) => Ok(Action::Move(e_id, d)),
-        None => Ok(Action::Wait)
+    match space_data {
+        None => Ok(Action::Wait),
+        Some(SpaceData::Empty) => match direction {
+            None => Ok(Action::Wait),
+            Some(d) => Ok(Action::Move(e_id, d))
+        },
+        Some(&SpaceData::HasEid(se)) => match space_alignment {
+            None => Ok(Action::Wait),
+            Some(a) if *a == target_alignment => Ok(Action::Attack(e_id, se)),
+            Some(_) => Ok(Action::Wait)
+        }
     }
 }
 
