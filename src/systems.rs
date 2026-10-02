@@ -206,11 +206,10 @@ fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
     Ok(action)
 }
 
-fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Result<Action, Errors> {
-    let coords = components.coords.get(e_id)
-        .ok_or(Errors::Generic(String::from("Hunter should have coords")))?;
-    let alignment = components.alignments.get(e_id)
-        .ok_or(Errors::Generic(String::from("Hunter should have alignment")))?;
+fn decide_hunting<'a, T: ByEid<'a, Coordinates>, U: ByEid<'a, AlignmentType>>(
+    e_id: usize, coords: &Coordinates, alignment: &AlignmentType, coordinates: &T, alignments: &U, queries: &Queries) ->
+    Result<Action, Errors>
+{
     let target_alignment = match alignment {
         AlignmentType::User => Ok(AlignmentType::HostileToUser),
         AlignmentType::HostileToUser => Ok(AlignmentType::User),
@@ -221,14 +220,14 @@ fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Re
         .into_iter()
         .flatten();
     let targets = target_alignment_ids 
-        .flat_map(|x| components.coords.get(*x).map(|c| (*x, c)))
+        .flat_map(|x| coordinates.get(*x).map(|c| (*x, c)))
         .filter(|(_, target_c)| distance_squared(coords, target_c) <= i32::pow(max_line_distance, 2))
         .collect::<Vec<_>>();
 
     let target: Option<(usize, &Coordinates)> = targets.get(0).map(|x| *x);
     match target {
         None => Ok(Action::Wait),
-        Some((_, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, &components.alignments, queries)
+        Some((_, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, alignments, queries)
     }
 }
 
@@ -238,7 +237,13 @@ fn make_decision(e_id: usize, ai: &mut Ai, components: &Components, queries: &Qu
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::KillOwner => components.owner.get(e_id).map(|&o| Action::Kill(o)).ok_or_else(|| Errors::MissingOwner(e_id)),
         Ai::User => Err(Errors::NotExpectingAiForUser),
-        Ai::Hunter => decide_hunting(e_id, components, queries)
+        Ai::Hunter => decide_hunting(
+            e_id,
+            components.coords.get(e_id).ok_or(Errors::Generic(String::from("Hunter should have coords")))?,
+            components.alignments.get(e_id).ok_or(Errors::Generic(String::from("Hunter should have alignment")))?,
+            &components.coords,
+            &components.alignments,
+            queries)
     }
 }
 
