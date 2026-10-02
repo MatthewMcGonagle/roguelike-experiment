@@ -171,14 +171,51 @@ fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
         i32::pow((c.y as i32)- (d.y as i32), 2)
 }
 
+fn decide_hunting_target(
+    e_id: usize, coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, components: &Components, queries: &Queries)
+    -> Result<Action, Errors> {
+    let shiftx = (target_coords.x as i32) - (coords.x as i32);
+    let shifty = (target_coords.y as i32) - (coords.y as i32);
+
+    let shift_target = Coordinates {
+        x: ((coords.x as i32) + shiftx.signum()) as usize,
+        y: ((coords.y as i32) + shifty.signum()) as usize
+    };
+
+    let space_data = queries.coords_query.get(shift_target.x, shift_target.y)?;
+
+    let space_alignment = match space_data {
+        SpaceData::HasEid(se) => components.alignments.get(*se),
+        _ => None
+    };
+
+    let direction = Direction {
+        x: Sign::from_i32((shift_target.x as i32) - (coords.x as i32)),
+        y: Sign::from_i32((shift_target.y as i32) - (coords.y as i32))
+    };
+
+
+    let action = match space_data {
+        SpaceData::Empty => Action::Move(e_id, direction),
+        SpaceData::HasEid(se) => match space_alignment {
+            None => Action::Wait,
+            Some(a) if *a == *target_alignment => Action::Attack(e_id, *se),
+            Some(_) => Action::Wait
+        }
+    };
+    Ok(action)
+}
+
 fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Result<Action, Errors> {
-    let coords = components.coords.get(e_id).expect("Hunter should have coords");
-    let alignment = components.alignments.get(e_id).expect("Hunter should have alignment");
+    let coords = components.coords.get(e_id)
+        .ok_or(Errors::Generic(String::from("Hunter should have coords")))?;
+    let alignment = components.alignments.get(e_id)
+        .ok_or(Errors::Generic(String::from("Hunter should have alignment")))?;
     let target_alignment = match alignment {
-        AlignmentType::User => Some(AlignmentType::HostileToUser),
-        AlignmentType::HostileToUser => Some(AlignmentType::User),
-        AlignmentType::Neutral => None
-    }.expect("Hunter should have user or hostile to user alignment");
+        AlignmentType::User => Ok(AlignmentType::HostileToUser),
+        AlignmentType::HostileToUser => Ok(AlignmentType::User),
+        AlignmentType::Neutral => Err(Errors::Generic(String::from("Hunter should have user or hostile to user alignment")))
+    }?;
     let max_line_distance = 5;
     let target_alignment_ids = queries.alignments.get(&target_alignment)
         .into_iter()

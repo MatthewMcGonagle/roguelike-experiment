@@ -43,7 +43,8 @@ pub enum Errors {
     SpaceAlreadyNonempty,
     UnexpectedlyEmpty,
     NotExpectingAiForUser,
-    SDL3Error(Error)
+    SDL3Error(Error),
+    Generic(String)
 }
 
 #[derive(Clone, Debug, PartialEq)]
