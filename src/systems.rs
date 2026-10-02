@@ -226,39 +226,9 @@ fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Re
         .collect::<Vec<_>>();
 
     let target: Option<(usize, &Coordinates)> = targets.get(0).map(|x| *x);
-    let shift = target.as_ref().map(|(_, t)|
-        ((t.x as i32) - (coords.x as i32),
-         (t.y as i32) - (coords.y as i32)));
-
-    let shift_target = shift.map(|(sx, sy)|
-        Coordinates {
-            x: ((coords.x as i32) + sx.signum()) as usize,
-            y: ((coords.y as i32) + sy.signum()) as usize
-        });
-
-    let space_data = shift_target.map(|t| queries.coords_query.get(t.x, t.y).expect("Valid coordinates for coords query."));
-
-    let space_alignment = match space_data {
-        Some(SpaceData::HasEid(se)) => components.alignments.get(*se),
-        _ => None
-    };
-
-    let direction = target.map(|(_, t)| Direction {
-        x: Sign::from_i32((t.x as i32) - (coords.x as i32)),
-        y: Sign::from_i32((t.y as i32) - (coords.y as i32))
-    });
-
-    match space_data {
+    match target {
         None => Ok(Action::Wait),
-        Some(SpaceData::Empty) => match direction {
-            None => Ok(Action::Wait),
-            Some(d) => Ok(Action::Move(e_id, d))
-        },
-        Some(&SpaceData::HasEid(se)) => match space_alignment {
-            None => Ok(Action::Wait),
-            Some(a) if *a == target_alignment => Ok(Action::Attack(e_id, se)),
-            Some(_) => Ok(Action::Wait)
-        }
+        Some((_, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, components, queries)
     }
 }
 
