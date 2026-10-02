@@ -171,8 +171,8 @@ fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
         i32::pow((c.y as i32)- (d.y as i32), 2)
 }
 
-fn decide_hunting_target(
-    e_id: usize, coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, components: &Components, queries: &Queries)
+fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
+    e_id: usize, coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, alignments: &T, queries: &Queries)
     -> Result<Action, Errors> {
     let shiftx = (target_coords.x as i32) - (coords.x as i32);
     let shifty = (target_coords.y as i32) - (coords.y as i32);
@@ -185,7 +185,7 @@ fn decide_hunting_target(
     let space_data = queries.coords_query.get(shift_target.x, shift_target.y)?;
 
     let space_alignment = match space_data {
-        SpaceData::HasEid(se) => components.alignments.get(*se),
+        SpaceData::HasEid(se) => alignments.get(*se),
         _ => None
     };
 
@@ -228,7 +228,7 @@ fn decide_hunting(e_id: usize, components: &Components, queries: &Queries) -> Re
     let target: Option<(usize, &Coordinates)> = targets.get(0).map(|x| *x);
     match target {
         None => Ok(Action::Wait),
-        Some((_, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, components, queries)
+        Some((_, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, &components.alignments, queries)
     }
 }
 
