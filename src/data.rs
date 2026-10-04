@@ -61,7 +61,7 @@ pub enum ComponentType {
     Health
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialOrd, PartialEq, Serialize)]
 pub struct Coordinates {
     pub x: usize,
     pub y: usize 

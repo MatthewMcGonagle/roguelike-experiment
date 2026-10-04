@@ -221,13 +221,15 @@ fn decide_hunting<'a, T: ByEid<'a, Coordinates>, U: ByEid<'a, AlignmentType>>(
         .flatten();
     let targets = target_alignment_ids 
         .flat_map(|x| coordinates.get(*x).map(|c| (*x, c)))
-        .filter(|(_, target_c)| distance_squared(coords, target_c) <= i32::pow(max_line_distance, 2))
-        .collect::<Vec<_>>();
+        .map(|(x, c)| (distance_squared(coords, c), x, c))
+        .filter(|(d2, _, _)| *d2 <= i32::pow(max_line_distance, 2));
 
-    let target: Option<(usize, &Coordinates)> = targets.get(0).map(|x| *x);
+    let target: Option<(i32, usize, &Coordinates)> = targets.min();
+
+    // let target: Option<(i32, usize, &Coordinates)> = targets.get(0).map(|x| *x);
     match target {
         None => Ok(Action::Wait),
-        Some((_, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, alignments, queries)
+        Some((_, _, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, alignments, queries)
     }
 }
 
