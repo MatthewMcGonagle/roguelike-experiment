@@ -206,9 +206,8 @@ fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
     Ok(action)
 }
 
-fn decide_hunting<'a, T: ByEid<'a, Coordinates>, U: ByEid<'a, AlignmentType>>(
-    e_id: usize, coords: &Coordinates, alignment: &AlignmentType, coordinates: &T, alignments: &U, queries: &Queries) ->
-    Result<Action, Errors>
+fn find_hunting_target<'a, T: ByEid<'a, Coordinates>>(hunter_coords: &Coordinates, alignment: &AlignmentType, coordinates: &'a T, queries: &Queries)
+    -> Result<Option<(AlignmentType, i32, usize, &'a Coordinates)>, Errors>
 {
     let target_alignment = match alignment {
         AlignmentType::User => Ok(AlignmentType::HostileToUser),
@@ -221,15 +220,22 @@ fn decide_hunting<'a, T: ByEid<'a, Coordinates>, U: ByEid<'a, AlignmentType>>(
         .flatten();
     let targets = target_alignment_ids 
         .flat_map(|x| coordinates.get(*x).map(|c| (*x, c)))
-        .map(|(x, c)| (distance_squared(coords, c), x, c))
+        .map(|(x, c)| (distance_squared(hunter_coords, c), x, c))
         .filter(|(d2, _, _)| *d2 <= i32::pow(max_line_distance, 2));
 
-    let target: Option<(i32, usize, &Coordinates)> = targets.min();
+    Ok(targets.min().map(|(d2, x, c)| (target_alignment, d2, x, c)))
+}
 
-    // let target: Option<(i32, usize, &Coordinates)> = targets.get(0).map(|x| *x);
+fn decide_hunting<'a, T: ByEid<'a, Coordinates>, U: ByEid<'a, AlignmentType>>(
+    e_id: usize, coords: &Coordinates, alignment: &AlignmentType, coordinates: &'a T, alignments: &U, queries: &Queries) ->
+    Result<Action, Errors>
+{
+    let target = find_hunting_target(coords, alignment, coordinates, queries)?;
+
     match target {
         None => Ok(Action::Wait),
-        Some((_, _, target_coords)) => decide_hunting_target(e_id, coords, &target_alignment, target_coords, alignments, queries)
+        Some((target_alignment, _, _, target_coords)) =>
+            decide_hunting_target(e_id, coords, &target_alignment, target_coords, alignments, queries)
     }
 }
 
