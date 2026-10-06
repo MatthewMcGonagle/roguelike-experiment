@@ -172,14 +172,14 @@ fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
 }
 
 fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
-    e_id: usize, coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, alignments: &T, queries: &Queries)
+    e_id: usize, hunter_coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, alignments: &T, queries: &Queries)
     -> Result<Action, Errors> {
-    let shiftx = (target_coords.x as i32) - (coords.x as i32);
-    let shifty = (target_coords.y as i32) - (coords.y as i32);
+    let shiftx = (target_coords.x as i32) - (hunter_coords.x as i32);
+    let shifty = (target_coords.y as i32) - (hunter_coords.y as i32);
 
     let shift_target = Coordinates {
-        x: ((coords.x as i32) + shiftx.signum()) as usize,
-        y: ((coords.y as i32) + shifty.signum()) as usize
+        x: ((hunter_coords.x as i32) + shiftx.signum()) as usize,
+        y: ((hunter_coords.y as i32) + shifty.signum()) as usize
     };
 
     let space_data = queries.coords_query.get(shift_target.x, shift_target.y)?;
@@ -190,8 +190,8 @@ fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
     };
 
     let direction = Direction {
-        x: Sign::from_i32((shift_target.x as i32) - (coords.x as i32)),
-        y: Sign::from_i32((shift_target.y as i32) - (coords.y as i32))
+        x: Sign::from_i32((shift_target.x as i32) - (hunter_coords.x as i32)),
+        y: Sign::from_i32((shift_target.y as i32) - (hunter_coords.y as i32))
     };
 
 
