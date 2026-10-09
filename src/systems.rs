@@ -12,7 +12,7 @@ use crate::entities::Entities;
 use crate::queries::*;
 
 use std::collections::BinaryHeap;
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 fn draw_square(coords: &Coordinates, coord_scale: usize, render: &Render, canvas: &mut Canvas<Window>) -> Result<(), Errors> {
     let square = Rect::new((coords.x * coord_scale) as i32, (coords.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
@@ -190,21 +190,32 @@ fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
     nbrs
 }
 
-fn find_path(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<(), Errors> {
-    let mut visited: HashSet<Coordinates> = HashSet::new();
+fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<(), Errors> {
+    let mut visited: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
     let mut last_edges: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
     last_edges.push((0, None, origin.clone()));
-    visited.insert(origin.clone());
+    visited.insert(origin.clone(), None);
 
-    while let Some((negative_path_length, _, edge_end)) = last_edges.pop() {
-        if negative_path_length < path_length_max { 
+    while let Some((negative_path_length, _, edge_end)) = last_edges.pop() && !visited.contains_key(&dest) {
+        if -negative_path_length < path_length_max { 
             for nbr in find_neighbors(&edge_end) {
-                if !visited.contains(&nbr) && *queries.coords_query.get(nbr.x, nbr.y)? == SpaceData::Empty {
-                    last_edges.push((negative_path_length-1, Some(edge_end.clone()), nbr));
+                if !visited.contains_key(&nbr) && *queries.coords_query.get(nbr.x, nbr.y)? == SpaceData::Empty {
+                    last_edges.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
+                    visited.insert(nbr, Some(edge_end.clone())); 
                 }
             }
         }
     };
+
+    // let mut prev = Some(dest);
+    // let next_move = None;
+    // while let Some(edge_origin) = visited.get(&prev) {
+    //     if origin == edge_origin {
+    //         next_move = Some(prev);
+    //     }
+    //     prev = Some(edge_origin);
+    // }
+    // Ok(next_move)
     Ok(())
 }
 
@@ -213,7 +224,7 @@ fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
     e_id: usize, hunter_coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, alignments: &T, queries: &Queries)
     -> Result<Action, Errors> {
 
-    find_path(max_path_length, hunter_coords, target_coords, queries)?;
+    find_path_next_move(max_path_length, hunter_coords, target_coords, queries)?;
 
     let shiftx = (target_coords.x as i32) - (hunter_coords.x as i32);
     let shifty = (target_coords.y as i32) - (hunter_coords.y as i32);
