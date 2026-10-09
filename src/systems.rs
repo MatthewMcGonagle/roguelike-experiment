@@ -11,6 +11,9 @@ use crate::game_state::*;
 use crate::entities::Entities;
 use crate::queries::*;
 
+use std::collections::BinaryHeap;
+use std::collections::HashSet;
+
 fn draw_square(coords: &Coordinates, coord_scale: usize, render: &Render, canvas: &mut Canvas<Window>) -> Result<(), Errors> {
     let square = Rect::new((coords.x * coord_scale) as i32, (coords.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
     canvas.set_draw_color(render.color.to_color());
@@ -171,9 +174,47 @@ fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
         i32::pow((c.y as i32)- (d.y as i32), 2)
 }
 
+fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
+    let mut nbrs = Vec::from([]);
+    for i in -1i32..1 {
+        for j in -1i32..1 {
+            if i != 0 || j != 0 {
+                let new_x = (c.x as i32) + i;
+                let new_y = (c.y as i32) + j;
+                if new_x >= 0 && new_y >= 0 {
+                    nbrs.push(Coordinates{x: new_x as usize, y: new_y as usize})
+                }
+            }
+        }
+    };
+    nbrs
+}
+
+fn find_path(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<(), Errors> {
+    let mut visited: HashSet<Coordinates> = HashSet::new();
+    let mut last_edges: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
+    last_edges.push((0, None, origin.clone()));
+    visited.insert(origin.clone());
+
+    while let Some((negative_path_length, _, edge_end)) = last_edges.pop() {
+        if negative_path_length < path_length_max { 
+            for nbr in find_neighbors(&edge_end) {
+                if !visited.contains(&nbr) && *queries.coords_query.get(nbr.x, nbr.y)? == SpaceData::Empty {
+                    last_edges.push((negative_path_length-1, Some(edge_end.clone()), nbr));
+                }
+            }
+        }
+    };
+    Ok(())
+}
+
 fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
+    max_path_length: i32,
     e_id: usize, hunter_coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, alignments: &T, queries: &Queries)
     -> Result<Action, Errors> {
+
+    find_path(max_path_length, hunter_coords, target_coords, queries)?;
+
     let shiftx = (target_coords.x as i32) - (hunter_coords.x as i32);
     let shifty = (target_coords.y as i32) - (hunter_coords.y as i32);
 
@@ -206,7 +247,8 @@ fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
     Ok(action)
 }
 
-fn find_hunting_target<'a, T: ByEid<'a, Coordinates>>(hunter_coords: &Coordinates, alignment: &AlignmentType, coordinates: &'a T, queries: &Queries)
+fn find_hunting_target<'a, T: ByEid<'a, Coordinates>>(
+    max_line_distance: i32, hunter_coords: &Coordinates, alignment: &AlignmentType, coordinates: &'a T, queries: &Queries)
     -> Result<Option<(AlignmentType, i32, usize, &'a Coordinates)>, Errors>
 {
     let target_alignment = match alignment {
@@ -214,7 +256,6 @@ fn find_hunting_target<'a, T: ByEid<'a, Coordinates>>(hunter_coords: &Coordinate
         AlignmentType::HostileToUser => Ok(AlignmentType::User),
         AlignmentType::Neutral => Err(Errors::Generic(String::from("Hunter should have user or hostile to user alignment")))
     }?;
-    let max_line_distance = 5;
     let target_alignment_ids = queries.alignments.get(&target_alignment)
         .into_iter()
         .flatten();
@@ -230,12 +271,13 @@ fn decide_hunting<'a, T: ByEid<'a, Coordinates>, U: ByEid<'a, AlignmentType>>(
     e_id: usize, coords: &Coordinates, alignment: &AlignmentType, coordinates: &'a T, alignments: &U, queries: &Queries) ->
     Result<Action, Errors>
 {
-    let target = find_hunting_target(coords, alignment, coordinates, queries)?;
+    let max_distance = 5;
+    let target = find_hunting_target(max_distance, coords, alignment, coordinates, queries)?;
 
     match target {
         None => Ok(Action::Wait),
         Some((target_alignment, _, _, target_coords)) =>
-            decide_hunting_target(e_id, coords, &target_alignment, target_coords, alignments, queries)
+            decide_hunting_target(max_distance, e_id, coords, &target_alignment, target_coords, alignments, queries)
     }
 }
 
