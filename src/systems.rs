@@ -190,7 +190,7 @@ fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
     nbrs
 }
 
-fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<(), Errors> {
+fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
     let mut visited: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
     let mut last_edges: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
     last_edges.push((0, None, origin.clone()));
@@ -207,16 +207,15 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
         }
     };
 
-    // let mut prev = Some(dest);
-    // let next_move = None;
-    // while let Some(edge_origin) = visited.get(&prev) {
-    //     if origin == edge_origin {
-    //         next_move = Some(prev);
-    //     }
-    //     prev = Some(edge_origin);
-    // }
-    // Ok(next_move)
-    Ok(())
+    let mut prev = Some(dest);
+    let mut maybe_next_move: Option<Coordinates> = None;
+    while let Some(p) = prev && let Some(maybe_edge_origin) = visited.get(&p) {
+        if let Some(edge_origin) = maybe_edge_origin && origin == edge_origin {
+            maybe_next_move = Some(p.clone());
+        }
+        prev = maybe_edge_origin.as_ref();
+    }
+    Ok(maybe_next_move)
 }
 
 fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
@@ -224,35 +223,31 @@ fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
     e_id: usize, hunter_coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, alignments: &T, queries: &Queries)
     -> Result<Action, Errors> {
 
-    find_path_next_move(max_path_length, hunter_coords, target_coords, queries)?;
+    let next_move = find_path_next_move(max_path_length, hunter_coords, target_coords, queries)?;
 
-    let shiftx = (target_coords.x as i32) - (hunter_coords.x as i32);
-    let shifty = (target_coords.y as i32) - (hunter_coords.y as i32);
-
-    let shift_target = Coordinates {
-        x: ((hunter_coords.x as i32) + shiftx.signum()) as usize,
-        y: ((hunter_coords.y as i32) + shifty.signum()) as usize
-    };
-
-    let space_data = queries.coords_query.get(shift_target.x, shift_target.y)?;
+    let space_data = next_move.clone().map(|c| queries.coords_query.get(c.x, c.y)).transpose()?;
 
     let space_alignment = match space_data {
-        SpaceData::HasEid(se) => alignments.get(*se),
+        Some(SpaceData::HasEid(se)) => alignments.get(*se),
         _ => None
     };
 
-    let direction = Direction {
-        x: Sign::from_i32((shift_target.x as i32) - (hunter_coords.x as i32)),
-        y: Sign::from_i32((shift_target.y as i32) - (hunter_coords.y as i32))
-    };
+    let direction = next_move.map(|c| Direction {
+        x: Sign::from_i32((c.x as i32) - (hunter_coords.x as i32)),
+        y: Sign::from_i32((c.y as i32) - (hunter_coords.y as i32))
+    });
 
 
-    let action = match space_data {
-        SpaceData::Empty => Action::Move(e_id, direction),
-        SpaceData::HasEid(se) => match space_alignment {
-            None => Action::Wait,
-            Some(a) if *a == *target_alignment => Action::Attack(e_id, *se),
-            Some(_) => Action::Wait
+    let action = match direction {
+        None => Action::Wait,
+        Some(d) => match space_data {
+            Some(SpaceData::Empty) => Action::Move(e_id, d),
+            Some(SpaceData::HasEid(se)) => match space_alignment {
+                None => Action::Wait,
+                Some(a) if *a == *target_alignment => Action::Attack(e_id, *se),
+                Some(_) => Action::Wait
+            },
+            None => Action::Wait
         }
     };
     Ok(action)
