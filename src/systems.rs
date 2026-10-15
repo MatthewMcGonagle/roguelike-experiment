@@ -194,12 +194,12 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
     let mut visited: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
     let mut last_edges: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
     last_edges.push((0, None, origin.clone()));
-    visited.insert(origin.clone(), None);
 
     while let Some((negative_path_length, _, edge_end)) = last_edges.pop() && !visited.contains_key(&dest) {
         if -negative_path_length < path_length_max { 
             for nbr in find_neighbors(&edge_end) {
-                if !visited.contains_key(&nbr) && *queries.coords_query.get(nbr.x, nbr.y)? == SpaceData::Empty {
+                // TODO: Target will NOT be SpaceData::Empty! It won't be added to visited.
+                if !visited.contains_key(&nbr) && (nbr == *dest || *queries.coords_query.get(nbr.x, nbr.y)? == SpaceData::Empty) {
                     last_edges.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
                     visited.insert(nbr, Some(edge_end.clone())); 
                 }
@@ -224,7 +224,6 @@ fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
     -> Result<Action, Errors> {
 
     let next_move = find_path_next_move(max_path_length, hunter_coords, target_coords, queries)?;
-
     let space_data = next_move.clone().map(|c| queries.coords_query.get(c.x, c.y)).transpose()?;
 
     let space_alignment = match space_data {
