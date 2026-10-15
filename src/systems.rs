@@ -176,8 +176,8 @@ fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
 
 fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
     let mut nbrs = Vec::from([]);
-    for i in -1i32..1 {
-        for j in -1i32..1 {
+    for i in -1i32..2 {
+        for j in -1i32..2 {
             if i != 0 || j != 0 {
                 let new_x = (c.x as i32) + i;
                 let new_y = (c.y as i32) + j;
@@ -190,6 +190,7 @@ fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
     nbrs
 }
 
+// TODO: Make this more efficient using A*.
 fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
     let mut visited: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
     let mut last_edges: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
@@ -199,7 +200,7 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
         if -negative_path_length < path_length_max { 
             for nbr in find_neighbors(&edge_end) {
                 // TODO: Target will NOT be SpaceData::Empty! It won't be added to visited.
-                if !visited.contains_key(&nbr) && (nbr == *dest || *queries.coords_query.get(nbr.x, nbr.y)? == SpaceData::Empty) {
+                if !visited.contains_key(&nbr) && (nbr == *dest || queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false)) {
                     last_edges.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
                     visited.insert(nbr, Some(edge_end.clone())); 
                 }
