@@ -192,16 +192,22 @@ fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
 
 // TODO: Make this more efficient using A*.
 fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
-    let mut known_paths: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
-    let mut nbrs_of_known: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
-    nbrs_of_known.push((0, None, origin.clone()));
+    // We distinguish between a path **distance** and a path length, i.e. the path distance is the
+    // minimum of path all lengths.
+    let mut known_path_distances: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
+    let mut path_lengths_nbrs_of_known: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
+    path_lengths_nbrs_of_known.push((0, None, origin.clone()));
 
-    while let Some((negative_path_length, _, edge_end)) = nbrs_of_known.pop() && !known_paths.contains_key(&dest) {
+    // TODO: Need to check if we that point in multibounds is already in known_paths, i.e. this is
+    // not the best bound.
+    while let Some((negative_path_length, _, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
         if -negative_path_length < path_length_max { 
             for nbr in find_neighbors(&edge_end) {
-                if !known_paths.contains_key(&nbr) && (nbr == *dest || queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false)) {
-                    nbrs_of_known.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
-                    known_paths.insert(nbr, Some(edge_end.clone())); 
+                let is_dest = nbr == *dest;
+                let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
+                if !known_path_distances.contains_key(&nbr) && (is_dest || nbr_is_empty) {
+                    path_lengths_nbrs_of_known.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
+                    known_path_distances.insert(nbr, Some(edge_end.clone())); 
                 }
             }
         }
@@ -209,7 +215,7 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
 
     let mut prev = Some(dest);
     let mut maybe_next_move: Option<Coordinates> = None;
-    while let Some(p) = prev && let Some(maybe_edge_origin) = known_paths.get(&p) {
+    while let Some(p) = prev && let Some(maybe_edge_origin) = known_path_distances.get(&p) {
         if let Some(edge_origin) = maybe_edge_origin && origin == edge_origin {
             maybe_next_move = Some(p.clone());
         }
