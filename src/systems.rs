@@ -192,17 +192,16 @@ fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
 
 // TODO: Make this more efficient using A*.
 fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
-    let mut visited: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
-    let mut last_edges: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
-    last_edges.push((0, None, origin.clone()));
+    let mut known_paths: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
+    let mut nbrs_of_known: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
+    nbrs_of_known.push((0, None, origin.clone()));
 
-    while let Some((negative_path_length, _, edge_end)) = last_edges.pop() && !visited.contains_key(&dest) {
+    while let Some((negative_path_length, _, edge_end)) = nbrs_of_known.pop() && !known_paths.contains_key(&dest) {
         if -negative_path_length < path_length_max { 
             for nbr in find_neighbors(&edge_end) {
-                // TODO: Target will NOT be SpaceData::Empty! It won't be added to visited.
-                if !visited.contains_key(&nbr) && (nbr == *dest || queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false)) {
-                    last_edges.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
-                    visited.insert(nbr, Some(edge_end.clone())); 
+                if !known_paths.contains_key(&nbr) && (nbr == *dest || queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false)) {
+                    nbrs_of_known.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
+                    known_paths.insert(nbr, Some(edge_end.clone())); 
                 }
             }
         }
@@ -210,7 +209,7 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
 
     let mut prev = Some(dest);
     let mut maybe_next_move: Option<Coordinates> = None;
-    while let Some(p) = prev && let Some(maybe_edge_origin) = visited.get(&p) {
+    while let Some(p) = prev && let Some(maybe_edge_origin) = known_paths.get(&p) {
         if let Some(edge_origin) = maybe_edge_origin && origin == edge_origin {
             maybe_next_move = Some(p.clone());
         }
