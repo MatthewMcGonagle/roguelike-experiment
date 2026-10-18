@@ -200,14 +200,14 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
 
     // TODO: Need to check if we that point in multibounds is already in known_paths, i.e. this is
     // not the best bound.
-    while let Some((negative_path_length, _, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
-        if -negative_path_length < path_length_max { 
+    while let Some((negative_path_length, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
+        if -negative_path_length < path_length_max && !known_path_distances.contains_key(&edge_end) {
+            known_path_distances.insert(edge_end.clone(), maybe_edge_begin.clone());
             for nbr in find_neighbors(&edge_end) {
-                let is_dest = nbr == *dest;
+                let nbr_is_dest = nbr == *dest;
                 let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
-                if !known_path_distances.contains_key(&nbr) && (is_dest || nbr_is_empty) {
+                if !known_path_distances.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
                     path_lengths_nbrs_of_known.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
-                    known_path_distances.insert(nbr, Some(edge_end.clone())); 
                 }
             }
         }
