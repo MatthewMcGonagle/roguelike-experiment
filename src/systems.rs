@@ -195,19 +195,20 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
     // We distinguish between a path **distance** and a path length, i.e. the path distance is the
     // minimum of path all lengths.
     let mut known_path_distances: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
-    let mut path_lengths_nbrs_of_known: BinaryHeap<(i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
-    path_lengths_nbrs_of_known.push((0, None, origin.clone()));
+    let mut path_lengths_nbrs_of_known: BinaryHeap<(i32, i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
+    // Break ties in l-infinity path length with l1 path length. Should penalize unwize diagonal
+    // zig-zagging.
+    path_lengths_nbrs_of_known.push((0, 0, None, origin.clone()));
 
-    // TODO: Need to check if we that point in multibounds is already in known_paths, i.e. this is
-    // not the best bound.
-    while let Some((negative_path_length, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
+    while let Some((negative_path_length, negative_l1_path_length, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
         if -negative_path_length < path_length_max && !known_path_distances.contains_key(&edge_end) {
             known_path_distances.insert(edge_end.clone(), maybe_edge_begin.clone());
             for nbr in find_neighbors(&edge_end) {
                 let nbr_is_dest = nbr == *dest;
                 let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
                 if !known_path_distances.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
-                    path_lengths_nbrs_of_known.push((negative_path_length-1, Some(edge_end.clone()), nbr.clone()));
+                    let l1_diff = ((nbr.x as i32) - (edge_end.x as i32)).abs() + ((nbr.y as i32) - (edge_end.y as i32)).abs();
+                    path_lengths_nbrs_of_known.push((negative_path_length-1, negative_l1_path_length - l1_diff, Some(edge_end.clone()), nbr.clone()));
                 }
             }
         }
