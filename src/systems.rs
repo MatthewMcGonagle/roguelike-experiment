@@ -195,21 +195,23 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
     // We distinguish between a path **distance** and a path length, i.e. the path distance is the
     // minimum of path all lengths.
     let mut known_path_distances: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
-    let mut path_lengths_nbrs_of_known: BinaryHeap<(i32, i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
+    let mut path_lengths_nbrs_of_known: BinaryHeap<(i32, i32, i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
     // Break ties in l-infinity path length with l1 line length to destination. Should penalize unwise diagonal
     // zig-zagging.
     let origin_l1_line_dist = ((origin.x as i32) - (dest.x as i32)).abs() + ((origin.y as i32) - (dest.y as i32)).abs(); 
-    path_lengths_nbrs_of_known.push((0, -origin_l1_line_dist, None, origin.clone()));
+    path_lengths_nbrs_of_known.push((0, -origin_l1_line_dist, 0, None, origin.clone()));
 
-    while let Some((negative_path_length, negative_l1_line_dist, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
+    // TODO: Do we we need to break ties in l-infinity path length and l1-line-distance?
+    while let Some((negative_path_length, negative_l1_line_dist, negative_l1_path_length, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
         if -negative_path_length < path_length_max && !known_path_distances.contains_key(&edge_end) {
             known_path_distances.insert(edge_end.clone(), maybe_edge_begin.clone());
             for nbr in find_neighbors(&edge_end) {
                 let nbr_is_dest = nbr == *dest;
                 let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
                 if !known_path_distances.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
+                    let l1_diff = ((nbr.x as i32) - (edge_end.x as i32)).abs() + ((nbr.y as i32) - (edge_end.y as i32)).abs();
                     let l1_line_dist = ((nbr.x as i32) - (dest.x as i32)).abs() + ((nbr.y as i32) - (dest.y as i32)).abs();
-                    path_lengths_nbrs_of_known.push((negative_path_length-1, -l1_line_dist, Some(edge_end.clone()), nbr.clone()));
+                    path_lengths_nbrs_of_known.push((negative_path_length-1, -l1_line_dist, negative_l1_path_length - l1_diff, Some(edge_end.clone()), nbr.clone()));
                 }
             }
         }
