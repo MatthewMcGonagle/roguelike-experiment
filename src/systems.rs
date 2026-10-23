@@ -199,8 +199,11 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
     let mut path_lengths_nbrs_of_known: BinaryHeap<(i32, i32, i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
     
     // To prevent zig-zagging, we break ties in l-infinity path length using the total l-infinity
-    // line distance to the neighbors of the destination. This also puts a hunter in position to
-    // anticipate dodging by its target.
+    // line distance to the neighbors of the destination over the path history. This also puts a hunter in position to
+    // anticipate dodging by its target. Note that we are only breaking ties in the l-infinity path
+    // length, so the final tie break that really matters is the one before the destination. So to
+    // prevent zig-zagging in an earlier part of the path, we need a tie breaker the "remembers" the
+    // entire path so far. So we use a total along the path.
     //
     // For ties in this destination l-infinity destination nbrs distance total, we then use the l-1 total distance of nbrs.
     // Consider the following situation:
@@ -216,7 +219,8 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
     // Left = 1 * 2 + 2 * 3 + 3 * 4 + 2 * 5 = 30
     // Right = 1 * 2 + 2 * 3 + 2 * 4 + 2 * 5 + 1 * 6 = 34
     // So we can break the tie into the preferred situation (i.e. the centered left) using the
-    // l1-total.
+    // l1-total. Again, we need to use something that "remembers" the path, so we use the total
+    // along the path so far.
     let dest_nbrs = find_neighbors(&dest);
     let origin_l_infinity_dest_nbrs = dest_nbrs
         .iter()
@@ -237,7 +241,7 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
     path_lengths_nbrs_of_known.push((0, -origin_l_infinity_dest_nbrs, -origin_l1_dest_nbrs, None, origin.clone()));
 
     // TODO: Do we we need to break ties in l-infinity path length and l1-line-distance?
-    while let Some((negative_path_length, _, _, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
+    while let Some((negative_path_length, neg_dest_nbrs_l_infinity_path, neg_dest_nbrs_l1_path, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
         if -negative_path_length < path_length_max && !known_path_distances.contains_key(&edge_end) {
             known_path_distances.insert(edge_end.clone(), maybe_edge_begin.clone());
             for nbr in find_neighbors(&edge_end) {
@@ -254,12 +258,12 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
                         .unwrap_or(0);
                     let l1_dest_nbrs = dest_nbrs
                         .iter()
-                        .map(|dn| 
+                        .map(|dn|
                             ((nbr.x as i32) - (dn.x as i32)).abs() +
                             ((nbr.y as i32) - (dn.y as i32)).abs())
                         .reduce(|a, b| a + b)
                         .unwrap_or(0);
-                    path_lengths_nbrs_of_known.push((negative_path_length-1, -l_infinity_dest_nbrs, -l1_dest_nbrs, Some(edge_end.clone()), nbr.clone()));
+                    path_lengths_nbrs_of_known.push((negative_path_length-1, neg_dest_nbrs_l_infinity_path-l_infinity_dest_nbrs, neg_dest_nbrs_l1_path-l1_dest_nbrs, Some(edge_end.clone()), nbr.clone()));
                 }
             }
         }
