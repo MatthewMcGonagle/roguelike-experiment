@@ -191,12 +191,21 @@ fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
     nbrs
 }
 
+#[derive(Eq, Ord, PartialOrd, PartialEq)]
+struct PathBuffer {
+    negative_path_length: i32,
+    neg_dest_nbrs_l_infinity_path: i32,
+    neg_dest_nbrs_l1_path: i32,
+    maybe_edge_begin: Option<Coordinates>,
+    edge_end: Coordinates
+}
+
 // TODO: Make this more efficient using A*.
 fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
     // We distinguish between a path **distance** and a path length, i.e. the path distance is the
     // minimum of path all lengths.
     let mut known_path_distances: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
-    let mut path_lengths_nbrs_of_known: BinaryHeap<(i32, i32, i32, Option<Coordinates>, Coordinates)> = BinaryHeap::new();
+    let mut path_lengths_nbrs_of_known: BinaryHeap<PathBuffer> = BinaryHeap::new();
     
     // To prevent zig-zagging, we break ties in l-infinity path length using the total l-infinity
     // line distance to the neighbors of the destination over the path history. This also puts a hunter in position to
@@ -238,13 +247,20 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
         .reduce(|a, b| a + b)
         .unwrap_or(0);
 
-    path_lengths_nbrs_of_known.push((0, -origin_l_infinity_dest_nbrs, -origin_l1_dest_nbrs, None, origin.clone()));
+    path_lengths_nbrs_of_known.push(
+        PathBuffer {
+            negative_path_length: 0,
+            neg_dest_nbrs_l_infinity_path: -origin_l_infinity_dest_nbrs,
+            neg_dest_nbrs_l1_path: -origin_l1_dest_nbrs,
+            maybe_edge_begin: None,
+            edge_end: origin.clone()
+        });
 
     // TODO: Do we we need to break ties in l-infinity path length and l1-line-distance?
-    while let Some((negative_path_length, neg_dest_nbrs_l_infinity_path, neg_dest_nbrs_l1_path, maybe_edge_begin, edge_end)) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
-        if -negative_path_length < path_length_max && !known_path_distances.contains_key(&edge_end) {
-            known_path_distances.insert(edge_end.clone(), maybe_edge_begin.clone());
-            for nbr in find_neighbors(&edge_end) {
+    while let Some(minimal_path) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
+        if -minimal_path.negative_path_length < path_length_max && !known_path_distances.contains_key(&minimal_path.edge_end) {
+            known_path_distances.insert(minimal_path.edge_end.clone(), minimal_path.maybe_edge_begin.clone());
+            for nbr in find_neighbors(&minimal_path.edge_end) {
                 let nbr_is_dest = nbr == *dest;
                 let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
                 if !known_path_distances.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
@@ -263,7 +279,14 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
                             ((nbr.y as i32) - (dn.y as i32)).abs())
                         .reduce(|a, b| a + b)
                         .unwrap_or(0);
-                    path_lengths_nbrs_of_known.push((negative_path_length-1, neg_dest_nbrs_l_infinity_path-l_infinity_dest_nbrs, neg_dest_nbrs_l1_path-l1_dest_nbrs, Some(edge_end.clone()), nbr.clone()));
+                    path_lengths_nbrs_of_known.push(
+                        PathBuffer {
+                            negative_path_length: minimal_path.negative_path_length-1,
+                            neg_dest_nbrs_l_infinity_path: minimal_path.neg_dest_nbrs_l_infinity_path-l_infinity_dest_nbrs,
+                            neg_dest_nbrs_l1_path: minimal_path.neg_dest_nbrs_l1_path-l1_dest_nbrs,
+                            maybe_edge_begin: Some(minimal_path.edge_end.clone()),
+                            edge_end: nbr.clone()
+                        });
                 }
             }
         }
