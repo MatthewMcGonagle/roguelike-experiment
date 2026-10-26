@@ -204,7 +204,7 @@ struct PathBuffer {
 fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
     // We distinguish between a path **distance** and a path length, i.e. the path distance is the
     // minimum of path all lengths.
-    let mut known_path_distances: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
+    let mut known_path_prev: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
     let mut path_lengths_nbrs_of_known: BinaryHeap<PathBuffer> = BinaryHeap::new();
     
     // To prevent zig-zagging, we break ties in l-infinity path length using the total l-infinity
@@ -256,14 +256,13 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
             edge_end: origin.clone()
         });
 
-    // TODO: Do we we need to break ties in l-infinity path length and l1-line-distance?
-    while let Some(minimal_path) = path_lengths_nbrs_of_known.pop() && !known_path_distances.contains_key(&dest) {
-        if -minimal_path.negative_path_length < path_length_max && !known_path_distances.contains_key(&minimal_path.edge_end) {
-            known_path_distances.insert(minimal_path.edge_end.clone(), minimal_path.maybe_edge_begin.clone());
+    while let Some(minimal_path) = path_lengths_nbrs_of_known.pop() && !known_path_prev.contains_key(&dest) {
+        if -minimal_path.negative_path_length < path_length_max && !known_path_prev.contains_key(&minimal_path.edge_end) {
+            known_path_prev.insert(minimal_path.edge_end.clone(), minimal_path.maybe_edge_begin.clone());
             for nbr in find_neighbors(&minimal_path.edge_end) {
                 let nbr_is_dest = nbr == *dest;
                 let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
-                if !known_path_distances.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
+                if !known_path_prev.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
                     let l_infinity_dest_nbrs = dest_nbrs
                         .iter()
                         .map(|dn| 
@@ -294,7 +293,7 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
 
     let mut prev = Some(dest);
     let mut maybe_next_move: Option<Coordinates> = None;
-    while let Some(p) = prev && let Some(maybe_edge_origin) = known_path_distances.get(&p) {
+    while let Some(p) = prev && let Some(maybe_edge_origin) = known_path_prev.get(&p) {
         if let Some(edge_origin) = maybe_edge_origin && origin == edge_origin {
             maybe_next_move = Some(p.clone());
         }
