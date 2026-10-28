@@ -193,6 +193,7 @@ fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
 
 #[derive(Eq, Ord, PartialOrd, PartialEq)]
 struct PathBuffer {
+    negative_a_star_length: i32,
     negative_path_length: i32,
     neg_dest_nbrs_l_infinity_path: i32,
     neg_dest_nbrs_l1_path: i32,
@@ -200,7 +201,6 @@ struct PathBuffer {
     edge_end: Coordinates
 }
 
-// TODO: Make this more efficient using A*.
 fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
     // We distinguish between a path **distance** and a path length, i.e. the path distance is the
     // minimum of path all lengths.
@@ -231,6 +231,11 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
     // l1-total. Again, we need to use something that "remembers" the path, so we use the total
     // along the path so far.
     let dest_nbrs = find_neighbors(&dest);
+    let origin_l_infinity_dest =
+        cmp::max(
+            ((origin.x as i32) - (dest.x as i32)).abs(),
+            ((origin.y as i32) - (dest.y as i32)).abs());
+
     let origin_l_infinity_dest_nbrs = dest_nbrs
         .iter()
         .map(|dn|
@@ -249,6 +254,7 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
 
     path_lengths_nbrs_of_known.push(
         PathBuffer {
+            negative_a_star_length: -origin_l_infinity_dest,
             negative_path_length: 0,
             neg_dest_nbrs_l_infinity_path: -origin_l_infinity_dest_nbrs,
             neg_dest_nbrs_l1_path: -origin_l1_dest_nbrs,
@@ -263,6 +269,9 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
                 let nbr_is_dest = nbr == *dest;
                 let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
                 if !known_path_prev.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
+                    let l_infinity_dest = cmp::max(
+                        ((nbr.x as i32) - (dest.x as i32)).abs(),
+                        ((nbr.y as i32) - (dest.y as i32)).abs());
                     let l_infinity_dest_nbrs = dest_nbrs
                         .iter()
                         .map(|dn| 
@@ -280,6 +289,7 @@ fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordi
                         .unwrap_or(0);
                     path_lengths_nbrs_of_known.push(
                         PathBuffer {
+                            negative_a_star_length: minimal_path.negative_path_length - 1 - l_infinity_dest,
                             negative_path_length: minimal_path.negative_path_length-1,
                             neg_dest_nbrs_l_infinity_path: minimal_path.neg_dest_nbrs_l_infinity_path-l_infinity_dest_nbrs,
                             neg_dest_nbrs_l1_path: minimal_path.neg_dest_nbrs_l1_path-l1_dest_nbrs,
