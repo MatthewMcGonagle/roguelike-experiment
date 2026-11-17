@@ -11,6 +11,10 @@ use crate::game_state::*;
 use crate::entities::Entities;
 use crate::queries::*;
 
+use std::cmp;
+use std::collections::BinaryHeap;
+use std::collections::HashMap;
+
 fn draw_square(coords: &Coordinates, coord_scale: usize, render: &Render, canvas: &mut Canvas<Window>) -> Result<(), Errors> {
     let square = Rect::new((coords.x * coord_scale) as i32, (coords.y * coord_scale) as i32, coord_scale as u32, coord_scale as u32);
     canvas.set_draw_color(render.color.to_color());
@@ -97,8 +101,8 @@ fn shift(
 fn spawn_square_in_empty_space(
     e_id: usize, components: &mut Components, queries: &mut Queries, entities: &mut Entities, coords: Coordinates) -> Result<(), Errors> {
     let square_ai = match components.states.get(e_id).unwrap() {
-        0 => Ai::AlternateDirections(0, Direction::Left, Direction::Right),
-        _ => Ai::AlternateDirections(0, Direction::Down, Direction::Up)
+        0 => Ai::AlternateDirections(0, Direction {x: Sign::Negative, y: Sign::Zero}, Direction {x: Sign::Positive, y: Sign::Zero}),
+        _ => Ai::AlternateDirections(0, Direction {x: Sign::Zero, y: Sign::Negative }, Direction {x: Sign::Zero, y: Sign::Positive})
     };
     components.states.get_mut(e_id).map(|s| *s = (*s + 1u32) % 2);
     let spawned_e_id = entities.add_timed_square(
@@ -166,23 +170,234 @@ fn decide_alternate_directions(
     Ok(action)
 }
 
+fn distance_squared(c: &Coordinates, d: &Coordinates) -> i32 {
+    i32::pow((c.x as i32) - (d.x as i32), 2) +
+        i32::pow((c.y as i32)- (d.y as i32), 2)
+}
+
+fn find_neighbors(c: &Coordinates) -> Vec<Coordinates> {
+    let mut nbrs = Vec::from([]);
+    for i in -1i32..2 {
+        for j in -1i32..2 {
+            if i != 0 || j != 0 {
+                let new_x = (c.x as i32) + i;
+                let new_y = (c.y as i32) + j;
+                if new_x >= 0 && new_y >= 0 {
+                    nbrs.push(Coordinates{x: new_x as usize, y: new_y as usize})
+                }
+            }
+        }
+    };
+    nbrs
+}
+
+#[derive(Eq, Ord, PartialOrd, PartialEq)]
+struct PathBuffer {
+    negative_a_star_length: i32,
+    negative_path_length: i32,
+    neg_dest_nbrs_l_infinity_path: i32,
+    neg_dest_nbrs_l1_path: i32,
+    maybe_edge_begin: Option<Coordinates>,
+    edge_end: Coordinates
+}
+
+fn find_path_next_move(path_length_max: i32, origin: &Coordinates, dest: &Coordinates, queries: &Queries) -> Result<Option<Coordinates>, Errors> {
+    // We distinguish between a path **distance** and a path length, i.e. the path distance is the
+    // minimum of path all lengths.
+    let mut known_path_prev: HashMap<Coordinates, Option<Coordinates>> = HashMap::new();
+    let mut path_lengths_nbrs_of_known: BinaryHeap<PathBuffer> = BinaryHeap::new();
+    
+    // To prevent zig-zagging, we break ties in l-infinity path length using the total l-infinity
+    // line distance to the neighbors of the destination over the path history. This also puts a hunter in position to
+    // anticipate dodging by its target. Note that we are only breaking ties in the l-infinity path
+    // length, so the final tie break that really matters is the one before the destination. So to
+    // prevent zig-zagging in an earlier part of the path, we need a tie breaker the "remembers" the
+    // entire path so far. So we use a total along the path.
+    //
+    // For ties in this destination l-infinity destination nbrs distance total, we then use the l-1 total distance of nbrs.
+    // Consider the following situation:
+    //      _   o   _               o   _   _
+    //      _   _   _               _   _   _
+    //      _   _   _               _   _   _
+    //      _   d   _       vs      _   d   _
+    //      _   _   _               _   _   _
+    //
+    // Left total l-infinity nbr distance is 3 * 2 + 2 * 3 + 3 * 4
+    // Right total l-infinity nbr distance is 3 * 2 + 2 * 3 + 3 * 4
+    // However, the l-1's are
+    // Left = 1 * 2 + 2 * 3 + 3 * 4 + 2 * 5 = 30
+    // Right = 1 * 2 + 2 * 3 + 2 * 4 + 2 * 5 + 1 * 6 = 34
+    // So we can break the tie into the preferred situation (i.e. the centered left) using the
+    // l1-total. Again, we need to use something that "remembers" the path, so we use the total
+    // along the path so far.
+    let dest_nbrs = find_neighbors(&dest);
+    let origin_l_infinity_dest =
+        cmp::max(
+            ((origin.x as i32) - (dest.x as i32)).abs(),
+            ((origin.y as i32) - (dest.y as i32)).abs());
+
+    let origin_l_infinity_dest_nbrs = dest_nbrs
+        .iter()
+        .map(|dn|
+            cmp::max(
+                ((origin.x as i32) - (dn.x as i32)).abs(),
+                ((origin.y as i32) - (dn.y as i32)).abs()))
+        .reduce(|a, b| a + b)
+        .unwrap_or(0);
+    let origin_l1_dest_nbrs = dest_nbrs
+        .iter()
+        .map(|dn|
+            ((origin.x as i32) - (dn.x as i32)).abs() +
+            ((origin.y as i32) - (dn.y as i32)).abs())
+        .reduce(|a, b| a + b)
+        .unwrap_or(0);
+
+    path_lengths_nbrs_of_known.push(
+        PathBuffer {
+            negative_a_star_length: -origin_l_infinity_dest,
+            negative_path_length: 0,
+            neg_dest_nbrs_l_infinity_path: -origin_l_infinity_dest_nbrs,
+            neg_dest_nbrs_l1_path: -origin_l1_dest_nbrs,
+            maybe_edge_begin: None,
+            edge_end: origin.clone()
+        });
+
+    while let Some(minimal_path) = path_lengths_nbrs_of_known.pop() && !known_path_prev.contains_key(&dest) {
+        if -minimal_path.negative_path_length < path_length_max && !known_path_prev.contains_key(&minimal_path.edge_end) {
+            known_path_prev.insert(minimal_path.edge_end.clone(), minimal_path.maybe_edge_begin.clone());
+            for nbr in find_neighbors(&minimal_path.edge_end) {
+                let nbr_is_dest = nbr == *dest;
+                let nbr_is_empty = queries.coords_query.get(nbr.x, nbr.y).map(|s| *s == SpaceData::Empty).unwrap_or(false);
+                if !known_path_prev.contains_key(&nbr) && (nbr_is_dest || nbr_is_empty) {
+                    let l_infinity_dest = cmp::max(
+                        ((nbr.x as i32) - (dest.x as i32)).abs(),
+                        ((nbr.y as i32) - (dest.y as i32)).abs());
+                    let l_infinity_dest_nbrs = dest_nbrs
+                        .iter()
+                        .map(|dn| 
+                            cmp::max(
+                                ((nbr.x as i32) - (dn.x as i32)).abs(),
+                                ((nbr.y as i32) - (dn.y as i32)).abs()))
+                        .reduce(|a, b| a + b)
+                        .unwrap_or(0);
+                    let l1_dest_nbrs = dest_nbrs
+                        .iter()
+                        .map(|dn|
+                            ((nbr.x as i32) - (dn.x as i32)).abs() +
+                            ((nbr.y as i32) - (dn.y as i32)).abs())
+                        .reduce(|a, b| a + b)
+                        .unwrap_or(0);
+                    path_lengths_nbrs_of_known.push(
+                        PathBuffer {
+                            negative_a_star_length: minimal_path.negative_path_length - 1 - l_infinity_dest,
+                            negative_path_length: minimal_path.negative_path_length-1,
+                            neg_dest_nbrs_l_infinity_path: minimal_path.neg_dest_nbrs_l_infinity_path-l_infinity_dest_nbrs,
+                            neg_dest_nbrs_l1_path: minimal_path.neg_dest_nbrs_l1_path-l1_dest_nbrs,
+                            maybe_edge_begin: Some(minimal_path.edge_end.clone()),
+                            edge_end: nbr.clone()
+                        });
+                }
+            }
+        }
+    };
+
+    let mut prev = Some(dest);
+    let mut maybe_next_move: Option<Coordinates> = None;
+    while let Some(p) = prev && let Some(maybe_edge_origin) = known_path_prev.get(&p) {
+        if let Some(edge_origin) = maybe_edge_origin && origin == edge_origin {
+            maybe_next_move = Some(p.clone());
+        }
+        prev = maybe_edge_origin.as_ref();
+    }
+    Ok(maybe_next_move)
+}
+
+fn decide_hunting_target<'a, T: ByEid<'a, AlignmentType>>(
+    max_path_length: i32,
+    e_id: usize, hunter_coords: &Coordinates, target_alignment: &AlignmentType, target_coords: &Coordinates, alignments: &T, queries: &Queries)
+    -> Result<Action, Errors> {
+
+    let next_move = find_path_next_move(max_path_length, hunter_coords, target_coords, queries)?;
+    let space_data = next_move.clone().map(|c| queries.coords_query.get(c.x, c.y)).transpose()?;
+
+    let space_alignment = match space_data {
+        Some(SpaceData::HasEid(se)) => alignments.get(*se),
+        _ => None
+    };
+
+    let direction = next_move.map(|c| Direction {
+        x: Sign::from_i32((c.x as i32) - (hunter_coords.x as i32)),
+        y: Sign::from_i32((c.y as i32) - (hunter_coords.y as i32))
+    });
+
+
+    let action = match direction {
+        None => Action::Wait,
+        Some(d) => match space_data {
+            Some(SpaceData::Empty) => Action::Move(e_id, d),
+            Some(SpaceData::HasEid(se)) => match space_alignment {
+                None => Action::Wait,
+                Some(a) if *a == *target_alignment => Action::Attack(e_id, *se),
+                Some(_) => Action::Wait
+            },
+            None => Action::Wait
+        }
+    };
+    Ok(action)
+}
+
+fn find_hunting_target<'a, T: ByEid<'a, Coordinates>>(
+    max_line_distance: i32, hunter_coords: &Coordinates, alignment: &AlignmentType, coordinates: &'a T, queries: &Queries)
+    -> Result<Option<(AlignmentType, i32, usize, &'a Coordinates)>, Errors>
+{
+    let target_alignment = match alignment {
+        AlignmentType::User => Ok(AlignmentType::HostileToUser),
+        AlignmentType::HostileToUser => Ok(AlignmentType::User),
+        AlignmentType::Neutral => Err(Errors::Generic(String::from("Hunter should have user or hostile to user alignment")))
+    }?;
+    let target_alignment_ids = queries.alignments.get(&target_alignment)
+        .into_iter()
+        .flatten();
+    let targets = target_alignment_ids 
+        .flat_map(|x| coordinates.get(*x).map(|c| (*x, c)))
+        .map(|(x, c)| (distance_squared(hunter_coords, c), x, c))
+        .filter(|(d2, _, _)| *d2 <= i32::pow(max_line_distance, 2));
+
+    Ok(targets.min().map(|(d2, x, c)| (target_alignment, d2, x, c)))
+}
+
+fn decide_hunting<'a, T: ByEid<'a, Coordinates>, U: ByEid<'a, AlignmentType>>(
+    e_id: usize, coords: &Coordinates, alignment: &AlignmentType, coordinates: &'a T, alignments: &U, queries: &Queries) ->
+    Result<Action, Errors>
+{
+    let max_distance = 5;
+    let target = find_hunting_target(max_distance, coords, alignment, coordinates, queries)?;
+
+    match target {
+        None => Ok(Action::Wait),
+        Some((target_alignment, _, _, target_coords)) =>
+            decide_hunting_target(max_distance, e_id, coords, &target_alignment, target_coords, alignments, queries)
+    }
+}
 
 fn make_decision(e_id: usize, ai: &mut Ai, components: &Components, queries: &Queries) -> Result<Action, Errors> {
     match ai {
         Ai::AlternateDirections(s,dir0, dir1) => decide_alternate_directions(e_id, s, dir0, dir1, components, queries),
         Ai::AddAvailableSquare => Ok(Action::Spawn(e_id)),
         Ai::KillOwner => components.owner.get(e_id).map(|&o| Action::Kill(o)).ok_or_else(|| Errors::MissingOwner(e_id)),
-        Ai::User => Err(Errors::NotExpectingAiForUser)
+        Ai::User => Err(Errors::NotExpectingAiForUser),
+        Ai::Hunter => decide_hunting(
+            e_id,
+            components.coords.get(e_id).ok_or(Errors::Generic(String::from("Hunter should have coords")))?,
+            components.alignments.get(e_id).ok_or(Errors::Generic(String::from("Hunter should have alignment")))?,
+            &components.coords,
+            &components.alignments,
+            queries)
     }
 }
 
 fn shift_of(direction: &Direction) -> (i32, i32) {
-    match direction {
-        Direction::Left => (-1, 0),
-        Direction::Right => (1, 0),
-        Direction::Down => (0, 1),
-        Direction::Up => (0, -1)
-    }
+    (Sign::as_i32(&direction.x), Sign::as_i32(&direction.y))
 }
 
 pub fn make_decisions( 
@@ -230,25 +445,25 @@ pub fn make_user_decision(e_id: usize, key_press: &Keycode, planned_actions: &mu
     Result<Option<LoopState>, Errors> {
     let loop_state = match key_press {
         Keycode::J => {
-            let action = decide_user_direction_action(e_id, Direction::Down, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Positive}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed J");
             Some(LoopState::MakeDecisions)
         },
         Keycode::K => {
-            let action = decide_user_direction_action(e_id, Direction::Up, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Zero, y: Sign::Negative}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed K");
             Some(LoopState::MakeDecisions)
         },
         Keycode::L => {
-            let action = decide_user_direction_action(e_id, Direction::Right, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Positive, y: Sign::Zero}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed L");
             Some(LoopState::MakeDecisions)
         },
         Keycode::H => {
-            let action = decide_user_direction_action(e_id, Direction::Left, components, queries)?;
+            let action = decide_user_direction_action(e_id, Direction {x: Sign::Negative, y: Sign::Zero}, components, queries)?;
             planned_actions.values.push(action);
             println!("Pressed H");
             Some(LoopState::MakeDecisions)

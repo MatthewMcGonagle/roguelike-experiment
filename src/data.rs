@@ -43,7 +43,8 @@ pub enum Errors {
     SpaceAlreadyNonempty,
     UnexpectedlyEmpty,
     NotExpectingAiForUser,
-    SDL3Error(Error)
+    SDL3Error(Error),
+    Generic(String)
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -60,7 +61,7 @@ pub enum ComponentType {
     Health
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialOrd, PartialEq, Serialize)]
 pub struct Coordinates {
     pub x: usize,
     pub y: usize 
@@ -106,7 +107,8 @@ pub enum Ai {
     AlternateDirections(usize, Direction, Direction),
     AddAvailableSquare,
     KillOwner,
-    User
+    User,
+    Hunter
 }
 
 #[derive(Clone, Deserialize, Debug, PartialEq, Serialize)]
@@ -132,7 +134,7 @@ pub struct Render {
     pub color: ColorBuffer
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum AlignmentType {
     User,
     Neutral,
@@ -160,11 +162,32 @@ pub enum LoopState {
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub enum Direction {
-    Down,
-    Up,
-    Right,
-    Left
+pub enum Sign {
+    Positive,
+    Zero,
+    Negative
+}
+
+impl Sign {
+    pub fn as_i32(x: &Sign) -> i32 {
+        match x {
+            Sign::Positive => 1,
+            Sign::Zero => 0,
+            Sign::Negative => -1
+        }
+    }
+
+    pub fn from_i32(x: i32) -> Sign {
+        if x < 0 { Sign::Negative }
+        else if x > 0 { Sign::Positive }
+        else { Sign::Zero }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct Direction {
+    pub x: Sign,
+    pub y: Sign
 }
 
 pub enum Action {
